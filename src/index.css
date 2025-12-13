@@ -187,16 +187,21 @@ button {
 
 .list li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.5rem;
 }
 
-.list li span {
+.list li span:first-child {
   display: inline-block;
   width: 10px;
   height: 10px;
   background: var(--kaec-gold);
   border-radius: 50%;
+}
+
+.list li span:last-child {
+  flex: 1;
+  color: #e6ddc7;
 }
 
 .form {
