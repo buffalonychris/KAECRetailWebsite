@@ -1,0 +1,238 @@
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #f7f4ec;
+  background-color: #0c0b0b;
+  line-height: 1.6;
+  font-weight: 400;
+  --kaec-black: #0c0b0b;
+  --kaec-gold: #f5c042;
+  --kaec-amber: #f2a100;
+  --kaec-charcoal: #1a1a1a;
+  --kaec-sand: #f7f4ec;
+  --kaec-muted: #c8c0aa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--kaec-black);
+  color: var(--kaec-sand);
+}
+
+a {
+  color: var(--kaec-gold);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--kaec-amber);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+button {
+  font-family: inherit;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--kaec-gold), var(--kaec-amber));
+  color: #0c0b0b;
+  box-shadow: 0 10px 30px rgba(245, 192, 66, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(245, 192, 66, 0.24);
+}
+
+.btn-secondary {
+  border: 1px solid var(--kaec-gold);
+  background: transparent;
+  color: var(--kaec-gold);
+}
+
+.section {
+  padding: 4rem 0;
+}
+
+.section h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  color: #fff7e6;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: var(--kaec-charcoal);
+  border: 1px solid rgba(245, 192, 66, 0.15);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(245, 192, 66, 0.15);
+  color: var(--kaec-gold);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table th {
+  color: var(--kaec-gold);
+}
+
+.footer {
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 2rem 0;
+  font-size: 0.95rem;
+}
+
+.footer small {
+  color: var(--kaec-muted);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: var(--kaec-sand);
+  font-weight: 600;
+}
+
+.nav a.active {
+  color: var(--kaec-gold);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  align-items: center;
+  padding: 4rem 0;
+}
+
+.hero-card {
+  background: linear-gradient(145deg, rgba(245, 192, 66, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(245, 192, 66, 0.2);
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.list li span {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--kaec-gold);
+  border-radius: 50%;
+}
+
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+}
+
+.form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.form input,
+.form textarea,
+.form select {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--kaec-charcoal);
+  color: var(--kaec-sand);
+}
+
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
+  outline: 2px solid var(--kaec-gold);
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
