@@ -10,6 +10,7 @@ import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
+import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -18,6 +19,9 @@ const QuotePrint = () => {
   const location = useLocation();
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [hashCopied, setHashCopied] = useState(false);
+  const [priorHashCopied, setPriorHashCopied] = useState(false);
+  const [resumeCopied, setResumeCopied] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -108,9 +112,29 @@ const QuotePrint = () => {
   const quoteDate = formatQuoteDate(quote.generatedAt);
   const customerName = quote.customerName?.trim() || 'Customer';
   const quoteVersion = quote.quoteDocVersion ?? siteConfig.quoteDocVersion;
-  const displayedHash = quote.quoteHash ?? 'Pending';
-  const supersedes = quote.priorQuoteHash ?? 'None';
+  const displayedHash = shortenMiddle(quote.quoteHash);
+  const supersedes = shortenMiddle(quote.priorQuoteHash);
   const resumeUrl = buildResumeUrl(quote, 'agreement');
+
+  const handleCopyHash = async () => {
+    if (!quote?.quoteHash) return;
+    await copyToClipboard(quote.quoteHash);
+    setHashCopied(true);
+    setTimeout(() => setHashCopied(false), 2000);
+  };
+
+  const handleCopyPriorHash = async () => {
+    if (!quote?.priorQuoteHash) return;
+    await copyToClipboard(quote.priorQuoteHash);
+    setPriorHashCopied(true);
+    setTimeout(() => setPriorHashCopied(false), 2000);
+  };
+
+  const handleCopyResume = async () => {
+    await copyToClipboard(resumeUrl);
+    setResumeCopied(true);
+    setTimeout(() => setResumeCopied(false), 2000);
+  };
 
   return (
     <div className="print-page" style={{ padding: '3rem 0' }}>
@@ -124,15 +148,38 @@ const QuotePrint = () => {
             <div>Date: {quoteDate}</div>
             <div>Quote Ref: {reference}</div>
             <div>Quote Version: {quoteVersion}</div>
-            <div>Quote Hash: {displayedHash}</div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
+              {quote.quoteHash && (
+                <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                  {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
         <div style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: '#222' }}>
-          <div>Supersedes prior quote hash: {supersedes}</div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior quote hash: {supersedes}</span>
+            {quote.priorQuoteHash && (
+              <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+              </button>
+            )}
+          </div>
           <div>This quote supersedes all prior quotes for the same customer/property context.</div>
-          <div style={{ fontWeight: 700, color: '#000', marginTop: '0.5rem' }}>
-            Continue your order: {resumeUrl}
+          <div style={{ fontWeight: 700, color: '#000', marginTop: '0.5rem', display: 'grid', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span>Continue your order:</span>
+              <a href={resumeUrl} style={{ fontWeight: 800 }}>
+                Continue your order
+              </a>
+              <button type="button" className="btn btn-secondary" onClick={handleCopyResume}>
+                {resumeCopied ? 'Copied resume link' : 'Copy resume link'}
+              </button>
+            </div>
+            <small className="break-all" style={{ color: '#222' }}>{resumeUrl}</small>
           </div>
           <div style={{ color: '#111' }}>
             If you are viewing a saved PDF or email version, click the “Continue your order” link above to resume exactly where

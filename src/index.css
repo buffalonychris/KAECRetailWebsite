@@ -327,6 +327,15 @@ button {
   color: #e6ddc7;
 }
 
+.mono-text {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.break-all {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
 .print-page {
   background: #0c0b0b;
 }
