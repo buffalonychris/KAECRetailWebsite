@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { QuoteContext } from '../lib/agreement';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const Quote = () => {
+  const navigate = useNavigate();
   const [customerName, setCustomerName] = useState('');
   const [contact, setContact] = useState('');
   const [city, setCity] = useState('');
@@ -34,6 +37,26 @@ const Quote = () => {
   }, [selectedAddOns]);
 
   const total = selectedPackage.basePrice + addOnTotal;
+
+  const continueToAgreement = () => {
+    const payload: QuoteContext = {
+      customerName,
+      contact,
+      city,
+      homeType,
+      homeSize,
+      internetReliability: reliability,
+      packageId,
+      selectedAddOns,
+      pricing: {
+        packagePrice: selectedPackage.basePrice,
+        addOnTotal,
+        total,
+      },
+    };
+    localStorage.setItem('kaec-quote-context', JSON.stringify(payload));
+    navigate('/agreement', { state: { quoteContext: payload } });
+  };
 
   const printQuote = () => {
     window.print();
@@ -256,7 +279,10 @@ const Quote = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-primary" onClick={explainQuote}>
+          <button type="button" className="btn btn-primary" onClick={continueToAgreement}>
+            Continue to Agreement
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={explainQuote}>
             Explain this quote
           </button>
           <button
