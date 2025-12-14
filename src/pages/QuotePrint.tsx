@@ -8,6 +8,7 @@ import { getHardwareList, HardwareCategory } from '../data/hardware';
 import { FeatureCategory, getFeatureCategories } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
+import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
@@ -109,6 +110,7 @@ const QuotePrint = () => {
   const quoteVersion = quote.quoteDocVersion ?? siteConfig.quoteDocVersion;
   const displayedHash = quote.quoteHash ?? 'Pending';
   const supersedes = quote.priorQuoteHash ?? 'None';
+  const resumeUrl = buildResumeUrl(quote, 'agreement');
 
   return (
     <div className="print-page" style={{ padding: '3rem 0' }}>
@@ -129,6 +131,13 @@ const QuotePrint = () => {
         <div style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: '#222' }}>
           <div>Supersedes prior quote hash: {supersedes}</div>
           <div>This quote supersedes all prior quotes for the same customer/property context.</div>
+          <div style={{ fontWeight: 700, color: '#000', marginTop: '0.5rem' }}>
+            Continue your order: {resumeUrl}
+          </div>
+          <div style={{ color: '#111' }}>
+            If you are viewing a saved PDF or email version, click the “Continue your order” link above to resume exactly where
+            you left off.
+          </div>
         </div>
 
         <section className="print-section" style={{ marginTop: '1.5rem' }}>

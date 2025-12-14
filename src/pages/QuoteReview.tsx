@@ -8,6 +8,7 @@ import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
+import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
@@ -18,6 +19,7 @@ const QuoteReview = () => {
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,6 +44,8 @@ const QuoteReview = () => {
     () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
+
+  const resumeUrl = useMemo(() => (quote ? buildResumeUrl(quote, 'agreement') : ''), [quote]);
 
   const handleExplainQuote = async () => {
     if (!quote) return;
@@ -86,7 +90,7 @@ const QuoteReview = () => {
   const emailSubject = `KickAss Elder Care Quote – ${customerName} – ${quoteDate}`;
   const emailBodyText = `Hi ${customerName},\n\nHere’s your deterministic KickAss Elder Care quote generated on ${quoteDate}.\nTier: ${selectedPackage.name}\nTotal: ${formatCurrency(quote?.pricing.total ?? selectedPackage.basePrice)}\nAdd-ons: ${addOnSummary}\nHome: ${quote?.homeType || 'Not provided'} / ${quote?.homeSize || 'Not provided'} / Internet: ${
     quote?.internetReliability || 'Not provided'
-  }\nCity: ${quote?.city || 'Not provided'}\n\nReview or adjust at ${window.location.origin}/quote.\n\nThank you,\nKickAss Elder Care`;
+  }\nCity: ${quote?.city || 'Not provided'}\n\nContinue your order at ${resumeUrl}\nOpen the link to continue to the Agreement step.\n\nReview or adjust at ${window.location.origin}/quote.\n\nThank you,\nKickAss Elder Care`;
 
   const handleEmailQuote = () => {
     if (!quote) return;
@@ -99,6 +103,13 @@ const QuoteReview = () => {
     await navigator.clipboard.writeText(emailBodyText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyResumeLink = async () => {
+    if (!resumeUrl) return;
+    await navigator.clipboard.writeText(resumeUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   if (!quote) {
@@ -146,6 +157,21 @@ const QuoteReview = () => {
             </button>
           </div>
         </div>
+        {resumeUrl && (
+          <div style={{ display: 'grid', gap: '0.4rem' }}>
+            <strong>Resume Link</strong>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                style={{ flex: '1 1 320px', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+                readOnly
+                value={resumeUrl}
+              />
+              <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
+                {linkCopied ? 'Copied link' : 'Copy link'}
+              </button>
+            </div>
+          </div>
+        )}
         <div>
           <strong>Checklist</strong>
           <ul className="list" style={{ marginTop: '0.35rem' }}>
