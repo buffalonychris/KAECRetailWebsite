@@ -20,6 +20,7 @@ import Payment from './pages/Payment';
 import PaymentProcessing from './pages/PaymentProcessing';
 import Schedule from './pages/Schedule';
 import UAT from './pages/UAT';
+import Resume from './pages/Resume';
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
         <Route path="/payment" element={<Payment />} />
         <Route path="/payment-processing" element={<PaymentProcessing />} />
         <Route path="/schedule" element={<Schedule />} />
+        <Route path="/resume" element={<Resume />} />
         <Route path="/uat" element={<UAT />} />
       </Routes>
     </Layout>

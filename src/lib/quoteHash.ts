@@ -4,6 +4,7 @@ import { getFeatureCategories } from '../data/features';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from './agreement';
 import { buildQuoteReference } from './quoteUtils';
+import { ResumePayload, buildQuoteFromResumePayload } from './resumeToken';
 
 const deliverables = [
   '1-day installation crew of 2',
@@ -117,3 +118,15 @@ export const computeQuoteHash = async (quote: QuoteContext): Promise<string> => 
 export const quoteDeliverables = deliverables;
 export const quoteAssumptions = assumptionsList;
 export const quoteExclusions = exclusionsList;
+
+export const validateResumePayload = async (payload: ResumePayload): Promise<boolean> => {
+  if (!payload.quoteHash || !payload.tierKey) return false;
+  try {
+    const derived = buildQuoteFromResumePayload(payload);
+    const expectedHash = await computeQuoteHash(derived);
+    return expectedHash === payload.quoteHash;
+  } catch (error) {
+    console.error('Failed to validate resume payload', error);
+    return false;
+  }
+};
