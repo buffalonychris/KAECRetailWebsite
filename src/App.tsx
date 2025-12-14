@@ -13,6 +13,7 @@ import Terms from './pages/Terms';
 import Recommendation from './pages/Recommendation';
 import Quote from './pages/Quote';
 import QuoteReview from './pages/QuoteReview';
+import QuotePrint from './pages/QuotePrint';
 import Agreement from './pages/Agreement';
 import ESign from './pages/ESign';
 import Payment from './pages/Payment';
@@ -37,6 +38,7 @@ const App = () => {
         <Route path="/recommend" element={<Recommendation />} />
         <Route path="/quote" element={<Quote />} />
         <Route path="/quoteReview" element={<QuoteReview />} />
+        <Route path="/quotePrint" element={<QuotePrint />} />
         <Route path="/agreement" element={<Agreement />} />
         <Route path="/esign" element={<ESign />} />
         <Route path="/payment" element={<Payment />} />

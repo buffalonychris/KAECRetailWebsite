@@ -66,7 +66,9 @@ const Quote = () => {
   };
 
   const printQuote = () => {
-    window.print();
+    const saved = persistQuote();
+    updateRetailFlow({ quote: saved });
+    navigate('/quotePrint', { state: { autoPrint: true } });
   };
 
   const explainQuote = async () => {
@@ -119,7 +121,7 @@ const Quote = () => {
           >
             Generate Quote
           </button>
-          <button type="button" className="btn btn-primary" onClick={printQuote}>
+          <button type="button" className="btn btn-secondary" onClick={printQuote}>
             Print / Save PDF
           </button>
           <small style={{ color: '#c8c0aa' }}>

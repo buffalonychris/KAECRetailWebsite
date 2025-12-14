@@ -7,6 +7,7 @@ export type QuoteContext = {
   homeType?: string;
   homeSize?: string;
   internetReliability?: string;
+  generatedAt?: string;
   packageId: PackageTierId;
   selectedAddOns: string[];
   pricing: {

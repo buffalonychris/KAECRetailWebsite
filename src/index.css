@@ -221,11 +221,61 @@ button {
   .btn {
     display: none;
   }
+
+  .hide-when-print,
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-page,
+  main,
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .print-document {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    margin: 0;
+    padding: 1.5rem;
+  }
 }
 
 .list li span:last-child {
   flex: 1;
   color: #e6ddc7;
+}
+
+.print-page {
+  background: #0c0b0b;
+}
+
+.print-document {
+  max-width: 920px;
+  margin: 0 auto;
+  background: #ffffff;
+  color: #000000;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e0e0e0;
+}
+
+.print-section h2 {
+  margin-bottom: 0.4rem;
+}
+
+.print-list {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0 0;
+  color: #111;
+}
+
+.page-break {
+  page-break-before: always;
 }
 
 .form {

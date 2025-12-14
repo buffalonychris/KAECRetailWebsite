@@ -4,16 +4,48 @@ import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
+import { getHardwareList } from '../data/hardware';
+import { getFeatureCategories } from '../data/features';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+
+const formatDate = (isoDate?: string) => {
+  const date = isoDate ? new Date(isoDate) : new Date();
+  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10);
+  return date.toISOString().slice(0, 10);
+};
+
+const quoteReference = (quote: QuoteContext) => `KAEC-${quote.packageId}-${formatDate(quote.generatedAt).replace(/-/g, '')}`;
+
+const whatsIncluded = [
+  '1-day installation crew of 2',
+  'Onsite setup and configuration',
+  'Essential customer training',
+  'Complete test (certified) of all equipment post install',
+  '1-year replacement warranty for all equipment',
+];
+
+const assumptions = [
+  'Pricing is one-time for listed equipment, configuration, and training.',
+  'Existing Wi-Fi and power outlets are available where devices are installed.',
+  'Local-first design keeps automations running during internet outages when power is available.',
+];
+
+const exclusions = [
+  'No monthly monitoring fees are included or required.',
+  'Permitting, structural work, and trenching are out of scope.',
+  'Cellular data plans are only added if explicitly selected and available in-market.',
+];
 
 const QuoteReview = () => {
   const navigate = useNavigate();
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote(stored.quote);
@@ -30,9 +62,11 @@ const QuoteReview = () => {
     [quote]
   );
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const hardwareList = useMemo(() => (quote ? getHardwareList(quote.packageId, quote.selectedAddOns) : []), [quote]);
+  const featureCategories = useMemo(
+    () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
+    [quote]
+  );
 
   const handleExplainQuote = async () => {
     if (!quote) return;
@@ -61,18 +95,35 @@ const QuoteReview = () => {
     navigate('/agreement', { state: { quoteContext: quote } });
   };
 
+  const handlePrint = () => {
+    if (!quote) return;
+    updateRetailFlow({ quote });
+    navigate('/quotePrint', { state: { autoPrint: true } });
+  };
+
+  const quoteDate = quote ? formatDate(quote.generatedAt) : formatDate();
+  const customerName = quote?.customerName?.trim() || 'Customer';
+  const addOnSummary =
+    selectedAddOns.length === 0
+      ? 'None'
+      : selectedAddOns.map((item) => `${item.label} (${formatCurrency(item.price)})`).join(', ');
+
+  const emailSubject = `KickAss Elder Care Quote – ${customerName} – ${quoteDate}`;
+  const emailBodyText = `Hi ${customerName},\n\nHere’s your deterministic KickAss Elder Care quote generated on ${quoteDate}.\nTier: ${selectedPackage.name}\nTotal: ${formatCurrency(quote?.pricing.total ?? selectedPackage.basePrice)}\nAdd-ons: ${addOnSummary}\nHome: ${quote?.homeType || 'Not provided'} / ${quote?.homeSize || 'Not provided'} / Internet: ${
+    quote?.internetReliability || 'Not provided'
+  }\nCity: ${quote?.city || 'Not provided'}\n\nReview or adjust at ${window.location.origin}/quote.\n\nThank you,\nKickAss Elder Care`;
+
   const handleEmailQuote = () => {
     if (!quote) return;
     const recipient = quote.contact && quote.contact.includes('@') ? quote.contact : '';
-    const mailtoBody = encodeURIComponent(
-      `Tier: ${selectedPackage.name}\nTotal: ${formatCurrency(quote.pricing.total)}\nAdd-ons: ${
-        selectedAddOns.length ? selectedAddOns.map((item) => item.label).join(', ') : 'None'
-      }\nCity: ${quote.city || 'Not provided'}\nReturn to quote: ${window.location.origin}/quote`
-    );
-    const mailto = `mailto:${recipient}?subject=${encodeURIComponent(
-      'KickAss Elder Care Quote'
-    )}&body=${mailtoBody}`;
+    const mailto = `mailto:${recipient}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`;
     window.location.href = mailto;
+  };
+
+  const handleCopyEmail = async () => {
+    await navigator.clipboard.writeText(emailBodyText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!quote) {
@@ -92,58 +143,60 @@ const QuoteReview = () => {
     );
   }
 
+  const reference = quoteReference(quote);
+
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <div>
-            <div className="badge">Step 1</div>
-            <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote review</h1>
+            <div className="badge">Quote generated</div>
+            <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
             <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Confirm your deterministic quote before proceeding to the agreement and payment steps.
+              Confirm details, save a clean copy, email it to caregivers, or continue to agreement.
             </p>
           </div>
-          <button type="button" className="btn btn-primary" onClick={handlePrint}>
-            Print / Save PDF
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
+              Continue to Agreement
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+              Print / Save Quote
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleEmailQuote}>
+              Email Quote
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Quote reference</strong>
-          <ul className="list" style={{ marginTop: 0 }}>
+        <div>
+          <strong>Checklist</strong>
+          <ul className="list" style={{ marginTop: '0.35rem' }}>
             <li>
               <span />
-              <span>Tier: {selectedPackage.name}</span>
+              <span>Confirm property and contact details are correct.</span>
             </li>
             <li>
               <span />
-              <span>One-time total: {formatCurrency(quote.pricing.total)}</span>
+              <span>Print or save the professional quote PDF.</span>
             </li>
             <li>
               <span />
-              <span>
-                Add-ons: {selectedAddOns.length ? selectedAddOns.map((item) => item.label).join(', ') : 'None selected'}
-              </span>
+              <span>Email the summary to caregivers.</span>
             </li>
-            {(quote.customerName || quote.contact || quote.city) && (
-              <li>
-                <span />
-                <span>
-                  {quote.customerName && <span>Contact: {quote.customerName}. </span>}
-                  {quote.contact && <span>Reach: {quote.contact}. </span>}
-                  {quote.city && <span>City: {quote.city}. </span>}
-                </span>
-              </li>
-            )}
+            <li>
+              <span />
+              <span>Continue to Agreement to finalize.</span>
+            </li>
           </ul>
         </div>
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div className="badge">Quote summary</div>
+            <div className="badge">Quote reference</div>
             <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>{selectedPackage.summary}</p>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#c8c0aa', fontSize: '0.95rem' }}>One-time estimate</div>
@@ -157,8 +210,8 @@ const QuoteReview = () => {
         <div style={{ display: 'grid', gap: '0.25rem', color: '#e6ddc7' }}>
           <strong>Property context</strong>
           <small>
-            Home type: {quote.homeType?.replace('-', ' ') || 'Not provided'} • Size: {quote.homeSize || 'Not provided'} •
-            Internet reliability: {quote.internetReliability || 'Not provided'}
+            Home type: {quote.homeType?.replace('-', ' ') || 'Not provided'} • Size: {quote.homeSize || 'Not provided'} • Internet
+            reliability: {quote.internetReliability || 'Not provided'}
           </small>
           {(quote.customerName || quote.contact || quote.city) && (
             <small>
@@ -203,7 +256,10 @@ const QuoteReview = () => {
             Explain this quote
           </button>
           <button type="button" className="btn btn-secondary" onClick={handleEmailQuote}>
-            Email quote
+            Email Quote
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={handleCopyEmail}>
+            {copied ? 'Copied email text' : 'Copy email text'}
           </button>
           <button type="button" className="btn btn-secondary" onClick={handlePrint}>
             Print / Save Quote
@@ -212,6 +268,82 @@ const QuoteReview = () => {
             Advisory narrative only; if there is an urgent safety issue, call 911.
           </small>
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">What’s included</div>
+        <ul className="list" style={{ marginTop: '0.35rem' }}>
+          {whatsIncluded.map((item) => (
+            <li key={item}>
+              <span />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Hardware (deterministic)</div>
+        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          {hardwareList.map((category) => (
+            <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>{category.title}</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {category.items.map((item) => (
+                  <li key={item.name}>
+                    <span />
+                    <span>
+                      {item.name} — qty {item.quantity}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Feature coverage</div>
+        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          {featureCategories.map((category) => (
+            <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>{category.title}</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {category.items.map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
+        <strong>Assumptions</strong>
+        <ul className="list" style={{ marginTop: 0 }}>
+          {assumptions.map((item) => (
+            <li key={item}>
+              <span />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
+        <strong>Exclusions</strong>
+        <ul className="list" style={{ marginTop: 0 }}>
+          {exclusions.map((item) => (
+            <li key={item}>
+              <span />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
