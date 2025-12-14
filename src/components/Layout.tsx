@@ -16,7 +16,7 @@ const links = [
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <header>
+      <header className="hide-when-print">
         <div className="container nav">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
@@ -58,7 +58,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
       <main>{children}</main>
-      <footer className="footer">
+      <footer className="footer hide-when-print">
         <div className="container" style={{ display: 'grid', gap: '0.75rem' }}>
           <div style={{ fontWeight: 700, color: '#fff7e6' }}>Sitewide notices</div>
           <small>
