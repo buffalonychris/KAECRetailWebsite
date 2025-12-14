@@ -23,6 +23,85 @@ body {
   color: var(--kaec-sand);
 }
 
+.kaec-doc {
+  font-family: 'Times New Roman', Georgia, 'Times', serif;
+  color: #111111;
+  background: #ffffff;
+  line-height: 1.7;
+}
+
+.kaec-doc h1,
+.kaec-doc h2,
+.kaec-doc h3,
+.kaec-doc h4 {
+  margin-top: 0;
+  color: #000000;
+  letter-spacing: 0.01em;
+}
+
+.kaec-doc h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.kaec-doc h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.kaec-doc h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.kaec-doc p,
+.kaec-doc li,
+.kaec-doc small,
+.kaec-doc strong {
+  color: #111111;
+}
+
+.kaec-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+}
+
+.kaec-doc th,
+.kaec-doc td {
+  border: 1px solid #000000;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+}
+
+.kaec-doc .card,
+.kaec-doc .hero-card,
+.kaec-doc .print-document {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  box-shadow: none;
+}
+
+.kaec-doc .badge {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.kaec-doc .print-list,
+.kaec-doc .list {
+  color: #111111;
+}
+
+.kaec-doc .page-break,
+.page-break {
+  page-break-before: always;
+}
+
+@page {
+  margin: 1in;
+}
+
 a {
   color: var(--kaec-gold);
   text-decoration: none;

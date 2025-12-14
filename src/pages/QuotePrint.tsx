@@ -6,36 +6,11 @@ import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow } from '../lib/retailFlow';
 import { getHardwareList, HardwareCategory } from '../data/hardware';
 import { FeatureCategory, getFeatureCategories } from '../data/features';
+import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
+import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
+import { siteConfig } from '../config/site';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
-
-const formatDate = (isoDate?: string) => {
-  const date = isoDate ? new Date(isoDate) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10);
-  return date.toISOString().slice(0, 10);
-};
-
-const quoteReference = (quote: QuoteContext) => `KAEC-${quote.packageId}-${formatDate(quote.generatedAt).replace(/-/g, '')}`;
-
-const whatsIncluded = [
-  '1-day installation crew of 2',
-  'Onsite setup and configuration',
-  'Essential customer training',
-  'Complete test (certified) of all equipment post install',
-  '1-year replacement warranty for all equipment',
-];
-
-const assumptions = [
-  'Pricing is one-time for listed equipment, configuration, and training.',
-  'Existing Wi-Fi and power outlets are available where devices are installed.',
-  'Local-first design keeps automations running during internet outages when power is available.',
-];
-
-const exclusions = [
-  'No monthly monitoring fees are included or required.',
-  'Permitting, structural work, and trenching are out of scope.',
-  'Cellular data plans are only added if explicitly selected and available in-market.',
-];
 
 const QuotePrint = () => {
   const navigate = useNavigate();
@@ -95,7 +70,7 @@ const QuotePrint = () => {
     if (!quote) return;
     const originalTitle = document.title;
     const name = quote.customerName?.trim() || 'Customer';
-    const date = formatDate(quote.generatedAt);
+    const date = formatQuoteDate(quote.generatedAt);
     const shouldAutoPrint = (location.state as { autoPrint?: boolean } | null)?.autoPrint ?? true;
     if (!shouldAutoPrint) return undefined;
 
@@ -128,13 +103,16 @@ const QuotePrint = () => {
     );
   }
 
-  const reference = quoteReference(quote);
-  const quoteDate = formatDate(quote.generatedAt);
+  const reference = buildQuoteReference(quote);
+  const quoteDate = formatQuoteDate(quote.generatedAt);
   const customerName = quote.customerName?.trim() || 'Customer';
+  const quoteVersion = quote.quoteDocVersion ?? siteConfig.quoteDocVersion;
+  const displayedHash = quote.quoteHash ?? 'Pending';
+  const supersedes = quote.priorQuoteHash ?? 'None';
 
   return (
     <div className="print-page" style={{ padding: '3rem 0' }}>
-      <div className="print-document" role="document">
+      <div className="print-document kaec-doc" role="document">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.4rem' }}>KickAss Elder Care (KAEC)</div>
@@ -143,8 +121,15 @@ const QuotePrint = () => {
           <div style={{ textAlign: 'right', fontSize: '0.95rem' }}>
             <div>Date: {quoteDate}</div>
             <div>Quote Ref: {reference}</div>
+            <div>Quote Version: {quoteVersion}</div>
+            <div>Quote Hash: {displayedHash}</div>
           </div>
         </header>
+
+        <div style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: '#222' }}>
+          <div>Supersedes prior quote hash: {supersedes}</div>
+          <div>This quote supersedes all prior quotes for the same customer/property context.</div>
+        </div>
 
         <section className="print-section" style={{ marginTop: '1.5rem' }}>
           <h2>Customer & Property</h2>
@@ -209,7 +194,7 @@ const QuotePrint = () => {
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>What’s Included</h2>
           <ul className="print-list">
-            {whatsIncluded.map((item) => (
+            {quoteDeliverables.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -256,7 +241,7 @@ const QuotePrint = () => {
             <div>
               <strong>Assumptions</strong>
               <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                {assumptions.map((item) => (
+                {quoteAssumptions.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -264,7 +249,7 @@ const QuotePrint = () => {
             <div>
               <strong>Exclusions</strong>
               <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                {exclusions.map((item) => (
+                {quoteExclusions.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>

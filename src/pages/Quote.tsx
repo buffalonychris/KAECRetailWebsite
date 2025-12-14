@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
 import { QuoteContext } from '../lib/agreement';
-import { updateRetailFlow } from '../lib/retailFlow';
+import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
+import { computeQuoteHash } from '../lib/quoteHash';
+import { siteConfig } from '../config/site';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -39,7 +41,7 @@ const Quote = () => {
 
   const total = selectedPackage.basePrice + addOnTotal;
 
-  const persistQuote = () => {
+  const persistQuote = async () => {
     const payload: QuoteContext = {
       customerName,
       contact,
@@ -54,19 +56,26 @@ const Quote = () => {
         addOnTotal,
         total,
       },
+      quoteDocVersion: siteConfig.quoteDocVersion,
+      quoteHashAlgorithm: siteConfig.quoteHashAlgorithm,
     };
-    const enrichedQuote = { ...payload, generatedAt: new Date().toISOString() } as QuoteContext;
-    updateRetailFlow({ quote: enrichedQuote });
-    return enrichedQuote;
+    const enrichedQuote: QuoteContext = { ...payload, generatedAt: new Date().toISOString() };
+    const existing = loadRetailFlow();
+    const previousHash = existing.quote?.quoteHash;
+    const quoteWithPrior = previousHash ? { ...enrichedQuote, priorQuoteHash: previousHash } : enrichedQuote;
+    const quoteHash = await computeQuoteHash(quoteWithPrior);
+    const nextQuote = { ...quoteWithPrior, quoteHash };
+    updateRetailFlow({ quote: nextQuote });
+    return nextQuote;
   };
 
-  const generateQuote = () => {
-    persistQuote();
+  const generateQuote = async () => {
+    await persistQuote();
     navigate('/quoteReview');
   };
 
-  const printQuote = () => {
-    const saved = persistQuote();
+  const printQuote = async () => {
+    const saved = await persistQuote();
     updateRetailFlow({ quote: saved });
     navigate('/quotePrint', { state: { autoPrint: true } });
   };

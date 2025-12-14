@@ -1,4 +1,8 @@
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { getHardwareList } from '../data/hardware';
+import { getFeatureCategories } from '../data/features';
+import { siteConfig } from '../config/site';
+import { buildQuoteReference } from './quoteUtils';
 
 export type QuoteContext = {
   customerName?: string;
@@ -15,6 +19,10 @@ export type QuoteContext = {
     addOnTotal: number;
     total: number;
   };
+  quoteHash?: string;
+  priorQuoteHash?: string;
+  quoteDocVersion?: string;
+  quoteHashAlgorithm?: string;
 };
 
 export type AgreementContent = {
@@ -38,6 +46,19 @@ export type AgreementContent = {
   noMonthlyStatement: string;
   termsVersion: string;
   terms: string[];
+  quoteBinding: {
+    reference: string;
+    quoteVersion: string;
+    quoteHash?: string;
+    priorQuoteHash?: string;
+    total: string;
+  };
+  quoteAppendix: {
+    packageName: string;
+    addOnLabels: string[];
+    hardwareSummary: string[];
+    featureSummary: string[];
+  };
 };
 
 const packageScope: Record<PackageTierId, string[]> = {
@@ -105,6 +126,8 @@ const defaultQuote = (): QuoteContext => ({
     addOnTotal: 0,
     total: packagePricing.find((pkg) => pkg.id === 'A2')?.basePrice ?? 0,
   },
+  quoteDocVersion: siteConfig.quoteDocVersion,
+  quoteHashAlgorithm: siteConfig.quoteHashAlgorithm,
 });
 
 export const generateAgreement = (input?: QuoteContext): AgreementContent => {
@@ -113,11 +136,19 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
   const addOnLabels = addOns
     .filter((addOn) => context.selectedAddOns.includes(addOn.id))
     .map((addOn) => addOn.label);
+  const hardwareSummary = getHardwareList(context.packageId, context.selectedAddOns)
+    .sort((a, b) => a.title.localeCompare(b.title))
+    .map((category) => `${category.title}: ${category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}`);
+  const featureSummary = getFeatureCategories(context.packageId, context.selectedAddOns)
+    .sort((a, b) => a.title.localeCompare(b.title))
+    .map((category) => `${category.title}: ${category.items.slice().sort().join('; ')}`);
+  const quoteVersion = context.quoteDocVersion ?? siteConfig.quoteDocVersion;
+  const quoteReference = buildQuoteReference({ ...context, generatedAt: context.generatedAt });
 
   return {
     header: {
       title: 'KickAss Elder Care — Combined Agreement',
-      version: 'v1.0',
+      version: quoteVersion,
       generatedDate: new Date().toISOString().slice(0, 10),
     },
     customerSummary: [
@@ -144,6 +175,19 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
     noMonthlyStatement: 'Pricing is one-time for listed equipment, configuration, and training. No monthly subscriptions are required.',
     termsVersion: 'v1.0',
     terms,
+    quoteBinding: {
+      reference: quoteReference,
+      quoteVersion,
+      quoteHash: context.quoteHash,
+      priorQuoteHash: context.priorQuoteHash,
+      total: currency(context.pricing.total),
+    },
+    quoteAppendix: {
+      packageName: `${packageInfo.name} (${currency(packageInfo.basePrice)})`,
+      addOnLabels: addOnLabels.length ? addOnLabels : ['No add-ons selected'],
+      hardwareSummary,
+      featureSummary,
+    },
   };
 };
 
