@@ -1,0 +1,307 @@
+import { useMemo, useState } from 'react';
+import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+
+const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+
+const Quote = () => {
+  const [customerName, setCustomerName] = useState('');
+  const [contact, setContact] = useState('');
+  const [city, setCity] = useState('');
+  const [homeType, setHomeType] = useState('single-family');
+  const [homeSize, setHomeSize] = useState('medium');
+  const [reliability, setReliability] = useState('good');
+  const [packageId, setPackageId] = useState<PackageTierId>('A2');
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+
+  const selectedPackage = useMemo(
+    () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],
+    [packageId]
+  );
+
+  const toggleAddOn = (id: string) => {
+    setSelectedAddOns((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const addOnTotal = useMemo(() => {
+    return addOns
+      .filter((addOn) => selectedAddOns.includes(addOn.id))
+      .reduce((sum, addOn) => sum + addOn.price, 0);
+  }, [selectedAddOns]);
+
+  const total = selectedPackage.basePrice + addOnTotal;
+
+  const printQuote = () => {
+    window.print();
+  };
+
+  return (
+    <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Deterministic quote</div>
+        <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a KickAss quote</h1>
+        <p style={{ margin: 0, color: '#e6ddc7' }}>
+          Capture the basics, pick a package, and see an upfront one-time estimate. Pricing uses a
+          fixed table—no AI, no monthly subscriptions required.
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn-primary" onClick={printQuote}>
+            Print / Save PDF
+          </button>
+          <small style={{ color: '#c8c0aa' }}>
+            Direct navigation safe: /quote works online or offline cache.
+          </small>
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <div className="badge">Customer basics</div>
+          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            <label style={{ display: 'grid', gap: '0.35rem' }}>
+              <span>Customer name (optional)</span>
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Jane Caregiver"
+                style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+              />
+            </label>
+            <label style={{ display: 'grid', gap: '0.35rem' }}>
+              <span>Email or phone (optional)</span>
+              <input
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                placeholder="care@kickassfamily.com"
+                style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+              />
+            </label>
+            <label style={{ display: 'grid', gap: '0.35rem' }}>
+              <span>City (optional)</span>
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Oakland, CA"
+                style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+          <label style={{ display: 'grid', gap: '0.35rem' }}>
+            <span>Home type</span>
+            <select
+              value={homeType}
+              onChange={(e) => setHomeType(e.target.value)}
+              style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+            >
+              <option value="single-family">Single family</option>
+              <option value="apartment">Apartment</option>
+              <option value="condo">Condo</option>
+            </select>
+          </label>
+          <label style={{ display: 'grid', gap: '0.35rem' }}>
+            <span>Home size</span>
+            <select
+              value={homeSize}
+              onChange={(e) => setHomeSize(e.target.value)}
+              style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+            >
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </label>
+          <label style={{ display: 'grid', gap: '0.35rem' }}>
+            <span>Internet reliability</span>
+            <select
+              value={reliability}
+              onChange={(e) => setReliability(e.target.value)}
+              style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+            >
+              <option value="good">Good</option>
+              <option value="spotty">Spotty</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+        </div>
+
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <div>
+            <div className="badge">Package selection</div>
+            <p style={{ margin: '0.35rem 0', color: '#c8c0aa' }}>
+              Deterministic pricing pulls from the table below. Pick a tier and any add-ons to tune
+              the scope.
+            </p>
+          </div>
+          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            {packagePricing.map((pkg) => {
+              const isSelected = pkg.id === packageId;
+              return (
+                <button
+                  key={pkg.id}
+                  type="button"
+                  onClick={() => setPackageId(pkg.id)}
+                  style={{
+                    display: 'grid',
+                    gap: '0.35rem',
+                    textAlign: 'left',
+                    borderRadius: '14px',
+                    border: isSelected ? '1px solid var(--kaec-gold)' : '1px solid rgba(245, 192, 66, 0.25)',
+                    background: isSelected ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
+                    padding: '1rem',
+                    cursor: 'pointer',
+                    color: '#fff7e6',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <strong>{pkg.name}</strong>
+                    <span style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(pkg.basePrice)}</span>
+                  </div>
+                  <small style={{ color: '#c8c0aa' }}>{pkg.summary}</small>
+                  <span style={{ fontSize: '0.9rem', color: '#c8c0aa' }}>One-time price</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <div className="badge">Optional add-ons</div>
+          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            {addOns.map((addOn) => {
+              const checked = selectedAddOns.includes(addOn.id);
+              return (
+                <label
+                  key={addOn.id}
+                  style={{
+                    display: 'grid',
+                    gap: '0.35rem',
+                    padding: '1rem',
+                    borderRadius: '14px',
+                    border: checked ? '1px solid var(--kaec-gold)' : '1px solid rgba(245, 192, 66, 0.25)',
+                    background: checked ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleAddOn(addOn.id)}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <div>
+                      <strong>{addOn.label}</strong>
+                      <div style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(addOn.price)}</div>
+                    </div>
+                  </div>
+                  <small style={{ color: '#c8c0aa' }}>{addOn.description}</small>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <div>
+            <div className="badge">Quote summary</div>
+            <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>{selectedPackage.summary}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ color: '#c8c0aa', fontSize: '0.95rem' }}>One-time estimate</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--kaec-gold)' }}>{formatCurrency(total)}</div>
+            <small style={{ color: '#c8c0aa' }}>No monthly subscriptions required.</small>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.25rem', color: '#e6ddc7' }}>
+          <strong>Property context</strong>
+          <small>
+            Home type: {homeType.replace('-', ' ')} • Size: {homeSize} • Internet reliability: {reliability}
+          </small>
+          {(customerName || contact || city) && (
+            <small>
+              {customerName && <span>Contact: {customerName}. </span>}
+              {contact && <span>Reach: {contact}. </span>}
+              {city && <span>City: {city}.</span>}
+            </small>
+          )}
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Included in selection</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            <li>
+              <span />
+              <span>
+                Package: {selectedPackage.name} ({formatCurrency(selectedPackage.basePrice)})
+              </span>
+            </li>
+            {selectedAddOns.length === 0 && (
+              <li>
+                <span />
+                <span>No add-ons selected.</span>
+              </li>
+            )}
+            {selectedAddOns.map((id) => {
+              const addOn = addOns.find((item) => item.id === id);
+              if (!addOn) return null;
+              return (
+                <li key={addOn.id}>
+                  <span />
+                  <span>
+                    {addOn.label} ({formatCurrency(addOn.price)})
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Assumptions</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            <li>
+              <span />
+              <span>Pricing is one-time for listed equipment, configuration, and training.</span>
+            </li>
+            <li>
+              <span />
+              <span>Existing Wi-Fi and power outlets are available where devices are installed.</span>
+            </li>
+            <li>
+              <span />
+              <span>Local-first design keeps automations running during internet outages when power is available.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Exclusions</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            <li>
+              <span />
+              <span>No monthly monitoring fees are included or required.</span>
+            </li>
+            <li>
+              <span />
+              <span>Permitting, structural work, and trenching are out of scope.</span>
+            </li>
+            <li>
+              <span />
+              <span>Cellular data plans are only added if explicitly selected and available in-market.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Quote;

@@ -11,6 +11,7 @@ import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Recommendation from './pages/Recommendation';
+import Quote from './pages/Quote';
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/recommend" element={<Recommendation />} />
+        <Route path="/quote" element={<Quote />} />
       </Routes>
     </Layout>
   );
