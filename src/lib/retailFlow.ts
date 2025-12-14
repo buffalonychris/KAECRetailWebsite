@@ -7,6 +7,9 @@ export type AcceptanceRecord = {
   fullName?: string;
   acceptanceDate?: string;
   recordedAt?: string;
+  agreementVersion?: string;
+  agreementHash?: string;
+  supersedesAgreementHash?: string;
 };
 
 export type ScheduleRequest = {

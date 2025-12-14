@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { generateAgreement, QuoteContext } from '../lib/agreement';
-import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
+import { computeAgreementHash } from '../lib/agreementHash';
+import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
+import { loadRetailFlow, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
+import { buildResumeUrl } from '../lib/resumeToken';
+import { siteConfig } from '../config/site';
 
 const Agreement = () => {
   const navigate = useNavigate();
@@ -9,37 +13,77 @@ const Agreement = () => {
   const locationQuote = (location.state as { quoteContext?: QuoteContext } | undefined)?.quoteContext;
   const redirectMessage = (location.state as { message?: string } | undefined)?.message;
   const [quoteContext, setQuoteContext] = useState<QuoteContext | null>(null);
+  const [storedAcceptance, setStoredAcceptance] = useState<AcceptanceRecord | null>(null);
   const [acceptChecked, setAcceptChecked] = useState(false);
   const [fullName, setFullName] = useState('');
   const [acceptanceDate, setAcceptanceDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [agreementHash, setAgreementHash] = useState('');
+  const [hashCopied, setHashCopied] = useState(false);
+  const [priorHashCopied, setPriorHashCopied] = useState(false);
+  const [quoteHashCopied, setQuoteHashCopied] = useState(false);
+  const [priorQuoteHashCopied, setPriorQuoteHashCopied] = useState(false);
+  const [resumeCopied, setResumeCopied] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (locationQuote) {
       setQuoteContext(locationQuote);
       updateRetailFlow({ quote: locationQuote });
-      return;
     }
 
     const storedFlow = loadRetailFlow();
     if (storedFlow.quote) {
-      setQuoteContext(storedFlow.quote);
+      setQuoteContext((current) => current ?? storedFlow.quote!);
+    }
+    if (storedFlow.agreementAcceptance) {
+      setStoredAcceptance(storedFlow.agreementAcceptance);
+      if (storedFlow.agreementAcceptance.fullName) {
+        setFullName(storedFlow.agreementAcceptance.fullName);
+      }
+      if (storedFlow.agreementAcceptance.acceptanceDate) {
+        setAcceptanceDate(storedFlow.agreementAcceptance.acceptanceDate);
+      }
     }
   }, [locationQuote]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      const hash = await computeAgreementHash(quoteContext, { accepted: acceptChecked, fullName, acceptanceDate });
+      if (isMounted) {
+        setAgreementHash(hash);
+      }
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [quoteContext, acceptChecked, fullName, acceptanceDate]);
 
   const agreement = useMemo(() => generateAgreement(quoteContext ?? undefined), [quoteContext]);
 
   const handlePrint = () => {
-    window.print();
+    navigate('/agreementPrint', { state: { autoPrint: true } });
   };
 
   const persistAcceptance = () => {
+    const priorAgreementHash = storedAcceptance?.agreementHash;
+    const nextAcceptance: AcceptanceRecord = {
+      accepted: true,
+      fullName,
+      acceptanceDate,
+      recordedAt: new Date().toISOString(),
+      agreementVersion: siteConfig.agreementDocVersion,
+      agreementHash,
+      supersedesAgreementHash: priorAgreementHash ?? storedAcceptance?.supersedesAgreementHash,
+    };
+    setStoredAcceptance(nextAcceptance);
     updateRetailFlow({
-      agreementAcceptance: {
-        accepted: true,
-        fullName,
-        acceptanceDate,
-        recordedAt: new Date().toISOString(),
-      },
+      agreementAcceptance: nextAcceptance,
     });
   };
 
@@ -51,6 +95,49 @@ const Agreement = () => {
   const handleProceedToPayment = () => {
     persistAcceptance();
     navigate('/payment', { state: { quoteContext } });
+  };
+
+  const agreementVersion = siteConfig.agreementDocVersion;
+  const agreementHashDisplay = shortenMiddle(agreementHash);
+  const supersedesAgreement = shortenMiddle(storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash);
+  const quoteHashDisplay = shortenMiddle(agreement.quoteBinding.quoteHash);
+  const priorQuoteHashDisplay = shortenMiddle(agreement.quoteBinding.priorQuoteHash);
+  const resumeUrl = quoteContext ? buildResumeUrl(quoteContext, 'agreement') : '';
+
+  const handleCopyHash = async () => {
+    if (!agreementHash) return;
+    await copyToClipboard(agreementHash);
+    setHashCopied(true);
+    setTimeout(() => setHashCopied(false), 2000);
+  };
+
+  const handleCopyPriorHash = async () => {
+    const prior = storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash;
+    if (!prior) return;
+    await copyToClipboard(prior);
+    setPriorHashCopied(true);
+    setTimeout(() => setPriorHashCopied(false), 2000);
+  };
+
+  const handleCopyQuoteHash = async () => {
+    if (!agreement.quoteBinding.quoteHash) return;
+    await copyToClipboard(agreement.quoteBinding.quoteHash);
+    setQuoteHashCopied(true);
+    setTimeout(() => setQuoteHashCopied(false), 2000);
+  };
+
+  const handleCopyPriorQuoteHash = async () => {
+    if (!agreement.quoteBinding.priorQuoteHash) return;
+    await copyToClipboard(agreement.quoteBinding.priorQuoteHash);
+    setPriorQuoteHashCopied(true);
+    setTimeout(() => setPriorQuoteHashCopied(false), 2000);
+  };
+
+  const handleCopyResume = async () => {
+    if (!resumeUrl) return;
+    await copyToClipboard(resumeUrl);
+    setResumeCopied(true);
+    setTimeout(() => setResumeCopied(false), 2000);
   };
 
   return (
@@ -69,7 +156,7 @@ const Agreement = () => {
               Statement of Work + Terms & Conditions generated directly from your deterministic quote.
             </p>
             <small style={{ color: '#c8c0aa' }}>
-              Agreement Version: {agreement.header.version} — {agreement.header.generatedDate}
+              Agreement Version: {agreementVersion} — {agreement.header.generatedDate}
             </small>
           </div>
           <button type="button" className="btn btn-primary" onClick={handlePrint}>
@@ -117,13 +204,77 @@ const Agreement = () => {
             </li>
             <li>
               <span />
-              <span>Quote Hash: {agreement.quoteBinding.quoteHash ?? 'Pending'}</span>
+              <span>
+                Quote Hash: <span className="mono-text">{quoteHashDisplay}</span>{' '}
+                {agreement.quoteBinding.quoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyQuoteHash}>
+                    {quoteHashCopied ? 'Copied full hash' : 'Copy full hash'}
+                  </button>
+                )}
+              </span>
             </li>
             <li>
               <span />
-              <span>Supersedes prior hash: {agreement.quoteBinding.priorQuoteHash ?? 'None'}</span>
+              <span>
+                Supersedes prior quote hash: <span className="mono-text">{priorQuoteHashDisplay}</span>{' '}
+                {agreement.quoteBinding.priorQuoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorQuoteHash}>
+                    {priorQuoteHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                  </button>
+                )}
+              </span>
             </li>
           </ul>
+        </div>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Agreement binding</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            <li>
+              <span />
+              <span>Agreement Version: {agreementVersion}</span>
+            </li>
+            <li>
+              <span />
+              <span>
+                Agreement Hash: <span className="mono-text">{agreementHashDisplay}</span>{' '}
+                {agreementHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                  </button>
+                )}
+              </span>
+            </li>
+            <li>
+              <span />
+              <span>
+                Supersedes prior agreement hash: <span className="mono-text">{supersedesAgreement}</span>{' '}
+                {supersedesAgreement !== 'None' && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                  </button>
+                )}
+              </span>
+            </li>
+          </ul>
+          <small style={{ color: '#c8c0aa' }}>
+            This agreement supersedes all prior agreements for the same customer/property context.
+          </small>
+        </div>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Continue your order</strong>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <a href={resumeUrl || '#'} style={{ fontWeight: 800 }}>
+              Continue your order
+            </a>
+            <button type="button" className="btn btn-secondary" onClick={handleCopyResume} disabled={!resumeUrl}>
+              {resumeCopied ? 'Copied resume link' : 'Copy resume link'}
+            </button>
+          </div>
+          {resumeUrl && (
+            <small className="break-all" style={{ color: '#c8c0aa' }}>
+              {resumeUrl}
+            </small>
+          )}
         </div>
       </div>
 

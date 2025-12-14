@@ -143,12 +143,13 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
     .sort((a, b) => a.title.localeCompare(b.title))
     .map((category) => `${category.title}: ${category.items.slice().sort().join('; ')}`);
   const quoteVersion = context.quoteDocVersion ?? siteConfig.quoteDocVersion;
+  const agreementVersion = siteConfig.agreementDocVersion;
   const quoteReference = buildQuoteReference({ ...context, generatedAt: context.generatedAt });
 
   return {
     header: {
       title: 'KickAss Elder Care — Combined Agreement',
-      version: quoteVersion,
+      version: agreementVersion,
       generatedDate: new Date().toISOString().slice(0, 10),
     },
     customerSummary: [
