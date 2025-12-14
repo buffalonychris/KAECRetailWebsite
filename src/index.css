@@ -199,6 +199,30 @@ button {
   border-radius: 50%;
 }
 
+@media print {
+  :root,
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .card,
+  .hero-card {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #000000 !important;
+    box-shadow: none;
+  }
+
+  .btn {
+    display: none;
+  }
+}
+
 .list li span:last-child {
   flex: 1;
   color: #e6ddc7;

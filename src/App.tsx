@@ -12,6 +12,8 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Recommendation from './pages/Recommendation';
 import Quote from './pages/Quote';
+import Agreement from './pages/Agreement';
+import ESign from './pages/ESign';
 
 const App = () => {
   return (
@@ -29,6 +31,8 @@ const App = () => {
         <Route path="/terms" element={<Terms />} />
         <Route path="/recommend" element={<Recommendation />} />
         <Route path="/quote" element={<Quote />} />
+        <Route path="/agreement" element={<Agreement />} />
+        <Route path="/esign" element={<ESign />} />
       </Routes>
     </Layout>
   );
