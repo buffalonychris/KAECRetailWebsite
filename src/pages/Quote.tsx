@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
 import { QuoteContext } from '../lib/agreement';
+import { updateRetailFlow } from '../lib/retailFlow';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -54,7 +55,7 @@ const Quote = () => {
         total,
       },
     };
-    localStorage.setItem('kaec-quote-context', JSON.stringify(payload));
+    updateRetailFlow({ quote: payload });
     navigate('/agreement', { state: { quoteContext: payload } });
   };
 

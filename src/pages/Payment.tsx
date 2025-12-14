@@ -2,15 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from '../lib/agreement';
-
-type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
-
-type AcceptanceRecord = {
-  accepted: boolean;
-  fullName?: string;
-  acceptanceDate?: string;
-  recordedAt?: string;
-};
+import { loadRetailFlow, PaymentStatus, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
 
 const calculateDepositDue = (total: number) => {
   const { depositPolicy } = siteConfig;
@@ -32,8 +24,8 @@ const Payment = () => {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('kaec-agreement-acceptance');
-      const parsed: AcceptanceRecord | null = stored ? JSON.parse(stored) : null;
+      const flow = loadRetailFlow();
+      const parsed = flow.agreementAcceptance;
       if (!parsed?.accepted) {
         navigate('/agreement', {
           state: {
@@ -53,17 +45,13 @@ const Payment = () => {
 
   useEffect(() => {
     if (!accessGranted) return;
-    const storedQuote = localStorage.getItem('kaec-quote-context');
-    if (storedQuote) {
-      setQuoteContext(JSON.parse(storedQuote));
+    const flow = loadRetailFlow();
+    if (flow.quote) {
+      setQuoteContext(flow.quote);
     }
 
-    const storedPayment = localStorage.getItem('kaec-payment-status');
-    if (storedPayment) {
-      const parsed = JSON.parse(storedPayment) as { depositStatus?: PaymentStatus };
-      if (parsed.depositStatus) {
-        setDepositStatus(parsed.depositStatus);
-      }
+    if (flow.payment?.depositStatus) {
+      setDepositStatus(flow.payment.depositStatus);
     }
   }, [accessGranted]);
 
@@ -73,7 +61,7 @@ const Payment = () => {
 
   const handleSimulate = (status: PaymentStatus) => {
     setDepositStatus(status);
-    localStorage.setItem('kaec-payment-status', JSON.stringify({ depositStatus: status }));
+    updateRetailFlow({ payment: { depositStatus: status } });
   };
 
   const handlePrint = () => {
