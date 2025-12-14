@@ -6,6 +6,7 @@ const Agreement = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const locationQuote = (location.state as { quoteContext?: QuoteContext } | undefined)?.quoteContext;
+  const redirectMessage = (location.state as { message?: string } | undefined)?.message;
   const [quoteContext, setQuoteContext] = useState<QuoteContext | null>(null);
   const [acceptChecked, setAcceptChecked] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -30,12 +31,30 @@ const Agreement = () => {
     window.print();
   };
 
+  const persistAcceptance = () => {
+    localStorage.setItem(
+      'kaec-agreement-acceptance',
+      JSON.stringify({ accepted: true, fullName, acceptanceDate, recordedAt: new Date().toISOString() })
+    );
+  };
+
   const handleProceed = () => {
+    persistAcceptance();
     navigate('/esign', { state: { quoteContext, fullName, acceptanceDate } });
+  };
+
+  const handleProceedToPayment = () => {
+    persistAcceptance();
+    navigate('/payment', { state: { quoteContext } });
   };
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {redirectMessage && (
+        <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', color: '#c8c0aa' }}>
+          {redirectMessage}
+        </div>
+      )}
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <div>
@@ -203,8 +222,19 @@ const Agreement = () => {
         >
           Proceed to E-Signature
         </button>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleProceedToPayment}
+          disabled={!acceptChecked || !fullName.trim()}
+        >
+          Proceed to Payment
+        </button>
         <small style={{ color: '#c8c0aa' }}>
           Agreement is not fully executed until e-signature is completed through the KAEC backend signing link.
+        </small>
+        <small style={{ color: '#c8c0aa' }}>
+          Payment gate is retail-only and shows deterministic deposit and balance—no card is charged here.
         </small>
       </div>
     </div>

@@ -14,6 +14,9 @@ import Recommendation from './pages/Recommendation';
 import Quote from './pages/Quote';
 import Agreement from './pages/Agreement';
 import ESign from './pages/ESign';
+import Payment from './pages/Payment';
+import PaymentProcessing from './pages/PaymentProcessing';
+import Schedule from './pages/Schedule';
 
 const App = () => {
   return (
@@ -33,6 +36,9 @@ const App = () => {
         <Route path="/quote" element={<Quote />} />
         <Route path="/agreement" element={<Agreement />} />
         <Route path="/esign" element={<ESign />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/payment-processing" element={<PaymentProcessing />} />
+        <Route path="/schedule" element={<Schedule />} />
       </Routes>
     </Layout>
   );
