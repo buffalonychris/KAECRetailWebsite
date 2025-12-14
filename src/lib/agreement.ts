@@ -37,6 +37,8 @@ export type AgreementContent = {
     addOnLabels: string[];
     total: string;
   };
+  installationCommitments: string[];
+  validationSteps: string[];
   scope: string[];
   assumptions: string[];
   exclusions: string[];
@@ -97,6 +99,21 @@ const exclusions = [
   'No permitting, trenching, or structural work is included in this agreement.',
   'Cellular data plans are only added when explicitly selected and available in-market.',
   'This agreement does not provide medical advice, monitoring, or emergency response.',
+];
+
+const installationCommitments = [
+  '1-day installation window coordinated with caregivers.',
+  '2-person crew for coverage and safety.',
+  'On-site setup and configuration of all listed equipment.',
+  'Essential customer and caregiver training with hands-on walkthroughs.',
+  'Post-install test and verification of alerts, automations, and access.',
+  '1-year replacement warranty for all included equipment (retail placeholder copy).',
+];
+
+const validationSteps = [
+  'Pre-flight check for Wi-Fi coverage and power at device locations.',
+  'Confirm zoning for cameras and privacy preferences with caregivers.',
+  'Verify notifications and automations continue to run during simulated internet outages.',
 ];
 
 const terms = [
@@ -162,6 +179,8 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
       addOnLabels: addOnLabels.length ? addOnLabels : ['No add-ons selected'],
       total: currency(context.pricing.total),
     },
+    installationCommitments,
+    validationSteps,
     scope: buildScope(context),
     assumptions,
     exclusions,

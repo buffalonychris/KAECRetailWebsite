@@ -74,7 +74,7 @@ const QuoteReview = () => {
   const handleContinueToAgreement = () => {
     if (!quote) return;
     updateRetailFlow({ quote });
-    navigate('/agreement', { state: { quoteContext: quote } });
+    navigate('/agreementReview', { state: { quoteContext: quote } });
   };
 
   const handlePrint = () => {
