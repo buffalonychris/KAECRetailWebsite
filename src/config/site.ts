@@ -8,6 +8,7 @@ type SiteConfig = {
   depositPolicy: DepositPolicy;
   quoteDocVersion: string;
   quoteHashAlgorithm: string;
+  agreementDocVersion: string;
 };
 
 export const siteConfig: SiteConfig = {
@@ -20,4 +21,5 @@ export const siteConfig: SiteConfig = {
   },
   quoteDocVersion: 'v1.0',
   quoteHashAlgorithm: 'SHA-256',
+  agreementDocVersion: 'v1.0',
 };
