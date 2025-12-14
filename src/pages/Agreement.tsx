@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { generateAgreement, QuoteContext } from '../lib/agreement';
+import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
 const Agreement = () => {
   const navigate = useNavigate();
@@ -15,13 +16,13 @@ const Agreement = () => {
   useEffect(() => {
     if (locationQuote) {
       setQuoteContext(locationQuote);
-      localStorage.setItem('kaec-quote-context', JSON.stringify(locationQuote));
+      updateRetailFlow({ quote: locationQuote });
       return;
     }
 
-    const stored = localStorage.getItem('kaec-quote-context');
-    if (stored) {
-      setQuoteContext(JSON.parse(stored));
+    const storedFlow = loadRetailFlow();
+    if (storedFlow.quote) {
+      setQuoteContext(storedFlow.quote);
     }
   }, [locationQuote]);
 
@@ -32,10 +33,14 @@ const Agreement = () => {
   };
 
   const persistAcceptance = () => {
-    localStorage.setItem(
-      'kaec-agreement-acceptance',
-      JSON.stringify({ accepted: true, fullName, acceptanceDate, recordedAt: new Date().toISOString() })
-    );
+    updateRetailFlow({
+      agreementAcceptance: {
+        accepted: true,
+        fullName,
+        acceptanceDate,
+        recordedAt: new Date().toISOString(),
+      },
+    });
   };
 
   const handleProceed = () => {
