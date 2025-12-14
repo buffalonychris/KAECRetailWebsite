@@ -1,4 +1,4 @@
-import { CSSProperties, useMemo, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import {
   BudgetRange,
   CaregiverSituation,
@@ -9,6 +9,7 @@ import {
   TechComfort,
   buildRecommendation,
 } from '../lib/recommendationRules';
+import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 
 const optionStyles: CSSProperties = {
   display: 'grid',
@@ -108,6 +109,8 @@ const Recommendation = () => {
     budgetRange: 'core',
   });
   const [showResult, setShowResult] = useState(false);
+  const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
 
   const handleSelect = (key: StepKey, value: OptionValue) => {
     setResponses((prev) => ({ ...prev, [key]: value }));
@@ -129,6 +132,34 @@ const Recommendation = () => {
 
   const recommendation = useMemo(() => buildRecommendation(responses), [responses]);
   const progress = ((stepIndex + 1) / steps.length) * 100;
+
+  useEffect(() => {
+    if (!showResult) return;
+    let mounted = true;
+    setNarrativeLoading(true);
+    generateNarrative({
+      source: 'recommendation',
+      recommendation,
+      responses,
+    })
+      .then((result) => {
+        if (mounted) setNarrative(result);
+      })
+      .finally(() => {
+        if (mounted) setNarrativeLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [recommendation, responses, showResult]);
+
+  const handleCopyExplanation = async () => {
+    if (!narrative) return;
+    const text = `${narrative.sections
+      .map((section) => `${section.title}: ${section.body}`)
+      .join('\n')}\nDisclaimer: ${narrative.disclaimer.join(' ')}`;
+    await navigator.clipboard.writeText(text);
+  };
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -241,6 +272,62 @@ const Recommendation = () => {
               These answers guide equipment counts and training depth. We avoid collecting sensitive health
               data here.
             </small>
+          </div>
+
+          <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+              <div>
+                <div className="badge">AI Explanation (Advisory)</div>
+                <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Narrative overview</h3>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCopyExplanation}
+                  disabled={!narrative}
+                >
+                  Copy explanation
+                </button>
+              </div>
+            </div>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Advisory narrative that explains why this tier was recommended, how offline-first behavior works, and what to
+              expect during install. No medical advice; if this is an emergency, call 911.
+            </p>
+            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+              {(narrativeLoading || !narrative) && (
+                <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                  <strong>Building explanation…</strong>
+                  <small style={{ color: '#c8c0aa' }}>Using deterministic templates; no external AI required.</small>
+                </div>
+              )}
+              {narrative?.sections.map((section) => (
+                <div
+                  key={section.title}
+                  className="card"
+                  style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+                >
+                  <strong>{section.title}</strong>
+                  <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
+                </div>
+              ))}
+            </div>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Disclaimers</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {(narrative?.disclaimer ?? [
+                  'Informational only. Not medical advice or a diagnosis.',
+                  'If you have an urgent safety concern, call 911.',
+                  'Final configuration depends on on-site conditions and local code.',
+                ]).map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}
