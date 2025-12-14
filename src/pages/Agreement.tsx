@@ -54,7 +54,7 @@ const Agreement = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+    <div className="container kaec-doc" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
       {redirectMessage && (
         <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', color: '#c8c0aa' }}>
           {redirectMessage}
@@ -101,6 +101,27 @@ const Agreement = () => {
             <li>
               <span />
               <span>One-time total: {agreement.quoteSummary.total}</span>
+            </li>
+          </ul>
+        </div>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <strong>Quote binding</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            <li>
+              <span />
+              <span>Quote Reference: {agreement.quoteBinding.reference}</span>
+            </li>
+            <li>
+              <span />
+              <span>Quote Version: {agreement.quoteBinding.quoteVersion}</span>
+            </li>
+            <li>
+              <span />
+              <span>Quote Hash: {agreement.quoteBinding.quoteHash ?? 'Pending'}</span>
+            </li>
+            <li>
+              <span />
+              <span>Supersedes prior hash: {agreement.quoteBinding.priorQuoteHash ?? 'None'}</span>
             </li>
           </ul>
         </div>
@@ -174,6 +195,54 @@ const Agreement = () => {
         </div>
         <ul className="list" style={{ marginTop: 0 }}>
           {agreement.terms.map((item) => (
+            <li key={item}>
+              <span />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+        <div>
+          <div className="badge">Quote Appendix</div>
+          <h2 style={{ margin: '0.25rem 0' }}>Binding summary</h2>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            Appendix ties this Agreement to the deterministic quote: package, add-ons, totals, version, and hashes.
+          </p>
+        </div>
+        <ul className="list" style={{ marginTop: 0 }}>
+          <li>
+            <span />
+            <span>Package: {agreement.quoteAppendix.packageName}</span>
+          </li>
+          <li>
+            <span />
+            <span>Add-ons: {agreement.quoteAppendix.addOnLabels.join(', ')}</span>
+          </li>
+          <li>
+            <span />
+            <span>One-time total: {agreement.quoteBinding.total}</span>
+          </li>
+          <li>
+            <span />
+            <span>Quote version: {agreement.quoteBinding.quoteVersion}</span>
+          </li>
+          <li>
+            <span />
+            <span>Quote hash: {agreement.quoteBinding.quoteHash ?? 'Pending'}</span>
+          </li>
+          <li>
+            <span />
+            <span>Supersedes prior quote hash: {agreement.quoteBinding.priorQuoteHash ?? 'None'}</span>
+          </li>
+          {agreement.quoteAppendix.hardwareSummary.map((item) => (
+            <li key={item}>
+              <span />
+              <span>{item}</span>
+            </li>
+          ))}
+          {agreement.quoteAppendix.featureSummary.map((item) => (
             <li key={item}>
               <span />
               <span>{item}</span>

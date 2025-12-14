@@ -6,36 +6,11 @@ import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
+import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
+import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
+import { siteConfig } from '../config/site';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
-
-const formatDate = (isoDate?: string) => {
-  const date = isoDate ? new Date(isoDate) : new Date();
-  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10);
-  return date.toISOString().slice(0, 10);
-};
-
-const quoteReference = (quote: QuoteContext) => `KAEC-${quote.packageId}-${formatDate(quote.generatedAt).replace(/-/g, '')}`;
-
-const whatsIncluded = [
-  '1-day installation crew of 2',
-  'Onsite setup and configuration',
-  'Essential customer training',
-  'Complete test (certified) of all equipment post install',
-  '1-year replacement warranty for all equipment',
-];
-
-const assumptions = [
-  'Pricing is one-time for listed equipment, configuration, and training.',
-  'Existing Wi-Fi and power outlets are available where devices are installed.',
-  'Local-first design keeps automations running during internet outages when power is available.',
-];
-
-const exclusions = [
-  'No monthly monitoring fees are included or required.',
-  'Permitting, structural work, and trenching are out of scope.',
-  'Cellular data plans are only added if explicitly selected and available in-market.',
-];
 
 const QuoteReview = () => {
   const navigate = useNavigate();
@@ -101,7 +76,7 @@ const QuoteReview = () => {
     navigate('/quotePrint', { state: { autoPrint: true } });
   };
 
-  const quoteDate = quote ? formatDate(quote.generatedAt) : formatDate();
+  const quoteDate = quote ? formatQuoteDate(quote.generatedAt) : formatQuoteDate();
   const customerName = quote?.customerName?.trim() || 'Customer';
   const addOnSummary =
     selectedAddOns.length === 0
@@ -143,7 +118,10 @@ const QuoteReview = () => {
     );
   }
 
-  const reference = quoteReference(quote);
+  const reference = buildQuoteReference(quote);
+  const quoteVersion = quote.quoteDocVersion ?? siteConfig.quoteDocVersion;
+  const displayedHash = quote.quoteHash ?? 'Pending';
+  const supersedes = quote.priorQuoteHash ?? 'None';
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -197,6 +175,11 @@ const QuoteReview = () => {
             <div className="badge">Quote reference</div>
             <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
             <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
+            <div style={{ display: 'grid', gap: '0.2rem', color: '#c8c0aa', marginTop: '0.35rem' }}>
+              <small>Quote Version: {quoteVersion}</small>
+              <small>Quote Hash: {displayedHash}</small>
+              <small>Supersedes prior: {supersedes}</small>
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#c8c0aa', fontSize: '0.95rem' }}>One-time estimate</div>
@@ -273,7 +256,7 @@ const QuoteReview = () => {
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">What’s included</div>
         <ul className="list" style={{ marginTop: '0.35rem' }}>
-          {whatsIncluded.map((item) => (
+          {quoteDeliverables.map((item) => (
             <li key={item}>
               <span />
               <span>{item}</span>
@@ -325,7 +308,7 @@ const QuoteReview = () => {
       <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
         <strong>Assumptions</strong>
         <ul className="list" style={{ marginTop: 0 }}>
-          {assumptions.map((item) => (
+          {quoteAssumptions.map((item) => (
             <li key={item}>
               <span />
               <span>{item}</span>
@@ -337,7 +320,7 @@ const QuoteReview = () => {
       <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
         <strong>Exclusions</strong>
         <ul className="list" style={{ marginTop: 0 }}>
-          {exclusions.map((item) => (
+          {quoteExclusions.map((item) => (
             <li key={item}>
               <span />
               <span>{item}</span>
