@@ -10,6 +10,7 @@ const links = [
   { path: '/reliability', label: 'Offline reliability' },
   { path: '/faq', label: 'FAQ' },
   { path: '/contact', label: 'Contact' },
+  { path: '/quote', label: 'Quote' },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
