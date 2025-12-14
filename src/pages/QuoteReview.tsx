@@ -10,6 +10,7 @@ import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
+import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -20,6 +21,8 @@ const QuoteReview = () => {
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [hashCopied, setHashCopied] = useState(false);
+  const [priorHashCopied, setPriorHashCopied] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -107,9 +110,23 @@ const QuoteReview = () => {
 
   const handleCopyResumeLink = async () => {
     if (!resumeUrl) return;
-    await navigator.clipboard.writeText(resumeUrl);
+    await copyToClipboard(resumeUrl);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const handleCopyHash = async () => {
+    if (!quote?.quoteHash) return;
+    await copyToClipboard(quote.quoteHash);
+    setHashCopied(true);
+    setTimeout(() => setHashCopied(false), 2000);
+  };
+
+  const handleCopyPriorHash = async () => {
+    if (!quote?.priorQuoteHash) return;
+    await copyToClipboard(quote.priorQuoteHash);
+    setPriorHashCopied(true);
+    setTimeout(() => setPriorHashCopied(false), 2000);
   };
 
   if (!quote) {
@@ -131,8 +148,8 @@ const QuoteReview = () => {
 
   const reference = buildQuoteReference(quote);
   const quoteVersion = quote.quoteDocVersion ?? siteConfig.quoteDocVersion;
-  const displayedHash = quote.quoteHash ?? 'Pending';
-  const supersedes = quote.priorQuoteHash ?? 'None';
+  const displayedHash = shortenMiddle(quote.quoteHash);
+  const supersedes = shortenMiddle(quote.priorQuoteHash);
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -161,15 +178,14 @@ const QuoteReview = () => {
           <div style={{ display: 'grid', gap: '0.4rem' }}>
             <strong>Resume Link</strong>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <input
-                style={{ flex: '1 1 320px', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(245, 192, 66, 0.35)' }}
-                readOnly
-                value={resumeUrl}
-              />
+              <a href={resumeUrl} style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>
+                Continue your order
+              </a>
               <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
-                {linkCopied ? 'Copied link' : 'Copy link'}
+                {linkCopied ? 'Copied resume link' : 'Copy resume link'}
               </button>
             </div>
+            <small className="break-all" style={{ color: '#c8c0aa' }}>{resumeUrl}</small>
           </div>
         )}
         <div>
@@ -203,8 +219,22 @@ const QuoteReview = () => {
             <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
             <div style={{ display: 'grid', gap: '0.2rem', color: '#c8c0aa', marginTop: '0.35rem' }}>
               <small>Quote Version: {quoteVersion}</small>
-              <small>Quote Hash: {displayedHash}</small>
-              <small>Supersedes prior: {supersedes}</small>
+              <small style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
+                {quote.quoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                  </button>
+                )}
+              </small>
+              <small style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior: {supersedes}</span>
+                {quote.priorQuoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                  </button>
+                )}
+              </small>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
