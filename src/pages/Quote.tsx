@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
@@ -12,6 +13,8 @@ const Quote = () => {
   const [reliability, setReliability] = useState('good');
   const [packageId, setPackageId] = useState<PackageTierId>('A2');
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],
@@ -34,6 +37,38 @@ const Quote = () => {
 
   const printQuote = () => {
     window.print();
+  };
+
+  const explainQuote = async () => {
+    setNarrativeLoading(true);
+    const result = await generateNarrative({
+      source: 'quote',
+      quoteContext: {
+        packageId,
+        selectedAddOnIds: selectedAddOns,
+        propertyDetails: {
+          homeType,
+          homeSize,
+          internetReliability: reliability,
+          city,
+        },
+        pricing: {
+          packagePrice: selectedPackage.basePrice,
+          addOnTotal,
+          total,
+        },
+      },
+    });
+    setNarrative(result);
+    setNarrativeLoading(false);
+  };
+
+  const handleCopyExplanation = async () => {
+    if (!narrative) return;
+    const text = `${narrative.sections
+      .map((section) => `${section.title}: ${section.body}`)
+      .join('\n')}\nDisclaimer: ${narrative.disclaimer.join(' ')}`;
+    await navigator.clipboard.writeText(text);
   };
 
   return (
@@ -220,6 +255,23 @@ const Quote = () => {
           </div>
         </div>
 
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn-primary" onClick={explainQuote}>
+            Explain this quote
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleCopyExplanation}
+            disabled={!narrative}
+          >
+            Copy explanation
+          </button>
+          <small style={{ color: '#c8c0aa' }}>
+            Advisory narrative only; call 911 for emergencies.
+          </small>
+        </div>
+
         <div style={{ display: 'grid', gap: '0.25rem', color: '#e6ddc7' }}>
           <strong>Property context</strong>
           <small>
@@ -298,6 +350,52 @@ const Quote = () => {
               <span>Cellular data plans are only added if explicitly selected and available in-market.</span>
             </li>
           </ul>
+        </div>
+
+        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+          <div>
+            <div className="badge">AI Explanation (Advisory)</div>
+            <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
+              advice; if there is an urgent safety issue, call 911.
+            </p>
+          </div>
+          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            {(narrativeLoading || !narrative) && (
+              <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
+                <small style={{ color: '#c8c0aa' }}>
+                  Deterministic templates are used by default; no external AI is required.
+                </small>
+              </div>
+            )}
+            {narrative?.sections.map((section) => (
+              <div
+                key={section.title}
+                className="card"
+                style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+              >
+                <strong>{section.title}</strong>
+                <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <strong>Disclaimers</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              {(narrative?.disclaimer ?? [
+                'Informational only. Not medical advice or a diagnosis.',
+                'If you have an urgent safety concern, call 911.',
+                'Final configuration depends on on-site conditions and local code.',
+              ]).map((item) => (
+                <li key={item}>
+                  <span />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
