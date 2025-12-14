@@ -173,7 +173,7 @@ const Recommendation = () => {
                 onClick={() => handleSelect(steps[stepIndex].key, option.value)}
                 style={{
                   ...optionStyles,
-                  borderColor: isSelected ? 'var(--kaec-gold)' : optionStyles.border,
+                  border: isSelected ? '1px solid var(--kaec-gold)' : optionStyles.border,
                   background: isSelected ? 'rgba(245, 192, 66, 0.12)' : optionStyles.background,
                   color: '#fff7e6',
                 }}
