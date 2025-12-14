@@ -15,6 +15,9 @@ const Home = () => {
             the internet is down. No subscriptions. One plainspoken app: Home Assistant.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <Link className="btn btn-primary" to="/recommend">
+              Find my best plan
+            </Link>
             <Link className="btn btn-primary" to="/packages">
               Explore packages
             </Link>

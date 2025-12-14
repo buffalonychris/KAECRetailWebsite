@@ -3,6 +3,7 @@ import React from 'react';
 
 const links = [
   { path: '/', label: 'Home' },
+  { path: '/recommend', label: 'Build my package' },
   { path: '/packages', label: 'Packages' },
   { path: '/comparison', label: 'Comparison' },
   { path: '/funding', label: 'Funding' },
