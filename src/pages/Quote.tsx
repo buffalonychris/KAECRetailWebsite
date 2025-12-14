@@ -39,7 +39,7 @@ const Quote = () => {
 
   const total = selectedPackage.basePrice + addOnTotal;
 
-  const continueToAgreement = () => {
+  const persistQuote = () => {
     const payload: QuoteContext = {
       customerName,
       contact,
@@ -55,8 +55,14 @@ const Quote = () => {
         total,
       },
     };
-    updateRetailFlow({ quote: payload });
-    navigate('/agreement', { state: { quoteContext: payload } });
+    const enrichedQuote = { ...payload, generatedAt: new Date().toISOString() } as QuoteContext;
+    updateRetailFlow({ quote: enrichedQuote });
+    return enrichedQuote;
+  };
+
+  const generateQuote = () => {
+    persistQuote();
+    navigate('/quoteReview');
   };
 
   const printQuote = () => {
@@ -105,6 +111,14 @@ const Quote = () => {
           fixed table—no AI, no monthly subscriptions required.
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={generateQuote}
+            disabled={!packageId}
+          >
+            Generate Quote
+          </button>
           <button type="button" className="btn btn-primary" onClick={printQuote}>
             Print / Save PDF
           </button>
@@ -280,8 +294,8 @@ const Quote = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-primary" onClick={continueToAgreement}>
-            Continue to Agreement
+          <button type="button" className="btn btn-primary" onClick={generateQuote} disabled={!packageId}>
+            Generate Quote
           </button>
           <button type="button" className="btn btn-secondary" onClick={explainQuote}>
             Explain this quote
