@@ -64,6 +64,16 @@ export const computeAgreementHash = async (
 
   const payload = {
     agreementVersion: siteConfig.agreementDocVersion,
+    contentIdentifiers: [
+      'scope:v1',
+      'assumptions:v1',
+      'exclusions:v1',
+      'offline-behavior:v1',
+      'installation-window:v1',
+      'warranty-placeholders:v1',
+      'terms:v1',
+      'commitments:v1',
+    ],
     quote: {
       reference: buildQuoteReference(context),
       quoteVersion: context.quoteDocVersion ?? siteConfig.quoteDocVersion,

@@ -7,7 +7,7 @@ import { saveRetailFlow } from '../lib/retailFlow';
 type ResumeStatus = 'loading' | 'invalid' | 'missing' | 'restoring';
 
 const stepToPath: Record<string, string> = {
-  agreement: '/agreement',
+  agreement: '/agreementReview',
   payment: '/payment',
   schedule: '/schedule',
 };
@@ -43,7 +43,7 @@ const Resume = () => {
 
       const quote = buildQuoteFromResumePayload(payload);
       saveRetailFlow({ quote });
-      const destination = stepToPath[step] ?? '/agreement';
+      const destination = stepToPath[step] ?? '/agreementReview';
       navigate(destination, { replace: true });
     };
 

@@ -27,7 +27,7 @@ const Payment = () => {
       const flow = loadRetailFlow();
       const parsed = flow.agreementAcceptance;
       if (!parsed?.accepted) {
-        navigate('/agreement', {
+        navigate('/agreementReview', {
           state: {
             message: 'Please accept the combined agreement before payment.',
             quoteContext: (location.state as { quoteContext?: QuoteContext } | undefined)?.quoteContext,
@@ -39,7 +39,7 @@ const Payment = () => {
       setAccessGranted(true);
     } catch (error) {
       console.error('Error loading acceptance state', error);
-      navigate('/agreement', { state: { message: 'Please accept the combined agreement before payment.' } });
+      navigate('/agreementReview', { state: { message: 'Please accept the combined agreement before payment.' } });
     }
   }, [location.state, navigate]);
 
@@ -108,7 +108,9 @@ const Payment = () => {
               Package {quoteContext.packageId} — Total {formatCurrency(total)} (add-ons: {quoteContext.selectedAddOns.length || 'none'})
             </p>
           ) : (
-            <p style={{ margin: 0, color: '#c8c0aa' }}>Quote context not found. Return to the quote or agreement to regenerate.</p>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Quote context not found. Return to the quote or agreement review to regenerate.
+            </p>
           )}
           {acceptanceRecord?.fullName && (
             <small style={{ color: '#c8c0aa' }}>

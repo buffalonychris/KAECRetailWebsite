@@ -34,7 +34,7 @@ const UAT = () => {
 
   const printShortcuts = [
     { label: 'Go to Quote to print', path: '/quote' },
-    { label: 'Go to Agreement to print', path: '/agreement' },
+    { label: 'Go to Agreement to print', path: '/agreementReview' },
     { label: 'Go to Payment to print', path: '/payment' },
     { label: 'Go to Schedule to print', path: '/schedule' },
   ];
@@ -58,7 +58,7 @@ const UAT = () => {
           <button type="button" className="btn" onClick={() => openPath('/quote')}>
             Open Quote
           </button>
-          <button type="button" className="btn" onClick={() => openPath('/agreement')}>
+          <button type="button" className="btn" onClick={() => openPath('/agreementReview')}>
             Open Agreement
           </button>
           <button type="button" className="btn" onClick={() => openPath('/payment')}>
