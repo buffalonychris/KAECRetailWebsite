@@ -7,6 +7,9 @@ import {
   buildQuoteAuthorityMeta,
   DocAuthorityMeta,
   parseAgreementToken,
+  buildSicarAuthorityMeta,
+  parseSicarToken,
+  computeSicarHash,
 } from '../lib/docAuthority';
 import { shortenMiddle } from '../lib/displayUtils';
 import { buildQuoteFromResumePayload, parseResumeToken } from '../lib/resumeToken';
@@ -29,7 +32,7 @@ const Verify = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     const run = async () => {
-      if (!token || (docParam !== 'QUOTE' && docParam !== 'AGREEMENT')) {
+      if (!token || (docParam !== 'QUOTE' && docParam !== 'AGREEMENT' && docParam !== 'SICAR')) {
         setStatus('invalid');
         setReason('Missing or invalid verification parameters.');
         return;
@@ -57,23 +60,44 @@ const Verify = () => {
         return;
       }
 
-      const agreementPayload: AgreementTokenPayload | null = parseAgreementToken(token ?? undefined);
-      if (!agreementPayload || !agreementPayload.quote) {
-        setStatus('invalid');
-        setReason('Invalid agreement token.');
+      if (docParam === 'AGREEMENT') {
+        const agreementPayload: AgreementTokenPayload | null = parseAgreementToken(token ?? undefined);
+        if (!agreementPayload || !agreementPayload.quote) {
+          setStatus('invalid');
+          setReason('Invalid agreement token.');
+          return;
+        }
+        const { quote, acceptance, hash } = agreementPayload;
+        const computedHash = await computeAgreementHash(quote, acceptance as AcceptanceRecord | undefined);
+        const expectedHash = hash || acceptance?.agreementHash || '';
+        const matches = expectedHash && computedHash === expectedHash;
+        setStatus(matches ? 'verified' : 'invalid');
+        setReason(matches ? '' : 'Hash mismatch.');
+        const meta = await buildAgreementAuthorityMeta({ quote, agreementAcceptance: acceptance ?? undefined }, token);
+        setAuthority(meta);
+        if (restore) {
+          updateRetailFlow({ quote, agreementAcceptance: acceptance ?? undefined });
+          navigate('/agreementReview', { replace: true });
+        }
         return;
       }
-      const { quote, acceptance, hash } = agreementPayload;
-      const computedHash = await computeAgreementHash(quote, acceptance as AcceptanceRecord | undefined);
-      const expectedHash = hash || acceptance?.agreementHash || '';
-      const matches = expectedHash && computedHash === expectedHash;
-      setStatus(matches ? 'verified' : 'invalid');
-      setReason(matches ? '' : 'Hash mismatch.');
-      const meta = await buildAgreementAuthorityMeta({ quote, agreementAcceptance: acceptance ?? undefined }, token);
-      setAuthority(meta);
-      if (restore) {
-        updateRetailFlow({ quote, agreementAcceptance: acceptance ?? undefined });
-        navigate('/agreementReview', { replace: true });
+
+      if (docParam === 'SICAR') {
+        const payload = parseSicarToken(token ?? undefined);
+        if (!payload?.certificate) {
+          setStatus('invalid');
+          setReason('Invalid SICAR token.');
+          return;
+        }
+        const { certificate, hash } = payload;
+        const computedHash = await computeSicarHash(certificate);
+        const expectedHash = hash || computedHash;
+        const matches = expectedHash === computedHash;
+        setStatus(matches ? 'verified' : 'invalid');
+        setReason(matches ? '' : 'Hash mismatch.');
+        const meta = await buildSicarAuthorityMeta(certificate, token, expectedHash);
+        setAuthority(meta);
+        return;
       }
     };
 
@@ -113,7 +137,13 @@ const Verify = () => {
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <a
               className="btn btn-primary"
-              href={`${authority.docType === 'AGREEMENT' ? '/agreementPrint' : '/quotePrint'}?t=${encodeURIComponent(token)}`}
+              href={
+                authority.docType === 'AGREEMENT'
+                  ? `/agreementPrint?t=${encodeURIComponent(token)}`
+                  : authority.docType === 'QUOTE'
+                  ? `/quotePrint?t=${encodeURIComponent(token)}`
+                  : `/certificate?t=${encodeURIComponent(token)}`
+              }
             >
               View print document
             </a>

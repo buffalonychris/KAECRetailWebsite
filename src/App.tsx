@@ -54,6 +54,7 @@ const App = () => {
         <Route path="/resume" element={<Resume />} />
         <Route path="/uat" element={<UAT />} />
         <Route path="/sicar" element={<Certificate />} />
+        <Route path="/certificate" element={<Certificate />} />
         <Route path="/verify" element={<Verify />} />
       </Routes>
     </Layout>

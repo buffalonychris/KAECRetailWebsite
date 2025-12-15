@@ -6,7 +6,7 @@ import { computeQuoteHash } from './quoteHash';
 import { buildQuoteReference } from './quoteUtils';
 import { buildResumeUrl, buildQuoteFromResumePayload, createResumeToken, parseResumeToken } from './resumeToken';
 import { AcceptanceRecord, RetailFlowState } from './retailFlow';
-import { CertificateRecord } from './sicar';
+import { CertificateRecord, LIFECYCLE_STAGES } from './sicar';
 
 export type CanonicalDocumentType = 'QUOTE' | 'AGREEMENT' | 'SICAR';
 
@@ -83,6 +83,37 @@ export type SicarTokenPayload = {
   hash?: string;
 };
 
+const normalizeValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    const normalized = value.map((item) => normalizeValue(item));
+    const allStrings = normalized.every((item) => typeof item === 'string');
+    if (allStrings) {
+      return (normalized as string[]).slice().sort();
+    }
+    return normalized;
+  }
+
+  if (value && typeof value === 'object' && value.constructor === Object) {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .map(([key, val]) => [key, normalizeValue(val)] as const)
+      .sort(([a], [b]) => a.localeCompare(b));
+
+    return entries.reduce<Record<string, unknown>>((acc, [key, val]) => {
+      acc[key] = val;
+      return acc;
+    }, {});
+  }
+
+  return value;
+};
+
+const toHex = (buffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(buffer);
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
 export const buildAgreementToken = (quote: QuoteContext, acceptance?: AcceptanceRecord | null, hash?: string) => {
   const payload: AgreementTokenPayload = {
     quote,
@@ -115,6 +146,68 @@ export const parseSicarToken = (token?: string | null): SicarTokenPayload | null
     console.error('Failed to parse sicar token', error);
     return null;
   }
+};
+
+export const computeSicarHash = async (sicarState: CertificateRecord): Promise<string> => {
+  const devices = sicarState.devices
+    .map((device) => ({
+      systemName: device.systemName,
+      manufacturer: device.manufacturer,
+      make: device.make,
+      model: device.model,
+      partNumber: device.partNumber,
+      serialNumber: device.serialNumber || '',
+      plannedLocation: device.plannedLocation,
+      installedLocation: device.installedLocation,
+      purpose: device.purpose,
+      photos: device.photos.length,
+      health: {
+        power: device.health.power,
+        connectivity: device.health.connectivity,
+        battery: device.health.battery,
+        functional: device.health.functional,
+        lastCheckedAt: device.health.lastCheckedAt || '',
+        manualOverride: Boolean(device.health.manualOverride),
+        overrideJustification: device.health.overrideJustification || '',
+      },
+      installerAttestation: device.installerAttestation || '',
+    }))
+    .sort((a, b) => a.systemName.localeCompare(b.systemName) || a.model.localeCompare(b.model));
+
+  const stageHistory = sicarState.auditLog
+    .filter((entry) => entry.action.toLowerCase().includes('lifecycle'))
+    .map((entry) => ({ actor: entry.actor, action: entry.action, at: entry.timestamp }));
+
+  const payload = {
+    docType: DOCUMENT_TYPES.SICAR.docType,
+    version: DOCUMENT_TYPES.SICAR.docVersion,
+    lifecycleStage: sicarState.lifecycleStage,
+    immutable: sicarState.immutable,
+    stages: stageHistory,
+    bindings: {
+      quoteId: sicarState.quoteId || '',
+      agreementId: sicarState.agreementId || '',
+      installationJobId: sicarState.installationJobId || '',
+    },
+    installers: sicarState.installers.slice().sort(),
+    devices,
+    acceptance: sicarState.acceptance
+      ? {
+          customerName: sicarState.acceptance.customerName,
+          signature: sicarState.acceptance.signature,
+          signedAt: sicarState.acceptance.signedAt,
+          representativeTitle: sicarState.acceptance.representativeTitle || '',
+        }
+      : null,
+    lockedAt: sicarState.acceptance?.signedAt || '',
+    lifecycleOrder: LIFECYCLE_STAGES,
+  };
+
+  const normalized = normalizeValue(payload);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(JSON.stringify(normalized));
+  const digest = await crypto.subtle.digest(DOCUMENT_TYPES.SICAR.hashAlgorithm, data);
+  return toHex(digest);
 };
 
 export const buildQuoteAuthorityMeta = async (flow: RetailFlowState, token?: string): Promise<DocAuthorityMeta | null> => {
@@ -186,9 +279,13 @@ export const buildAgreementAuthorityMeta = async (
   };
 };
 
-export const buildSicarAuthorityMeta = async (sicarState: CertificateRecord, token?: string): Promise<DocAuthorityMeta> => {
+export const buildSicarAuthorityMeta = async (
+  sicarState: CertificateRecord,
+  token?: string,
+  hashOverride?: string,
+): Promise<DocAuthorityMeta> => {
   const reference = sicarState.quoteId || sicarState.agreementId || 'SICAR';
-  const hashFull = token || '';
+  const hashFull = hashOverride || (await computeSicarHash(sicarState));
   const hashShort = hashFull ? shortenMiddle(hashFull) : 'pending';
   const usedToken = token || buildSicarToken(sicarState, hashFull);
   const verificationUrl = `${window.location.origin}/verify?doc=SICAR&t=${encodeURIComponent(usedToken)}`;
@@ -199,8 +296,11 @@ export const buildSicarAuthorityMeta = async (sicarState: CertificateRecord, tok
     issuedAtISO: (sicarState.acceptance?.signedAt as string) || sicarState.auditLog[0]?.timestamp || new Date().toISOString(),
     hashFull,
     hashShort,
-    resumeUrl: `${window.location.origin}${DOCUMENT_TYPES.SICAR.printRoute}`,
-    resumeUrlDisplay: shortenMiddle(`${window.location.origin}${DOCUMENT_TYPES.SICAR.printRoute}`),
+    quoteBinding: sicarState.quoteId
+      ? { ref: sicarState.quoteId, hashFull: '', hashShort: shortenMiddle(sicarState.quoteId) }
+      : undefined,
+    resumeUrl: `${window.location.origin}${DOCUMENT_TYPES.SICAR.printRoute}?t=${encodeURIComponent(usedToken)}`,
+    resumeUrlDisplay: shortenMiddle(`${window.location.origin}${DOCUMENT_TYPES.SICAR.printRoute}?t=${encodeURIComponent(usedToken)}`),
     verificationUrl,
   };
 };
