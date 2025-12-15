@@ -14,6 +14,7 @@ import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { markFlowStep } from '../lib/retailFlow';
 import { getTierLabel } from '../data/pricing';
 import TierBadge from '../components/TierBadge';
+import ComparisonLadder from '../components/ComparisonLadder';
 
 const optionStyles: CSSProperties = {
   display: 'grid',
@@ -353,6 +354,7 @@ const Recommendation = () => {
           </div>
         </div>
       )}
+      {showResult && <ComparisonLadder />}
     </div>
   );
 };
