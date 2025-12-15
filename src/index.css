@@ -88,6 +88,12 @@ body {
   color: #000000;
 }
 
+.kaec-doc .tier-badge {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+}
+
 .kaec-doc .print-list,
 .kaec-doc .list {
   color: #111111;
@@ -188,6 +194,35 @@ button {
   color: var(--kaec-gold);
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid rgba(245, 192, 66, 0.4);
+  background: rgba(245, 192, 66, 0.1);
+}
+
+.tier-badge-bronze {
+  color: #d18b47;
+  border-color: rgba(209, 139, 71, 0.6);
+  background: rgba(209, 139, 71, 0.14);
+}
+
+.tier-badge-silver {
+  color: #c1c7d0;
+  border-color: rgba(193, 199, 208, 0.55);
+  background: rgba(193, 199, 208, 0.16);
+}
+
+.tier-badge-gold {
+  color: var(--kaec-gold);
+  border-color: rgba(245, 192, 66, 0.65);
+  background: rgba(245, 192, 66, 0.18);
 }
 
 .table {

@@ -6,8 +6,8 @@ import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
-import { getHardwareList } from '../data/hardware';
-import { getFeatureCategories } from '../data/features';
+import { getHardwareGroups } from '../data/hardware';
+import { getFeatureGroups } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
 import { buildResumeUrl, buildQuoteFromResumePayload, parseResumeToken } from '../lib/resumeToken';
@@ -16,6 +16,7 @@ import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
+import TierBadge from '../components/TierBadge';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -68,9 +69,12 @@ const QuoteReview = () => {
     [quote]
   );
 
-  const hardwareList = useMemo(() => (quote ? getHardwareList(quote.packageId, quote.selectedAddOns) : []), [quote]);
-  const featureCategories = useMemo(
-    () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
+  const hardwareGroups = useMemo(
+    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote]
+  );
+  const featureGroups = useMemo(
+    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
 
@@ -427,7 +431,10 @@ const QuoteReview = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <div className="badge">Quote reference</div>
-            <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <TierBadge tierId={selectedPackage.id} />
+              <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+            </div>
             <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
             <div style={{ display: 'grid', gap: '0.2rem', color: '#c8c0aa', marginTop: '0.35rem' }}>
               <small>Quote Version: {quoteVersion}</small>
@@ -578,42 +585,60 @@ const QuoteReview = () => {
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Hardware (deterministic)</div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          {hardwareList.map((category) => (
-            <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-              <strong>{category.title}</strong>
-              <ul className="list" style={{ marginTop: '0.35rem' }}>
-                {category.items.map((item) => (
-                  <li key={item.name}>
-                    <span />
-                    <span>
-                      {item.name} — qty {item.quantity}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+        {hardwareGroups.map((group) => (
+          <div
+            key={group.heading}
+            className="card"
+            style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+          >
+            <strong>{group.heading}</strong>
+            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+              {group.categories.map((category) => (
+                <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                  <strong>{category.title}</strong>
+                  <ul className="list" style={{ marginTop: '0.35rem' }}>
+                    {category.items.map((item) => (
+                      <li key={item.name}>
+                        <span />
+                        <span>
+                          {item.name} — qty {item.quantity}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Feature coverage</div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          {featureCategories.map((category) => (
-            <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-              <strong>{category.title}</strong>
-              <ul className="list" style={{ marginTop: '0.35rem' }}>
-                {category.items.map((item) => (
-                  <li key={item}>
-                    <span />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+        {featureGroups.map((group) => (
+          <div
+            key={group.heading}
+            className="card"
+            style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+          >
+            <strong>{group.heading}</strong>
+            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+              {group.categories.map((category) => (
+                <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                  <strong>{category.title}</strong>
+                  <ul className="list" style={{ marginTop: '0.35rem' }}>
+                    {category.items.map((item) => (
+                      <li key={item}>
+                        <span />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>

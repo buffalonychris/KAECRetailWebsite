@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { addOns, packagePricing } from '../data/pricing';
 import { loadRetailFlow, markFlowStep, ScheduleRequest, updateRetailFlow } from '../lib/retailFlow';
 import FlowGuidePanel from '../components/FlowGuidePanel';
+import TierBadge from '../components/TierBadge';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -450,7 +451,7 @@ const Schedule = () => {
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Package</strong>
           <small style={{ color: '#c8c0aa' }}>
-            {selectedPackage.name} — {formatCurrency(selectedPackage.basePrice)}
+            <TierBadge tierId={selectedPackage.id} /> {selectedPackage.name} — {formatCurrency(selectedPackage.basePrice)}
           </small>
           <small style={{ color: '#c8c0aa' }}>
             Add-ons: {addOnLabels.length ? addOnLabels.join(', ') : 'None selected'}

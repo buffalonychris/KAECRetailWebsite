@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
-import { getHardwareList } from '../data/hardware';
-import { getFeatureCategories } from '../data/features';
+import { getHardwareGroups } from '../data/hardware';
+import { getFeatureGroups } from '../data/features';
 import { generateAgreement, QuoteContext } from '../lib/agreement';
 import { buildAgreementReference, computeAgreementHash } from '../lib/agreementHash';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
@@ -14,6 +14,7 @@ import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 import FlowGuidePanel from '../components/FlowGuidePanel';
+import TierBadge from '../components/TierBadge';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -152,9 +153,12 @@ const AgreementReview = () => {
   }, [acceptedRecord, agreementEmailPayload, email, quote, sending]);
 
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
-  const hardwareList = useMemo(() => (quote ? getHardwareList(quote.packageId, quote.selectedAddOns) : []), [quote]);
-  const featureCategories = useMemo(
-    () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
+  const hardwareGroups = useMemo(
+    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote]
+  );
+  const featureGroups = useMemo(
+    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
 
@@ -547,7 +551,10 @@ const AgreementReview = () => {
       <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
         <div>
           <div className="badge">Quote reference</div>
-          <h2 style={{ margin: '0.25rem 0' }}>{selectedPackage.name}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <TierBadge tierId={selectedPackage.id} />
+            <h2 style={{ margin: '0.25rem 0' }}>{selectedPackage.name}</h2>
+          </div>
           <p style={{ margin: 0, color: '#c8c0aa' }}>
             Package {selectedPackage.name} • Add-ons: {selectedAddOns.length ? selectedAddOns.map((item) => item.label).join(', ') : 'None'}
           </p>
@@ -556,29 +563,43 @@ const AgreementReview = () => {
         <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
           <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
             <strong>Hardware summary</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              {hardwareList.map((category) => (
-                <li key={category.title}>
-                  <span />
-                  <span>
-                    {category.title}: {category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}
-                  </span>
-                </li>
+            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
+              {hardwareGroups.map((group) => (
+                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
+                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                  <ul className="list" style={{ marginTop: 0 }}>
+                    {group.categories.map((category) => (
+                      <li key={category.title}>
+                        <span />
+                        <span>
+                          {category.title}: {category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
           <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
             <strong>Feature summary</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              {featureCategories.map((category) => (
-                <li key={category.title}>
-                  <span />
-                  <span>
-                    {category.title}: {category.items.join(', ')}
-                  </span>
-                </li>
+            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
+              {featureGroups.map((group) => (
+                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
+                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                  <ul className="list" style={{ marginTop: 0 }}>
+                    {group.categories.map((category) => (
+                      <li key={category.title}>
+                        <span />
+                        <span>
+                          {category.title}: {category.items.join(', ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       </div>
