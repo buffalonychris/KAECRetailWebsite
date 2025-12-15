@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
 import TierBadge from '../components/TierBadge';
@@ -12,6 +12,7 @@ const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const Quote = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [customerName, setCustomerName] = useState('');
   const [contact, setContact] = useState('');
   const [city, setCity] = useState('');
@@ -26,6 +27,13 @@ const Quote = () => {
   useEffect(() => {
     markFlowStep('quote');
   }, []);
+
+  useEffect(() => {
+    const tierParam = searchParams.get('tier');
+    if (!tierParam) return;
+    const match = packagePricing.find((pkg) => pkg.id === tierParam);
+    if (match) setPackageId(match.id);
+  }, [searchParams]);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],

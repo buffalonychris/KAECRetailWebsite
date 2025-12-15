@@ -1,17 +1,52 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PackageCard from '../components/PackageCard';
 import ComparisonLadder from '../components/ComparisonLadder';
 import { packages } from '../content/packages';
-import { markFlowStep } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 
 const Packages = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [guidedMode, setGuidedMode] = useState<boolean>(() => loadRetailFlow().guidedMode ?? false);
+
   useEffect(() => {
+    const guidedParam = searchParams.get('guided') === '1';
+    if (guidedParam) {
+      setGuidedMode(true);
+      updateRetailFlow({ guidedMode: true, currentStep: 'select' });
+      return;
+    }
     markFlowStep('select');
-  }, []);
+    const stored = loadRetailFlow().guidedMode;
+    if (stored) setGuidedMode(true);
+  }, [searchParams]);
+
+  const exitGuidedMode = () => {
+    setGuidedMode(false);
+    updateRetailFlow({ guidedMode: false });
+    navigate('/');
+  };
 
   return (
     <div className="container section">
+      {guidedMode && (
+        <div
+          className="hero-card"
+          role="status"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}
+        >
+          <div>
+            <strong style={{ color: '#fff7e6' }}>Guided setup</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#e6ddc7' }}>
+              You are browsing packages inside guided setup. We will keep steering you toward a quote.
+            </p>
+          </div>
+          <button type="button" className="btn btn-secondary" onClick={exitGuidedMode}>
+            Exit guided setup
+          </button>
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <p className="badge" style={{ marginBottom: '0.5rem' }}>
