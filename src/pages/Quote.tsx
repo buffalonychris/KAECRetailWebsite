@@ -42,9 +42,17 @@ const Quote = () => {
   const total = selectedPackage.basePrice + addOnTotal;
 
   const persistQuote = async () => {
+    const existing = loadRetailFlow();
+    const previousQuote = existing.quote;
     const payload: QuoteContext = {
       customerName,
       contact,
+      issuedAt: previousQuote?.issuedAt,
+      emailIssuedAt: previousQuote?.emailIssuedAt,
+      emailTo: previousQuote?.emailTo,
+      emailSubject: previousQuote?.emailSubject,
+      emailBody: previousQuote?.emailBody,
+      emailStatus: previousQuote?.emailStatus ?? 'not_sent',
       city,
       homeType,
       homeSize,
@@ -60,7 +68,6 @@ const Quote = () => {
       quoteHashAlgorithm: siteConfig.quoteHashAlgorithm,
     };
     const enrichedQuote: QuoteContext = { ...payload, generatedAt: new Date().toISOString() };
-    const existing = loadRetailFlow();
     const previousHash = existing.quote?.quoteHash;
     const quoteWithPrior = previousHash ? { ...enrichedQuote, priorQuoteHash: previousHash } : enrichedQuote;
     const quoteHash = await computeQuoteHash(quoteWithPrior);

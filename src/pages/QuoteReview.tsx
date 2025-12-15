@@ -11,6 +11,7 @@ import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quo
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
+import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -23,12 +24,15 @@ const QuoteReview = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [hashCopied, setHashCopied] = useState(false);
   const [priorHashCopied, setPriorHashCopied] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailBanner, setEmailBanner] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote(stored.quote);
+      setEmail(stored.quote.contact ?? '');
     }
   }, []);
 
@@ -85,25 +89,62 @@ const QuoteReview = () => {
 
   const quoteDate = quote ? formatQuoteDate(quote.generatedAt) : formatQuoteDate();
   const customerName = quote?.customerName?.trim() || 'Customer';
-  const addOnSummary =
-    selectedAddOns.length === 0
-      ? 'None'
-      : selectedAddOns.map((item) => `${item.label} (${formatCurrency(item.price)})`).join(', ');
 
-  const emailSubject = `KickAss Elder Care Quote – ${customerName} – ${quoteDate}`;
-  const emailBodyText = `Hi ${customerName},\n\nHere’s your deterministic KickAss Elder Care quote generated on ${quoteDate}.\nTier: ${selectedPackage.name}\nTotal: ${formatCurrency(quote?.pricing.total ?? selectedPackage.basePrice)}\nAdd-ons: ${addOnSummary}\nHome: ${quote?.homeType || 'Not provided'} / ${quote?.homeSize || 'Not provided'} / Internet: ${
-    quote?.internetReliability || 'Not provided'
-  }\nCity: ${quote?.city || 'Not provided'}\n\nContinue your order at ${resumeUrl}\nOpen the link to continue to the Agreement step.\n\nReview or adjust at ${window.location.origin}/quote.\n\nThank you,\nKickAss Elder Care`;
+  const emailPayload = quote ? buildQuoteEmailPayload({ ...quote, contact: email }) : null;
+  const emailStatus = quote?.emailStatus ?? 'not_sent';
+  const emailValid = isValidEmail(email);
 
-  const handleEmailQuote = () => {
+  const handleUpdateEmail = (value: string) => {
+    setEmail(value);
     if (!quote) return;
-    const recipient = quote.contact && quote.contact.includes('@') ? quote.contact : '';
-    const mailto = `mailto:${recipient}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBodyText)}`;
+    const nextQuote = { ...quote, contact: value };
+    setQuote(nextQuote);
+    updateRetailFlow({ quote: nextQuote });
+  };
+
+  const handleIssueEmail = () => {
+    if (!quote || !emailPayload || !emailValid) return;
+    const issuedAt = new Date().toISOString();
+    const nextQuote: QuoteContext = {
+      ...quote,
+      contact: email,
+      issuedAt: quote.issuedAt ?? issuedAt,
+      emailIssuedAt: issuedAt,
+      emailTo: email,
+      emailSubject: emailPayload.subject,
+      emailBody: emailPayload.body,
+      emailStatus: 'issued',
+    };
+    setQuote(nextQuote);
+    updateRetailFlow({ quote: nextQuote });
+    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
+  };
+
+  const handleOpenDraft = () => {
+    if (!quote || !emailPayload || !emailValid) return;
+    const mailto = `mailto:${email}?subject=${encodeURIComponent(emailPayload.subject)}&body=${encodeURIComponent(
+      emailPayload.body
+    )}`;
+    const issuedAt = quote.emailIssuedAt ?? new Date().toISOString();
+    const nextQuote: QuoteContext = {
+      ...quote,
+      contact: email,
+      issuedAt: quote.issuedAt ?? issuedAt,
+      emailIssuedAt: issuedAt,
+      emailTo: email,
+      emailSubject: emailPayload.subject,
+      emailBody: emailPayload.body,
+      emailStatus: 'draft_opened',
+    };
+    setQuote(nextQuote);
+    updateRetailFlow({ quote: nextQuote });
+    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
     window.location.href = mailto;
   };
 
   const handleCopyEmail = async () => {
-    await navigator.clipboard.writeText(emailBodyText);
+    if (!emailPayload || !emailValid) return;
+    await navigator.clipboard.writeText(`Subject: ${emailPayload.subject}\n\n${emailPayload.body}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -169,11 +210,40 @@ const QuoteReview = () => {
             <button type="button" className="btn btn-secondary" onClick={handlePrint}>
               Print / Save Quote
             </button>
-            <button type="button" className="btn btn-secondary" onClick={handleEmailQuote}>
-              Email Quote
+            <button type="button" className="btn btn-secondary" onClick={handleIssueEmail} disabled={!emailValid}>
+              Email me a copy (Issue Quote)
             </button>
           </div>
         </div>
+        <div style={{ display: 'grid', gap: '0.5rem' }}>
+          <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '420px' }}>
+            <span>Email for delivery (required to issue via email)</span>
+            <input
+              value={email}
+              onChange={(e) => handleUpdateEmail(e.target.value)}
+              placeholder="care@kickassfamily.com"
+              style={{
+                padding: '0.75rem',
+                borderRadius: '10px',
+                border: '1px solid rgba(245,192,66,0.35)',
+                background: '#0f0e0d',
+                color: '#fff7e6',
+              }}
+            />
+            {!emailValid && email && <small style={{ color: '#f0b267' }}>Enter a valid email to issue.</small>}
+          </label>
+          <small style={{ color: '#c8c0aa' }}>
+            The issue action records a retail preview copy and pre-fills your email client. No email is sent automatically.
+          </small>
+        </div>
+        {emailBanner || (quote.emailIssuedAt && quote.emailStatus && quote.emailStatus !== 'not_sent') ? (
+          <div className="card" style={{ border: '1px solid rgba(84, 160, 82, 0.5)', color: '#c8c0aa' }}>
+            <strong>{emailBanner || `Copy issued and emailed to: ${quote.emailTo ?? email} (Retail preview)`}</strong>
+            <div style={{ marginTop: '0.25rem' }}>
+              <small>If your email client did not open, copy the message below.</small>
+            </div>
+          </div>
+        ) : null}
         {resumeUrl && (
           <div style={{ display: 'grid', gap: '0.4rem' }}>
             <strong>Resume Link</strong>
@@ -294,10 +364,13 @@ const QuoteReview = () => {
           <button type="button" className="btn btn-secondary" onClick={handleExplainQuote}>
             Explain this quote
           </button>
-          <button type="button" className="btn btn-secondary" onClick={handleEmailQuote}>
-            Email Quote
+          <button type="button" className="btn btn-secondary" onClick={handleIssueEmail} disabled={!emailValid}>
+            Email me a copy (Issue Quote)
           </button>
-          <button type="button" className="btn btn-secondary" onClick={handleCopyEmail}>
+          <button type="button" className="btn btn-secondary" onClick={handleOpenDraft} disabled={!emailValid}>
+            Open email draft
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={handleCopyEmail} disabled={!emailValid}>
             {copied ? 'Copied email text' : 'Copy email text'}
           </button>
           <button type="button" className="btn btn-secondary" onClick={handlePrint}>
@@ -306,6 +379,33 @@ const QuoteReview = () => {
           <small style={{ color: '#c8c0aa' }}>
             Advisory narrative only; if there is an urgent safety issue, call 911.
           </small>
+        </div>
+        <div className="card" style={{ display: 'grid', gap: '0.35rem', background: '#0f0e0d' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <strong>Email status</strong>
+            <small style={{ color: '#c8c0aa' }}>
+              {emailStatus === 'issued'
+                ? `Issued at ${quote.emailIssuedAt ?? 'pending'}`
+                : emailStatus === 'draft_opened'
+                ? `Draft opened at ${quote.emailIssuedAt ?? 'pending'}`
+                : 'Not sent'}
+            </small>
+          </div>
+          {emailPayload && (
+            <pre
+              style={{
+                background: '#0a0908',
+                color: '#e6ddc7',
+                padding: '1rem',
+                borderRadius: '10px',
+                border: '1px solid rgba(245, 192, 66, 0.35)',
+                margin: 0,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {`Subject: ${emailPayload.subject}\n\n${emailPayload.body}`}
+            </pre>
+          )}
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 import { loadRetailFlow, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
+import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -23,6 +24,9 @@ const AgreementReview = () => {
   const [acceptanceDate, setAcceptanceDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [storedAcceptance, setStoredAcceptance] = useState<AcceptanceRecord | null>(null);
   const [bannerMessage, setBannerMessage] = useState('');
+  const [email, setEmail] = useState('');
+  const [emailBanner, setEmailBanner] = useState('');
+  const [emailCopied, setEmailCopied] = useState(false);
   const [hashCopied, setHashCopied] = useState(false);
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [quoteHashCopied, setQuoteHashCopied] = useState(false);
@@ -39,6 +43,7 @@ const AgreementReview = () => {
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote((current) => current ?? stored.quote!);
+      setEmail(stored.quote.contact ?? '');
     }
     if (stored.agreementAcceptance) {
       setStoredAcceptance(stored.agreementAcceptance);
@@ -108,9 +113,37 @@ const AgreementReview = () => {
   const customerName = quote.customerName?.trim() || 'Customer';
   const agreementDate = agreement.header.generatedDate;
   const agreementVersion = siteConfig.agreementDocVersion;
-
-  const emailSubject = `KickAss Elder Care Agreement – ${customerName} – ${agreementDate}`;
-  const emailBody = `Hi ${customerName},\n\nHere’s your KickAss Elder Care agreement based on your deterministic quote.\nAgreement Ref: ${agreementReference}\nAgreement Version: ${agreementVersion}\nAgreement Hash: ${agreementHash}\nQuote Ref: ${agreement.quoteBinding.reference}\nQuote Hash: ${quote.quoteHash || 'pending'}\nTotal: ${formatCurrency(quote.pricing.total)}\n\nResume your order: ${resumeUrl}\nThis agreement precedes payment and scheduling. No monthly subscriptions are required.`;
+  const acceptedName = fullName || storedAcceptance?.fullName || '';
+  const acceptedDate = acceptanceDate || storedAcceptance?.acceptanceDate || '';
+  const acceptanceReady = (acceptChecked || storedAcceptance?.accepted) && Boolean(acceptedName.trim()) && isValidEmail(email);
+  const acceptanceSnapshot: AcceptanceRecord | null =
+    storedAcceptance?.accepted || acceptanceReady
+      ? {
+          accepted: true,
+          fullName: acceptedName,
+          acceptanceDate: acceptedDate,
+          recordedAt: storedAcceptance?.recordedAt,
+          acceptedAt: storedAcceptance?.acceptedAt ?? storedAcceptance?.recordedAt,
+          agreementVersion,
+          agreementHash: storedAcceptance?.agreementHash ?? agreementHash,
+          supersedesAgreementHash:
+            storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash,
+          emailIssuedAt: storedAcceptance?.emailIssuedAt,
+          emailTo: storedAcceptance?.emailTo,
+          emailSubject: storedAcceptance?.emailSubject,
+          emailBody: storedAcceptance?.emailBody,
+          emailStatus: storedAcceptance?.emailStatus ?? 'not_sent',
+        }
+      : null;
+  const agreementEmailPayload =
+    quote && acceptanceSnapshot
+      ? buildAgreementEmailPayload(
+          { ...quote, contact: email },
+          { ...acceptanceSnapshot, agreementHash: acceptanceSnapshot.agreementHash ?? agreementHash },
+          { resumePath: storedAcceptance?.accepted ? 'payment' : 'agreement' }
+        )
+      : null;
+  const agreementEmailStatus = acceptanceSnapshot?.emailStatus ?? 'not_sent';
 
   const handleCopyAgreementHash = async () => {
     if (!agreementHash) return;
@@ -141,29 +174,99 @@ const AgreementReview = () => {
     setTimeout(() => setResumeCopied(false), 2000);
   };
 
-  const persistAcceptance = async () => {
-    const hash = agreementHash ||
+  const handleUpdateEmail = (value: string) => {
+    setEmail(value);
+    if (!quote) return;
+    const nextQuote = { ...quote, contact: value };
+    setQuote(nextQuote);
+    updateRetailFlow({ quote: nextQuote });
+  };
+
+  const handleIssueEmail = async () => {
+    if (!quote || !acceptanceReady || !agreementEmailPayload || !isValidEmail(email)) return;
+    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : await persistAcceptance();
+    const issuedAt = new Date().toISOString();
+    const record: AcceptanceRecord = {
+      ...baseAcceptance,
+      accepted: true,
+      fullName: baseAcceptance.fullName ?? acceptedName,
+      acceptanceDate: baseAcceptance.acceptanceDate ?? acceptedDate,
+      agreementHash: baseAcceptance.agreementHash ?? agreementHash,
+      emailIssuedAt: issuedAt,
+      emailTo: email,
+      emailSubject: agreementEmailPayload.subject,
+      emailBody: agreementEmailPayload.body,
+      emailStatus: 'issued',
+    };
+    setStoredAcceptance(record);
+    updateRetailFlow({ agreementAcceptance: record });
+    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
+  };
+
+  const handleOpenEmailDraft = async () => {
+    if (!quote || !acceptanceReady || !agreementEmailPayload || !isValidEmail(email)) return;
+    const mailto = `mailto:${email}?subject=${encodeURIComponent(
+      agreementEmailPayload.subject
+    )}&body=${encodeURIComponent(agreementEmailPayload.body)}`;
+    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : await persistAcceptance();
+    const issuedAt = baseAcceptance.emailIssuedAt ?? new Date().toISOString();
+    const record: AcceptanceRecord = {
+      ...baseAcceptance,
+      accepted: true,
+      fullName: baseAcceptance.fullName ?? acceptedName,
+      acceptanceDate: baseAcceptance.acceptanceDate ?? acceptedDate,
+      agreementHash: baseAcceptance.agreementHash ?? agreementHash,
+      emailIssuedAt: issuedAt,
+      emailTo: email,
+      emailSubject: agreementEmailPayload.subject,
+      emailBody: agreementEmailPayload.body,
+      emailStatus: 'draft_opened',
+    };
+    setStoredAcceptance(record);
+    updateRetailFlow({ agreementAcceptance: record });
+    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
+    window.location.href = mailto;
+  };
+
+  const handleCopyAgreementEmail = async () => {
+    if (!agreementEmailPayload || !isValidEmail(email) || !acceptanceSnapshot) return;
+    await navigator.clipboard.writeText(`Subject: ${agreementEmailPayload.subject}\n\n${agreementEmailPayload.body}`);
+    setEmailCopied(true);
+    setTimeout(() => setEmailCopied(false), 2000);
+  };
+
+  const persistAcceptance = async (): Promise<AcceptanceRecord> => {
+    const hash =
+      agreementHash ||
       (await computeAgreementHash(quote, {
         accepted: true,
         fullName,
         acceptanceDate,
       }));
+    const timestamp = new Date().toISOString();
     const record: AcceptanceRecord = {
       accepted: true,
       fullName,
       acceptanceDate,
-      recordedAt: new Date().toISOString(),
+      recordedAt: storedAcceptance?.recordedAt ?? timestamp,
+      acceptedAt: storedAcceptance?.acceptedAt ?? storedAcceptance?.recordedAt ?? timestamp,
       agreementVersion,
       agreementHash: hash,
       supersedesAgreementHash: storedAcceptance?.agreementHash ?? storedAcceptance?.supersedesAgreementHash,
+      emailIssuedAt: storedAcceptance?.emailIssuedAt,
+      emailTo: storedAcceptance?.emailTo ?? email,
+      emailSubject: storedAcceptance?.emailSubject,
+      emailBody: storedAcceptance?.emailBody,
+      emailStatus: storedAcceptance?.emailStatus ?? 'not_sent',
     };
     setStoredAcceptance(record);
     updateRetailFlow({ agreementAcceptance: record });
     setBannerMessage('Agreement accepted. Proceed to payment when ready.');
+    return record;
   };
 
   const handleAccept = async () => {
-    if (!acceptChecked || !fullName.trim()) return;
+    if (!acceptChecked || !fullName.trim() || !isValidEmail(email)) return;
     await persistAcceptance();
   };
 
@@ -175,14 +278,6 @@ const AgreementReview = () => {
   const handlePrint = () => {
     navigate('/agreementPrint', { state: { autoPrint: true } });
   };
-
-  const handleEmail = () => {
-    const recipient = quote.contact && quote.contact.includes('@') ? quote.contact : '';
-    const mailto = `mailto:${recipient}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-    window.location.href = mailto;
-  };
-
-  const acceptanceReady = acceptChecked && fullName.trim();
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -208,14 +303,14 @@ const AgreementReview = () => {
               Plain-language summary only. Informational only — not medical advice.
             </small>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-secondary" onClick={handleEmail}>
-              Email Agreement
-            </button>
-            <button type="button" className="btn btn-primary" onClick={handlePrint}>
-              Print / Save Agreement
-            </button>
-          </div>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn-secondary" onClick={handleIssueEmail} disabled={!acceptanceReady}>
+            Email me the signed agreement copy
+          </button>
+          <button type="button" className="btn btn-primary" onClick={handlePrint}>
+            Print / Save Agreement
+          </button>
+        </div>
         </div>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>What happens next</strong>
@@ -450,6 +545,16 @@ const AgreementReview = () => {
               style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
             />
           </label>
+          <label style={{ display: 'grid', gap: '0.35rem' }}>
+            <span>Email for delivery (required)</span>
+            <input
+              value={email}
+              onChange={(e) => handleUpdateEmail(e.target.value)}
+              placeholder="care@kickassfamily.com"
+              style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+            />
+            {!isValidEmail(email) && email && <small style={{ color: '#f0b267' }}>Enter a valid email to issue.</small>}
+          </label>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" className="btn btn-primary" onClick={handleAccept} disabled={!acceptanceReady}>
@@ -469,6 +574,54 @@ const AgreementReview = () => {
             </small>
           )}
         </div>
+        {(acceptanceReady || storedAcceptance?.accepted) && (
+          <div className="card" style={{ display: 'grid', gap: '0.75rem', background: '#0f0e0d', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            {emailBanner || (acceptanceSnapshot?.emailStatus && acceptanceSnapshot.emailStatus !== 'not_sent') ? (
+              <div className="card" style={{ border: '1px solid rgba(84, 160, 82, 0.5)', color: '#c8c0aa' }}>
+                <strong>{emailBanner || `Copy issued and emailed to: ${acceptanceSnapshot?.emailTo ?? email} (Retail preview)`}</strong>
+                <div style={{ marginTop: '0.25rem' }}>
+                  <small>If your email client did not open, copy the message below.</small>
+                </div>
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" className="btn btn-primary" onClick={handleIssueEmail} disabled={!acceptanceReady}>
+                Email me the signed agreement copy (Issue Agreement)
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handleOpenEmailDraft} disabled={!acceptanceReady}>
+                Open email draft
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementEmail} disabled={!acceptanceReady}>
+                {emailCopied ? 'Copied email text' : 'Copy email text'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <strong>Email status</strong>
+              <small style={{ color: '#c8c0aa' }}>
+                {agreementEmailStatus === 'issued'
+                  ? `Issued at ${acceptanceSnapshot?.emailIssuedAt ?? 'pending'}`
+                  : agreementEmailStatus === 'draft_opened'
+                  ? `Draft opened at ${acceptanceSnapshot?.emailIssuedAt ?? 'pending'}`
+                  : 'Not sent'}
+              </small>
+            </div>
+            {agreementEmailPayload && (
+              <pre
+                style={{
+                  background: '#0a0908',
+                  color: '#e6ddc7',
+                  padding: '1rem',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(245, 192, 66, 0.35)',
+                  margin: 0,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {`Subject: ${agreementEmailPayload.subject}\n\n${agreementEmailPayload.body}`}
+              </pre>
+            )}
+          </div>
+        )}
         <small style={{ color: '#c8c0aa' }}>
           Payment unlocks after acceptance. Informational only — not medical advice.
         </small>

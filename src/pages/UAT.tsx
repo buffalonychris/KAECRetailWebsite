@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FLOW_STORAGE_KEY, loadRetailFlow, RetailFlowState } from '../lib/retailFlow';
+import { buildQuoteReference } from '../lib/quoteUtils';
+import { buildAgreementReference } from '../lib/agreementHash';
+import { shortenMiddle } from '../lib/displayUtils';
 
 const UAT = () => {
   const navigate = useNavigate();
@@ -11,6 +14,16 @@ const UAT = () => {
   }, []);
 
   const stateJson = useMemo(() => JSON.stringify(state, null, 2), [state]);
+  const quoteEmailPayload = useMemo(() => {
+    if (!state.quote?.emailSubject || !state.quote.emailBody) return '';
+    const emailTo = state.quote.emailTo ?? state.quote.contact ?? '';
+    return `To: ${emailTo}\nSubject: ${state.quote.emailSubject}\n\n${state.quote.emailBody}`;
+  }, [state.quote]);
+  const agreementEmailPayload = useMemo(() => {
+    if (!state.agreementAcceptance?.emailSubject || !state.agreementAcceptance.emailBody) return '';
+    const emailTo = state.agreementAcceptance.emailTo ?? state.quote?.contact ?? '';
+    return `To: ${emailTo}\nSubject: ${state.agreementAcceptance.emailSubject}\n\n${state.agreementAcceptance.emailBody}`;
+  }, [state.agreementAcceptance?.emailBody, state.agreementAcceptance?.emailSubject, state.quote?.contact]);
 
   const resetFlow = () => {
     localStorage.removeItem(FLOW_STORAGE_KEY);
@@ -25,12 +38,25 @@ const UAT = () => {
     await navigator.clipboard.writeText(stateJson);
   };
 
+  const copyQuoteEmail = async () => {
+    if (!quoteEmailPayload) return;
+    await navigator.clipboard.writeText(quoteEmailPayload);
+  };
+
+  const copyAgreementEmail = async () => {
+    if (!agreementEmailPayload) return;
+    await navigator.clipboard.writeText(agreementEmailPayload);
+  };
+
   const gateBadges = [
     { label: 'Quote present', active: Boolean(state.quote) },
     { label: 'Agreement accepted', active: Boolean(state.agreementAcceptance?.accepted) },
     { label: 'Deposit completed', active: state.payment?.depositStatus === 'completed' },
     { label: 'Schedule submitted', active: Boolean(state.scheduleRequest) },
   ];
+
+  const quoteRef = state.quote ? buildQuoteReference(state.quote) : 'None';
+  const agreementRef = state.quote ? buildAgreementReference(state.quote) : 'None';
 
   const printShortcuts = [
     { label: 'Go to Quote to print', path: '/quote' },
@@ -110,6 +136,68 @@ const UAT = () => {
         >
           {stateJson}
         </pre>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Email issuance (retail preview)</div>
+        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <strong>Quote email</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              <li>
+                <span />
+                <span>Issued? {state.quote?.emailIssuedAt ? 'Yes' : 'No'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Status: {state.quote?.emailStatus ?? 'not_sent'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Email to: {state.quote?.emailTo ?? state.quote?.contact ?? 'n/a'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Ref: {quoteRef}</span>
+              </li>
+            </ul>
+            <button type="button" className="btn btn-secondary" onClick={copyQuoteEmail} disabled={!quoteEmailPayload}>
+              Copy quote email payload
+            </button>
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <strong>Agreement email</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              <li>
+                <span />
+                <span>Accepted? {state.agreementAcceptance?.accepted ? 'Yes' : 'No'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Email sent? {state.agreementAcceptance?.emailIssuedAt ? 'Yes' : 'No'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Status: {state.agreementAcceptance?.emailStatus ?? 'not_sent'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Email to: {state.agreementAcceptance?.emailTo ?? state.quote?.contact ?? 'n/a'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Ref: {agreementRef}</span>
+              </li>
+              <li>
+                <span />
+                <span>Hash: {shortenMiddle(state.agreementAcceptance?.agreementHash)}</span>
+              </li>
+            </ul>
+            <button type="button" className="btn btn-secondary" onClick={copyAgreementEmail} disabled={!agreementEmailPayload}>
+              Copy agreement email payload
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
