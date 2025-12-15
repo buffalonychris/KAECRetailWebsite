@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import AuthorityBlock from '../components/AuthorityBlock';
+import { buildSicarAuthorityMeta, DocAuthorityMeta, parseSicarToken } from '../lib/docAuthority';
 import {
   AcceptanceSnapshot,
   addDevice,
@@ -57,6 +60,7 @@ const deviceDefaults: Omit<DeviceRecord, 'id' | 'health' | 'photos'> = {
 };
 
 const Certificate = () => {
+  const location = useLocation();
   const [certificate, setCertificate] = useState<CertificateRecord>(createDefaultCertificate());
   const [role, setRole] = useState<Role>('customer');
   const [banner, setBanner] = useState<Banner>(null);
@@ -68,10 +72,53 @@ const Certificate = () => {
     signedAt: '',
     representativeTitle: '',
   });
+  const [authority, setAuthority] = useState<DocAuthorityMeta | null>(null);
+  const [viewOnly, setViewOnly] = useState(false);
+  const [tokenHash, setTokenHash] = useState<string | undefined>(undefined);
+
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const tokenParam = searchParams.get('t');
 
   useEffect(() => {
-    setCertificate(loadCertificate());
-  }, []);
+    if (tokenParam) {
+      const parsed = parseSicarToken(tokenParam);
+      if (parsed?.certificate) {
+        setCertificate(parsed.certificate);
+        setAcceptance(parsed.certificate.acceptance ?? {
+          customerName: '',
+          signature: '',
+          signedAt: '',
+          representativeTitle: '',
+        });
+        setViewOnly(true);
+        setTokenHash(parsed.hash);
+        return;
+      }
+    }
+
+    const stored = loadCertificate();
+    setCertificate(stored);
+    setAcceptance(stored.acceptance ?? {
+      customerName: '',
+      signature: '',
+      signedAt: '',
+      representativeTitle: '',
+    });
+    setViewOnly(false);
+    setTokenHash(undefined);
+  }, [tokenParam]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const meta = await buildSicarAuthorityMeta(certificate, tokenParam ?? undefined, tokenHash);
+      if (!cancelled) setAuthority(meta);
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [certificate, tokenHash, tokenParam]);
 
   const stageIndex = useMemo(
     () => LIFECYCLE_STAGES.findIndex((stage) => stage === certificate.lifecycleStage),
@@ -79,7 +126,16 @@ const Certificate = () => {
   );
 
   const canRecordAcceptance =
-    certificate.lifecycleStage === 'acceptance' && certificate.devices.length > 0 && !certificate.immutable;
+    certificate.lifecycleStage === 'acceptance' &&
+    certificate.devices.length > 0 &&
+    !certificate.immutable &&
+    !viewOnly;
+
+  const blockOnViewOnly = () => {
+    if (!viewOnly) return false;
+    setBanner({ tone: 'error', message: 'View-only verification token; edits are disabled.' });
+    return true;
+  };
 
   const setAndToast = (update: CertificateRecord, message?: Banner) => {
     setCertificate(update);
@@ -87,6 +143,7 @@ const Certificate = () => {
   };
 
   const handleFieldChange = (key: FieldKey, value: string) => {
+    if (blockOnViewOnly()) return;
     const result = updateField(certificate, key, value, role);
     if (result.error) {
       setBanner({ tone: 'error', message: result.error });
@@ -96,6 +153,7 @@ const Certificate = () => {
   };
 
   const handleAddInstaller = () => {
+    if (blockOnViewOnly()) return;
     const trimmed = newInstallerName.trim();
     if (!trimmed) return;
     const result = addInstaller(certificate, trimmed, role);
@@ -108,6 +166,7 @@ const Certificate = () => {
   };
 
   const handleAddDevice = () => {
+    if (blockOnViewOnly()) return;
     if (!newDevice.systemName || !newDevice.manufacturer || !newDevice.purpose) {
       setBanner({ tone: 'error', message: 'System name, manufacturer, and purpose are required.' });
       return;
@@ -122,6 +181,7 @@ const Certificate = () => {
   };
 
   const handleAdvanceStage = (nextStage: CertificateRecord['lifecycleStage']) => {
+    if (blockOnViewOnly()) return;
     const result = advanceStage(certificate, nextStage, role);
     if (result.error) {
       setBanner({ tone: 'error', message: result.error });
@@ -131,6 +191,7 @@ const Certificate = () => {
   };
 
   const handleHealthSnapshot = (deviceId: string) => {
+    if (blockOnViewOnly()) return;
     const result = recordHealthCheck(
       certificate,
       deviceId,
@@ -151,6 +212,7 @@ const Certificate = () => {
   };
 
   const handleHealthOverride = (deviceId: string, note: string) => {
+    if (blockOnViewOnly()) return;
     const result = recordHealthCheck(
       certificate,
       deviceId,
@@ -167,6 +229,7 @@ const Certificate = () => {
 
   const handlePhotoUpload = async (deviceId: string, file?: File | null) => {
     if (!file) return;
+    if (blockOnViewOnly()) return;
     const reader = new FileReader();
     reader.onload = () => {
       const result = appendPhoto(certificate, deviceId, String(reader.result), role);
@@ -181,6 +244,7 @@ const Certificate = () => {
   };
 
   const handleDeviceField = (deviceId: string, patch: Partial<DeviceRecord>) => {
+    if (blockOnViewOnly()) return;
     const result = updateDevice(certificate, deviceId, patch, role);
     if (result.error) {
       setBanner({ tone: 'error', message: result.error });
@@ -190,6 +254,7 @@ const Certificate = () => {
   };
 
   const handleAcceptance = () => {
+    if (blockOnViewOnly()) return;
     if (!acceptance.customerName.trim() || !acceptance.signature.trim()) {
       setBanner({ tone: 'error', message: 'Signature and name are required.' });
       return;
@@ -207,6 +272,7 @@ const Certificate = () => {
   };
 
   const resetAll = () => {
+    if (blockOnViewOnly()) return;
     const reset = createDefaultCertificate();
     saveCertificate(reset);
     setCertificate(reset);
@@ -223,12 +289,19 @@ const Certificate = () => {
           Enforces the canonical lifecycle, role ownership, installer attestations, health snapshots, and
           customer lock-down required for the System Installation Completion & Acceptance Record (SICAR).
         </p>
+        {viewOnly && (
+          <small style={{ color: '#f5c042' }}>
+            Loaded from a verification token. Editing and lifecycle advances are disabled in this mode.
+          </small>
+        )}
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button type="button" className="btn btn-secondary" onClick={resetAll}>
             Reset demo certificate
           </button>
         </div>
       </div>
+
+      <AuthorityBlock meta={authority} resumeLabel="View certificate" />
 
       <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
         <div className="badge">Active role</div>
@@ -288,7 +361,7 @@ const Certificate = () => {
                     ? 'Fields owned by this stage remain editable by their role.'
                     : 'Advance sequentially only.'}
                 </small>
-                {next && canAdvanceStage(certificate, stage) && (
+                {next && canAdvanceStage(certificate, stage) && !viewOnly && (
                   <button type="button" className="btn btn-primary" onClick={() => handleAdvanceStage(stage)}>
                     Advance to {lifecycleLabels[stage]}
                   </button>
@@ -317,7 +390,7 @@ const Certificate = () => {
               ['installationJobId', 'Installation Job ID'],
             ] as [FieldKey, string][]
           ).map(([key, label]) => {
-            const editable = isFieldEditable(certificate, key, role);
+            const editable = isFieldEditable(certificate, key, role) && !viewOnly;
             const value =
               key in certificate.customer
                 ? (certificate.customer as Record<string, string>)[key]
@@ -361,14 +434,18 @@ const Certificate = () => {
             placeholder="Add installer"
             value={newInstallerName}
             onChange={(e) => setNewInstallerName(e.target.value)}
-            disabled={certificate.lifecycleStage !== 'preinstall' || role !== 'operations' || certificate.immutable}
+            disabled={
+              certificate.lifecycleStage !== 'preinstall' || role !== 'operations' || certificate.immutable || viewOnly
+            }
             style={{ padding: '0.65rem', borderRadius: '8px', border: '1px solid var(--kaec-ink)' }}
           />
           <button
             type="button"
             className="btn btn-primary"
             onClick={handleAddInstaller}
-            disabled={certificate.lifecycleStage !== 'preinstall' || role !== 'operations' || certificate.immutable}
+            disabled={
+              certificate.lifecycleStage !== 'preinstall' || role !== 'operations' || certificate.immutable || viewOnly
+            }
           >
             Record installer
           </button>
@@ -403,7 +480,9 @@ const Certificate = () => {
                   type="text"
                   value={(newDevice as Record<string, string>)[key]}
                   onChange={(e) => setNewDevice({ ...newDevice, [key]: e.target.value })}
-                  disabled={certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable}
+                  disabled={
+                    certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable || viewOnly
+                  }
                   style={{ padding: '0.65rem', borderRadius: '8px', border: '1px solid var(--kaec-ink)' }}
                 />
               </label>
@@ -413,7 +492,9 @@ const Certificate = () => {
             type="button"
             className="btn btn-primary"
             onClick={handleAddDevice}
-            disabled={certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable}
+            disabled={
+              certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable || viewOnly
+            }
           >
             Add device to certificate
           </button>
@@ -468,7 +549,7 @@ const Certificate = () => {
                       type="button"
                       className="btn btn-secondary"
                       onClick={() => handleHealthSnapshot(device.id)}
-                      disabled={certificate.lifecycleStage === 'acceptance' || certificate.immutable}
+                      disabled={certificate.lifecycleStage === 'acceptance' || certificate.immutable || viewOnly}
                     >
                       Pull telemetry snapshot
                     </button>
@@ -476,7 +557,12 @@ const Certificate = () => {
                       type="button"
                       className="btn"
                       onClick={() => handleHealthOverride(device.id, 'Installer noted manual override')}
-                      disabled={!['installer', 'system'].includes(role) || certificate.lifecycleStage === 'acceptance' || certificate.immutable}
+                      disabled={
+                        !['installer', 'system'].includes(role) ||
+                        certificate.lifecycleStage === 'acceptance' ||
+                        certificate.immutable ||
+                        viewOnly
+                      }
                     >
                       Manual override (requires note)
                     </button>
@@ -488,7 +574,7 @@ const Certificate = () => {
                   <textarea
                     value={device.installerAttestation}
                     onChange={(e) => handleDeviceField(device.id, { installerAttestation: e.target.value })}
-                    disabled={certificate.lifecycleStage === 'acceptance' || certificate.immutable}
+                    disabled={certificate.lifecycleStage === 'acceptance' || certificate.immutable || viewOnly}
                     style={{
                       background: '#0f0f0f',
                       color: '#e6ddc7',
@@ -506,7 +592,9 @@ const Certificate = () => {
                     type="file"
                     accept="image/*"
                     onChange={(e) => handlePhotoUpload(device.id, e.target.files?.[0])}
-                    disabled={certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable}
+                    disabled={
+                      certificate.lifecycleStage !== 'installation' || role !== 'installer' || certificate.immutable || viewOnly
+                    }
                   />
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {device.photos.map((photo, idx) => (

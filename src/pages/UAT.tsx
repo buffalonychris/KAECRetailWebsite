@@ -4,14 +4,52 @@ import { FLOW_STORAGE_KEY, loadRetailFlow, RetailFlowState } from '../lib/retail
 import { buildQuoteReference } from '../lib/quoteUtils';
 import { buildAgreementReference } from '../lib/agreementHash';
 import { shortenMiddle } from '../lib/displayUtils';
+import { buildAgreementAuthorityMeta, buildQuoteAuthorityMeta, buildSicarAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
+import { loadCertificate } from '../lib/sicar';
 
 const UAT = () => {
   const navigate = useNavigate();
   const [state, setState] = useState<RetailFlowState>({});
+  const [quoteAuthority, setQuoteAuthority] = useState<DocAuthorityMeta | null>(null);
+  const [agreementAuthority, setAgreementAuthority] = useState<DocAuthorityMeta | null>(null);
+  const [sicarAuthority, setSicarAuthority] = useState<DocAuthorityMeta | null>(null);
 
   useEffect(() => {
     setState(loadRetailFlow());
   }, []);
+
+  useEffect(() => {
+    const run = async () => {
+      if (state.quote) {
+        const quoteMeta = await buildQuoteAuthorityMeta({ quote: state.quote });
+        setQuoteAuthority(quoteMeta);
+        const agreementMeta = await buildAgreementAuthorityMeta({
+          quote: state.quote,
+          agreementAcceptance: state.agreementAcceptance,
+        });
+        setAgreementAuthority(agreementMeta);
+      } else {
+        setQuoteAuthority(null);
+        setAgreementAuthority(null);
+      }
+
+      const certificate = loadCertificate();
+      if (
+        certificate.quoteId ||
+        certificate.agreementId ||
+        certificate.acceptance ||
+        certificate.devices.length > 0 ||
+        certificate.installers.length > 0
+      ) {
+        const sicarMeta = await buildSicarAuthorityMeta(certificate);
+        setSicarAuthority(sicarMeta);
+      } else {
+        setSicarAuthority(null);
+      }
+    };
+
+    run();
+  }, [state.agreementAcceptance, state.quote]);
 
   const stateJson = useMemo(() => JSON.stringify(state, null, 2), [state]);
   const quoteEmailPayload = useMemo(() => {
@@ -197,6 +235,44 @@ const UAT = () => {
               Copy agreement email payload
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Verification quick links</div>
+        <small style={{ color: '#c8c0aa' }}>
+          Jump to verification endpoints using the locally stored tokens for quote, agreement, and SICAR if available.
+        </small>
+        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+          {[{ label: 'Verify Quote', meta: quoteAuthority }, { label: 'Verify Agreement', meta: agreementAuthority }, { label: 'Verify SICAR', meta: sicarAuthority }].map(
+            (tile) => (
+              <div key={tile.label} className="card" style={{ border: '1px solid var(--kaec-ink)', display: 'grid', gap: '0.35rem' }}>
+                <strong>{tile.label}</strong>
+                <ul className="list" style={{ marginTop: '0.35rem' }}>
+                  <li>
+                    <span />
+                    <span>Ref: {tile.meta?.reference ?? 'No token'}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span>Hash: {shortenMiddle(tile.meta?.hashShort)}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span>Issued: {tile.meta?.issuedAtISO ?? 'n/a'}</span>
+                  </li>
+                </ul>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => tile.meta && openPath(tile.meta.verificationUrl)}
+                  disabled={!tile.meta}
+                >
+                  {tile.meta ? 'Open verification' : 'No token'}
+                </button>
+              </div>
+            ),
+          )}
         </div>
       </div>
 
