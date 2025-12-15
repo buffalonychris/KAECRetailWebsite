@@ -18,9 +18,9 @@ const Contact = () => {
         <div>
           <label htmlFor="package">Package interest</label>
           <select id="package" name="package">
-            <option value="a1">A1 Secure Foundations</option>
-            <option value="a2">A2 Safety + Support</option>
-            <option value="a3">A3 Whole-Property Assurance</option>
+            <option value="a1">Elder Care Bronze</option>
+            <option value="a2">Elder Care Silver</option>
+            <option value="a3">Elder Care Gold</option>
             <option value="custom">Custom mix</option>
           </select>
         </div>

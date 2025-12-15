@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import TierBadge from '../components/TierBadge';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { computeQuoteHash } from '../lib/quoteHash';
@@ -311,7 +312,10 @@ const Quote = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           <div>
             <div className="badge">Quote summary</div>
-            <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <TierBadge tierId={selectedPackage.id} />
+              <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+            </div>
             <p style={{ margin: 0, color: '#c8c0aa' }}>{selectedPackage.summary}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -361,7 +365,7 @@ const Quote = () => {
             <li>
               <span />
               <span>
-                Package: {selectedPackage.name} ({formatCurrency(selectedPackage.basePrice)})
+                Package: <TierBadge tierId={selectedPackage.id} className="inline-badge" /> {selectedPackage.name} ({formatCurrency(selectedPackage.basePrice)})
               </span>
             </li>
             {selectedAddOns.length === 0 && (

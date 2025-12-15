@@ -11,6 +11,11 @@ export type HardwareCategory = {
   items: HardwareItem[];
 };
 
+export type HardwareGroup = {
+  heading: string;
+  categories: HardwareCategory[];
+};
+
 const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
   A1: [
     {
@@ -163,11 +168,88 @@ const mergeHardware = (categories: HardwareCategory[]): HardwareCategory[] => {
   return Array.from(map.entries()).map(([title, items]) => ({ title, items }));
 };
 
+const toHardwareMap = (categories: HardwareCategory[]) => {
+  const byTitle = new Map<string, Map<string, number>>();
+
+  categories.forEach((category) => {
+    const existing = byTitle.get(category.title) ?? new Map<string, number>();
+    category.items.forEach((item) => {
+      existing.set(item.name, (existing.get(item.name) ?? 0) + item.quantity);
+    });
+    byTitle.set(category.title, existing);
+  });
+
+  return byTitle;
+};
+
+const diffHardware = (base: HardwareCategory[], target: HardwareCategory[]): HardwareCategory[] => {
+  const baseMap = toHardwareMap(base);
+  const result: HardwareCategory[] = [];
+
+  target.forEach((category) => {
+    const baseItems = baseMap.get(category.title) ?? new Map<string, number>();
+    const additions: HardwareItem[] = [];
+
+    category.items.forEach((item) => {
+      const delta = item.quantity - (baseItems.get(item.name) ?? 0);
+      if (delta > 0) additions.push({ ...item, quantity: delta });
+    });
+
+    if (additions.length) {
+      result.push({ title: category.title, items: additions });
+    }
+  });
+
+  return result;
+};
+
+const bronzeHardware = mergeHardware(baseHardware.A1);
+const silverTotal = mergeHardware(baseHardware.A2);
+const goldTotal = mergeHardware(baseHardware.A3);
+
+const silverAdds = diffHardware(bronzeHardware, silverTotal);
+const silverRollup = mergeHardware([...bronzeHardware, ...silverAdds]);
+const goldAdds = diffHardware(silverRollup, goldTotal);
+const goldRollup = mergeHardware([...silverRollup, ...goldAdds]);
+
+const buildHardwareGroups = (packageId: PackageTierId): HardwareGroup[] => {
+  if (packageId === 'A1') {
+    return [{ heading: 'Included Hardware', categories: bronzeHardware }];
+  }
+
+  if (packageId === 'A2') {
+    return [
+      { heading: 'Included from Bronze', categories: bronzeHardware },
+      { heading: 'Additional in Silver', categories: silverAdds },
+    ];
+  }
+
+  return [
+    { heading: 'Included from Bronze + Silver', categories: silverRollup },
+    { heading: 'Additional in Gold', categories: goldAdds },
+  ];
+};
+
+export const getHardwareGroups = (
+  packageId: PackageTierId,
+  addOnIds: string[]
+): HardwareGroup[] => {
+  const groups = buildHardwareGroups(packageId);
+  const extras = addOnIds.flatMap((id) => addOnHardware[id] ?? []);
+
+  if (extras.length) {
+    groups.push({ heading: 'Selected add-ons', categories: mergeHardware(extras) });
+  }
+
+  return groups;
+};
+
 export const getHardwareList = (
   packageId: PackageTierId,
   addOnIds: string[]
 ): HardwareCategory[] => {
-  const base = baseHardware[packageId] ?? [];
+  const base =
+    packageId === 'A1' ? bronzeHardware : packageId === 'A2' ? silverRollup : goldRollup;
   const extras = addOnIds.flatMap((id) => addOnHardware[id] ?? []);
   return mergeHardware([...base, ...extras]);
 };

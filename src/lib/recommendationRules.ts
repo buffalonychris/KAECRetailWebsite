@@ -30,9 +30,9 @@ const clampTierByBudget = (tier: RecommendationResult['tier'], budget: BudgetRan
 };
 
 const baseRationale: Record<RecommendationResult['tier'], string> = {
-  A1: 'A1 keeps essentials covered with a single Home Assistant hub and a straightforward install.',
-  A2: 'A2 expands lighting, cameras, and alerts so caregivers can see issues sooner without more apps.',
-  A3: 'A3 hardens the whole property with pro-grade recording, redundancy, and cellular options.',
+  A1: 'Elder Care Bronze keeps essentials covered with a single Home Assistant hub and a straightforward install.',
+  A2: 'Elder Care Silver expands lighting, cameras, and alerts so caregivers can see issues sooner without more apps.',
+  A3: 'Elder Care Gold hardens the whole property with pro-grade recording, redundancy, and cellular options.',
 };
 
 const offlineBaseline: Record<RecommendationResult['tier'], number> = {

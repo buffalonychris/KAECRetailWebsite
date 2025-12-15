@@ -5,14 +5,15 @@ import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow } from '../lib/retailFlow';
-import { getHardwareList, HardwareCategory } from '../data/hardware';
-import { FeatureCategory, getFeatureCategories } from '../data/features';
+import { getHardwareGroups } from '../data/hardware';
+import { getFeatureGroups } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
 import { buildResumeUrl, buildQuoteFromResumePayload, parseResumeToken } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
+import TierBadge from '../components/TierBadge';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -50,13 +51,13 @@ const QuotePrint = () => {
 
   const selectedAddOns = useMemo(() => addOns.filter((addOn) => quote?.selectedAddOns.includes(addOn.id)), [quote]);
 
-  const hardwareList: HardwareCategory[] = useMemo(
-    () => (quote ? getHardwareList(quote.packageId, quote.selectedAddOns) : []),
+  const hardwareGroups = useMemo(
+    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
 
-  const featureCategories: FeatureCategory[] = useMemo(
-    () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
+  const featureGroups = useMemo(
+    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
 
@@ -258,7 +259,10 @@ const QuotePrint = () => {
             }}
           >
             <div>
-              <div style={{ fontWeight: 700 }}>{selectedPackage.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <TierBadge tierId={selectedPackage.id} />
+                <div style={{ fontWeight: 700 }}>{selectedPackage.name}</div>
+              </div>
               <div style={{ color: '#444' }}>{selectedPackage.summary}</div>
               <div style={{ marginTop: '0.35rem' }}>
                 <strong>Package:</strong> {formatCurrency(selectedPackage.basePrice)}
@@ -290,17 +294,24 @@ const QuotePrint = () => {
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Hardware (deterministic)</h2>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {hardwareList.map((category) => (
-              <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                <strong>{category.title}</strong>
-                <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                  {category.items.map((item) => (
-                    <li key={item.name}>
-                      {item.name} — qty {item.quantity}
-                      {item.note ? ` (${item.note})` : ''}
-                    </li>
+            {hardwareGroups.map((group) => (
+              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                <strong>{group.heading}</strong>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  {group.categories.map((category) => (
+                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                      <strong>{category.title}</strong>
+                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                        {category.items.map((item) => (
+                          <li key={item.name}>
+                            {item.name} — qty {item.quantity}
+                            {item.note ? ` (${item.note})` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>
@@ -309,14 +320,21 @@ const QuotePrint = () => {
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Feature coverage</h2>
           <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {featureCategories.map((category) => (
-              <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                <strong>{category.title}</strong>
-                <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                  {category.items.map((item) => (
-                    <li key={item}>{item}</li>
+            {featureGroups.map((group) => (
+              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                <strong>{group.heading}</strong>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  {group.categories.map((category) => (
+                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                      <strong>{category.title}</strong>
+                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                        {category.items.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             ))}
           </div>

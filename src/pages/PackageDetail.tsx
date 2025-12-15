@@ -1,5 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { packages } from '../content/packages';
+import TierBadge from '../components/TierBadge';
+import { PackageTierId } from '../data/pricing';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -25,7 +27,7 @@ const PackageDetail = () => {
       <div className="card" aria-label={`${pkg.name} details`}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <span className="badge">{pkg.badge ?? 'Package'}</span>
+            <TierBadge tierId={(pkg.id.toUpperCase() as PackageTierId) ?? 'A1'} labelOverride={pkg.badge ?? undefined} />
             <h2 style={{ margin: 0 }}>{pkg.name}</h2>
             <p style={{ margin: 0, color: '#c8c0aa' }}>{pkg.tagline}</p>
             <p style={{ maxWidth: 720 }}>{pkg.oneLiner}</p>

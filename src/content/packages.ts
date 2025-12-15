@@ -13,9 +13,9 @@ export type PackageTier = {
 export const packages: PackageTier[] = [
   {
     id: 'a1',
-    name: 'A1 Secure Foundations',
+    name: 'Elder Care Bronze',
     price: '$2,850 one-time',
-    badge: 'Starter',
+    badge: 'Bronze tier',
     tagline: 'Baseline safety with Home Assistant as the single control hub.',
     oneLiner:
       'Entry package that keeps essential lights, locks, and alerts under one local-first system.',
@@ -36,15 +36,15 @@ export const packages: PackageTier[] = [
   },
   {
     id: 'a2',
-    name: 'A2 Safety + Support',
+    name: 'Elder Care Silver',
     price: '$4,950 one-time',
-    badge: 'Most chosen',
+    badge: 'Silver tier',
     tagline: 'Expanded safety coverage with guided check-ins and reliable video.',
     oneLiner:
       'Adds more lighting, cameras, and alerts so caregivers can spot issues quickly without extra apps.',
     idealFor: 'Detached homes and assisted-living units that need broader coverage.',
     includes: [
-      'Everything in A1 Secure Foundations',
+      'Everything in Elder Care Bronze',
       'Four additional smart light circuits for safer pathways',
       'Two-way video doorbell tied into Home Assistant',
       'Two more indoor cameras plus one outdoor camera',
@@ -59,15 +59,15 @@ export const packages: PackageTier[] = [
   },
   {
     id: 'a3',
-    name: 'A3 Whole-Property Assurance',
+    name: 'Elder Care Gold',
     price: '$7,750 one-time',
-    badge: 'Comprehensive',
+    badge: 'Gold tier',
     tagline: 'Full-property safety net with redundancy and professional-grade coverage.',
     oneLiner:
       'Adds exterior hardening, cellular failover options, and expanded storage for local reliability.',
     idealFor: 'Larger single-family homes or multi-unit footprints needing resilient coverage.',
     includes: [
-      'Everything in A2 Safety + Support',
+      'Everything in Elder Care Silver',
       'Professional-grade Reolink NVR for local multi-camera recording',
       'Four outdoor PoE cameras plus floodlight camera',
       'Smart thermostat with caregiver alerts',

@@ -12,6 +12,8 @@ import {
 } from '../lib/recommendationRules';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { markFlowStep } from '../lib/retailFlow';
+import { getTierLabel } from '../data/pricing';
+import TierBadge from '../components/TierBadge';
 
 const optionStyles: CSSProperties = {
   display: 'grid',
@@ -80,9 +82,9 @@ const steps = [
     title: 'Budget guardrail',
     description: 'All packages are one-time pricing. We right-size within your range.',
     options: [
-      { value: 'entry', label: 'Entry: under $3k', helper: 'A1 starter fit' },
-      { value: 'core', label: 'Core: $3k-$5k', helper: 'A1 or A2 depending on need' },
-      { value: 'expanded', label: 'Expanded: $5k-$8k', helper: 'A2 or A3 coverage' },
+      { value: 'entry', label: 'Entry: under $3k', helper: 'Elder Care Bronze starter fit' },
+      { value: 'core', label: 'Core: $3k-$5k', helper: 'Elder Care Bronze or Silver depending on need' },
+      { value: 'expanded', label: 'Expanded: $5k-$8k', helper: 'Elder Care Silver or Gold coverage' },
       { value: 'flexible', label: 'Flexible for the right fit', helper: 'We prioritize coverage' },
     ],
   },
@@ -254,7 +256,10 @@ const Recommendation = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div className="badge">Recommended tier</div>
-              <h2 style={{ margin: '0.25rem 0' }}>{recommendation.tier}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <TierBadge tierId={recommendation.tier} />
+                <h2 style={{ margin: '0.25rem 0' }}>{getTierLabel(recommendation.tier)}</h2>
+              </div>
             </div>
             <div style={{ textAlign: 'right', color: '#c8c0aa' }}>
               <div>Install complexity: {recommendation.installComplexity} / 5</div>

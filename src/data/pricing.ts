@@ -17,23 +17,39 @@ export type AddOn = {
 export const packagePricing: PackagePricing[] = [
   {
     id: 'A1',
-    name: 'A1 Secure Foundations',
+    name: 'Elder Care Bronze',
     basePrice: 2850,
     summary: 'Baseline safety with Home Assistant as the single control hub.',
   },
   {
     id: 'A2',
-    name: 'A2 Safety + Support',
+    name: 'Elder Care Silver',
     basePrice: 4950,
     summary: 'Expanded lighting, cameras, and alerts with local-first control.',
   },
   {
     id: 'A3',
-    name: 'A3 Whole-Property Assurance',
+    name: 'Elder Care Gold',
     basePrice: 7750,
     summary: 'Comprehensive coverage with redundancy and pro-grade storage.',
   },
 ];
+
+const tierLabels: Record<PackageTierId, string> = {
+  A1: 'Elder Care Bronze',
+  A2: 'Elder Care Silver',
+  A3: 'Elder Care Gold',
+};
+
+const tierBadgeClass: Record<PackageTierId, string> = {
+  A1: 'tier-badge-bronze',
+  A2: 'tier-badge-silver',
+  A3: 'tier-badge-gold',
+};
+
+export const getTierLabel = (tier: PackageTierId): string => tierLabels[tier];
+
+export const getTierBadgeClass = (tier: PackageTierId): string => tierBadgeClass[tier];
 
 export const addOns: AddOn[] = [
   {

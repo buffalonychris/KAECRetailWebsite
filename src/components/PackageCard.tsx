@@ -1,16 +1,19 @@
 import { Link } from 'react-router-dom';
 import type { PackageTier } from '../content/packages';
+import TierBadge from './TierBadge';
+import { PackageTierId } from '../data/pricing';
 
 type Props = {
   pkg: PackageTier;
 };
 
 const PackageCard = ({ pkg }: Props) => {
+  const tierId = pkg.id.toUpperCase() as PackageTierId;
   return (
     <div className="card" aria-label={`${pkg.name} package`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="badge">{pkg.badge ?? 'Package'}</span>
+          <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} />
           <h3 style={{ margin: 0, color: '#fff7e6' }}>{pkg.name}</h3>
           <div style={{ color: 'var(--kaec-muted)' }}>{pkg.tagline}</div>
         </div>
