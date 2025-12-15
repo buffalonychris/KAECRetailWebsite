@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BudgetRange,
   CaregiverSituation,
@@ -11,7 +11,7 @@ import {
   buildRecommendation,
 } from '../lib/recommendationRules';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
-import { markFlowStep } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { getTierLabel } from '../data/pricing';
 import TierBadge from '../components/TierBadge';
 import ComparisonLadder from '../components/ComparisonLadder';
@@ -104,6 +104,8 @@ const labels: Record<StepKey, string> = {
 type OptionValue = HomeSize | CaregiverSituation | RiskLevel | TechComfort | InternetReliability | BudgetRange;
 
 const Recommendation = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [stepIndex, setStepIndex] = useState(0);
   const [responses, setResponses] = useState<RecommendationInput>({
     homeSize: 'small',
@@ -116,6 +118,7 @@ const Recommendation = () => {
   const [showResult, setShowResult] = useState(false);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [guidedMode, setGuidedMode] = useState<boolean>(() => loadRetailFlow().guidedMode ?? false);
 
   const handleSelect = (key: StepKey, value: OptionValue) => {
     setResponses((prev) => ({ ...prev, [key]: value }));
@@ -139,8 +142,16 @@ const Recommendation = () => {
   const progress = ((stepIndex + 1) / steps.length) * 100;
 
   useEffect(() => {
+    const guidedParam = searchParams.get('guided') === '1';
+    if (guidedParam) {
+      setGuidedMode(true);
+      updateRetailFlow({ guidedMode: true, currentStep: 'select' });
+      return;
+    }
     markFlowStep('select');
-  }, []);
+    const stored = loadRetailFlow().guidedMode;
+    if (stored) setGuidedMode(true);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!showResult) return;
@@ -170,8 +181,37 @@ const Recommendation = () => {
     await navigator.clipboard.writeText(text);
   };
 
+  const exitGuidedMode = () => {
+    setGuidedMode(false);
+    updateRetailFlow({ guidedMode: false });
+    navigate('/');
+  };
+
+  const handleQuote = () => {
+    updateRetailFlow({ currentStep: 'quote' });
+    const tierParam = recommendation?.tier ? `?tier=${encodeURIComponent(recommendation.tier)}` : '';
+    navigate(`/quote${tierParam}`);
+  };
+
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {guidedMode && (
+        <div
+          className="hero-card"
+          role="status"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}
+        >
+          <div>
+            <strong style={{ color: '#fff7e6' }}>Guided setup</strong>
+            <p style={{ margin: '0.25rem 0 0', color: '#e6ddc7' }}>
+              Answer a few questions and we will recommend the right package, then move you into a quote.
+            </p>
+          </div>
+          <button type="button" className="btn btn-secondary" onClick={exitGuidedMode}>
+            Exit guided setup
+          </button>
+        </div>
+      )}
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Build my package</div>
         <h1 style={{ margin: 0, color: '#fff7e6' }}>Package recommender wizard</h1>
@@ -268,6 +308,15 @@ const Recommendation = () => {
             </div>
           </div>
           <p style={{ margin: 0, color: '#e6ddc7' }}>{recommendation.rationale}</p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-primary" onClick={handleQuote}>
+              Get a Quote for {getTierLabel(recommendation.tier)}
+            </button>
+            <small style={{ color: '#c8c0aa' }}>
+              We will carry your answers forward and start a quote for this tier.
+            </small>
+          </div>
 
           <div className="hero-card" style={{ display: 'grid', gap: '0.5rem' }}>
             <h3 style={{ margin: 0, color: '#fff7e6' }}>Suggested add-ons</h3>

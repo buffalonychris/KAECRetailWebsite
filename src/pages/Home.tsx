@@ -21,11 +21,11 @@ const Home = () => {
             the internet is down. No subscriptions. One plainspoken app: Home Assistant.
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Link className="btn btn-primary" to="/quote">
-              Start my quote
+            <Link className="btn btn-primary" to="/recommendation?guided=1&start=1">
+              Start Guided Setup
             </Link>
             <Link className="btn btn-secondary" to="/packages">
-              Explore packages
+              Browse packages
             </Link>
             <Link className="btn btn-secondary" to="/reliability">
               Offline reliability

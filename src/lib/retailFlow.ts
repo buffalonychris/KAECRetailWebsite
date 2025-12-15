@@ -51,6 +51,7 @@ export type RetailFlowState = {
   payment?: { depositStatus?: PaymentStatus };
   scheduleRequest?: ScheduleRequest;
   currentStep?: FlowStep;
+  guidedMode?: boolean;
 };
 
 export const FLOW_STORAGE_KEY = 'kaecRetailFlow';
