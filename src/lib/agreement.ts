@@ -8,11 +8,14 @@ export type QuoteContext = {
   customerName?: string;
   contact?: string;
   issuedAt?: string;
+  issuedAtISO?: string;
   emailIssuedAt?: string;
+  emailIssuedAtISO?: string;
   emailTo?: string;
   emailSubject?: string;
   emailBody?: string;
   emailStatus?: 'not_sent' | 'issued' | 'draft_opened';
+  emailRecipients?: string[];
   city?: string;
   homeType?: string;
   homeSize?: string;
