@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import AuthorityBlock from '../components/AuthorityBlock';
 import { getHardwareList, HardwareCategory } from '../data/hardware';
 import { FeatureCategory, getFeatureCategories } from '../data/features';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
@@ -10,12 +11,15 @@ import { shortenMiddle, copyToClipboard } from '../lib/displayUtils';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { formatQuoteDate } from '../lib/quoteUtils';
+import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const AgreementPrint = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const token = searchParams.get('t') || '';
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [acceptance, setAcceptance] = useState<AcceptanceRecord | null>(null);
   const [agreementHash, setAgreementHash] = useState('');
@@ -25,9 +29,18 @@ const AgreementPrint = () => {
   const [priorQuoteHashCopied, setPriorQuoteHashCopied] = useState(false);
   const [resumeCopied, setResumeCopied] = useState(false);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
+  const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (token) {
+      const payload = parseAgreementToken(token);
+      if (payload?.quote) {
+        setQuote(payload.quote);
+        setAcceptance((payload.acceptance as AcceptanceRecord | undefined) ?? null);
+        return;
+      }
+    }
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote(stored.quote);
@@ -35,7 +48,7 @@ const AgreementPrint = () => {
     if (stored.agreementAcceptance) {
       setAcceptance(stored.agreementAcceptance);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!quote) return;
@@ -107,6 +120,26 @@ const AgreementPrint = () => {
     () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quote) {
+        if (isMounted) setAuthorityMeta(null);
+        return;
+      }
+      const meta = await buildAgreementAuthorityMeta(
+        { quote, agreementAcceptance: acceptance ?? undefined },
+        token || undefined,
+      );
+      if (isMounted) setAuthorityMeta(meta);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [acceptance, quote, token]);
 
   if (!quote) {
     return (
@@ -237,11 +270,13 @@ const AgreementPrint = () => {
                 <button type="button" className="btn btn-secondary" onClick={handleCopyResume}>
                   {resumeCopied ? 'Copied resume link' : 'Copy resume link'}
                 </button>
-              </div>
-              <small className="break-all" style={{ color: '#222', textAlign: 'right' }}>{resumeUrl}</small>
             </div>
+            <small className="break-all" style={{ color: '#222', textAlign: 'right' }}>{resumeUrl}</small>
           </div>
-        </header>
+        </div>
+      </header>
+
+        <AuthorityBlock meta={authorityMeta} />
 
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Customer & Property</h2>

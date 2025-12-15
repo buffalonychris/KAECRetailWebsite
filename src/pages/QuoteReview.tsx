@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
@@ -8,15 +9,19 @@ import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
-import { buildResumeUrl } from '../lib/resumeToken';
+import { buildResumeUrl, buildQuoteFromResumePayload, parseResumeToken } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
+import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const QuoteReview = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const token = searchParams.get('t') || '';
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
@@ -26,15 +31,26 @@ const QuoteReview = () => {
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [email, setEmail] = useState('');
   const [emailBanner, setEmailBanner] = useState('');
+  const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (token) {
+      const payload = parseResumeToken(token);
+      if (payload) {
+        const restored = buildQuoteFromResumePayload(payload);
+        setQuote(restored);
+        setEmail(restored.contact ?? '');
+        return;
+      }
+    }
+
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote(stored.quote);
       setEmail(stored.quote.contact ?? '');
     }
-  }, []);
+  }, [token]);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === quote?.packageId) ?? packagePricing[0],
@@ -53,6 +69,23 @@ const QuoteReview = () => {
   );
 
   const resumeUrl = useMemo(() => (quote ? buildResumeUrl(quote, 'agreement') : ''), [quote]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quote) {
+        if (isMounted) setAuthorityMeta(null);
+        return;
+      }
+      const meta = await buildQuoteAuthorityMeta({ quote }, token || undefined);
+      if (isMounted) setAuthorityMeta(meta);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [quote, token]);
 
   const handleExplainQuote = async () => {
     if (!quote) return;
@@ -280,6 +313,8 @@ const QuoteReview = () => {
           </ul>
         </div>
       </div>
+
+      <AuthorityBlock meta={authorityMeta} />
 
       <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>

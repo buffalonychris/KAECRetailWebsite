@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
 import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
@@ -10,12 +11,15 @@ import { loadRetailFlow, updateRetailFlow, AcceptanceRecord } from '../lib/retai
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
+import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const AgreementReview = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const token = searchParams.get('t') || '';
   const locationQuote = (location.state as { quoteContext?: QuoteContext } | undefined)?.quoteContext;
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [agreementHash, setAgreementHash] = useState('');
@@ -31,10 +35,26 @@ const AgreementReview = () => {
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [quoteHashCopied, setQuoteHashCopied] = useState(false);
   const [resumeCopied, setResumeCopied] = useState(false);
+  const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
   const redirectMessage = (location.state as { message?: string } | undefined)?.message;
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (token) {
+      const payload = parseAgreementToken(token);
+      if (payload?.quote) {
+        setQuote(payload.quote);
+        setEmail(payload.quote.contact ?? '');
+        if (payload.acceptance) {
+          setStoredAcceptance(payload.acceptance);
+          setAcceptChecked(Boolean(payload.acceptance.accepted));
+          if (payload.acceptance.fullName) setFullName(payload.acceptance.fullName);
+          if (payload.acceptance.acceptanceDate) setAcceptanceDate(payload.acceptance.acceptanceDate);
+        }
+        return;
+      }
+    }
+
     if (locationQuote) {
       setQuote(locationQuote);
       updateRetailFlow({ quote: locationQuote });
@@ -52,9 +72,29 @@ const AgreementReview = () => {
       if (stored.agreementAcceptance.acceptanceDate)
         setAcceptanceDate(stored.agreementAcceptance.acceptanceDate);
     }
-  }, [locationQuote]);
+  }, [locationQuote, token]);
 
   const acceptanceState = acceptChecked || Boolean(storedAcceptance?.accepted);
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quote) {
+        if (isMounted) setAuthorityMeta(null);
+        return;
+      }
+      const meta = await buildAgreementAuthorityMeta(
+        { quote, agreementAcceptance: storedAcceptance ?? undefined },
+        token || undefined,
+      );
+      if (isMounted) setAuthorityMeta(meta);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [quote, storedAcceptance, token]);
 
   useEffect(() => {
     let isMounted = true;
@@ -404,6 +444,8 @@ const AgreementReview = () => {
           </small>
         </div>
       </div>
+
+      <AuthorityBlock meta={authorityMeta} />
 
       <div className="card" style={{ display: 'grid', gap: '1rem' }}>
         <div>
