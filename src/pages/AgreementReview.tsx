@@ -36,6 +36,7 @@ const AgreementReview = () => {
   const [manualRecipient, setManualRecipient] = useState('');
   const [emailError, setEmailError] = useState('');
   const [sending, setSending] = useState(false);
+  const [guidedMode, setGuidedMode] = useState<boolean>(() => loadRetailFlow().guidedMode ?? false);
   const [agreementEmailPayload, setAgreementEmailPayload] =
     useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
@@ -73,6 +74,7 @@ const AgreementReview = () => {
       setQuote((current) => current ?? stored.quote!);
       setEmail(stored.quote.contact ?? '');
     }
+    if (typeof stored.guidedMode !== 'undefined') setGuidedMode(Boolean(stored.guidedMode));
     if (stored.agreementAcceptance) {
       setStoredAcceptance(stored.agreementAcceptance);
       setAcceptChecked(Boolean(stored.agreementAcceptance.accepted));
@@ -521,9 +523,98 @@ const AgreementReview = () => {
         ctaLabel="Proceed to Payment"
         onCta={handleProceedToPayment}
       />
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Assumptions & Exclusions</strong>
-          <ul className="list" style={{ marginTop: 0 }}>
+      <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gap: '0.25rem' }}>
+            <div className="badge">Friendly Agreement Overview</div>
+            <h2 style={{ margin: 0 }}>You're almost done.</h2>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              A quick, plain-language check before you accept. This panel does not change any legal terms.
+            </p>
+            {guidedMode && (
+              <small style={{ color: '#c8c0aa' }}>This step is required before deposit and scheduling.</small>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+              Print/Save Agreement
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => handleSendAgreementEmail(email, 'manual')}
+              disabled={!agreementEmailPayload || !isValidEmail(email) || sending}
+            >
+              {sending ? 'Sending…' : 'Email a copy'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => authorityMeta?.verificationUrl && window.open(authorityMeta.verificationUrl, '_blank')}
+              disabled={!authorityMeta?.verificationUrl}
+            >
+              Verify authenticity
+            </button>
+          </div>
+        </div>
+        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
+            <strong>What this agreement does</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              <li>
+                <span />
+                <span>Confirms the package you selected and what’s included.</span>
+              </li>
+              <li>
+                <span />
+                <span>Confirms install expectations (professional crew, setup, training).</span>
+              </li>
+              <li>
+                <span />
+                <span>Confirms your deposit requirement so we can schedule.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
+            <strong>What this agreement does NOT do</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              <li>
+                <span />
+                <span>No subscription commitment.</span>
+              </li>
+              <li>
+                <span />
+                <span>No medical diagnosis or medical advice.</span>
+              </li>
+              <li>
+                <span />
+                <span>No hidden recurring charges.</span>
+              </li>
+              <li>
+                <span />
+                <span>You can review/print/save before proceeding.</span>
+              </li>
+            </ul>
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
+            <strong>What happens next</strong>
+            <ul className="list" style={{ marginTop: '0.35rem' }}>
+              <li>
+                <span />
+                <span>Accept agreement → deposit → schedule install.</span>
+              </li>
+              <li>
+                <span />
+                <span>You’ll receive an emailed copy automatically.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gap: '0.35rem' }}>
+        <strong>Assumptions & Exclusions</strong>
+        <ul className="list" style={{ marginTop: 0 }}>
             {agreement.assumptions.map((item) => (
               <li key={item}>
                 <span />
@@ -621,6 +712,9 @@ const AgreementReview = () => {
           />
           <span>I have reviewed and agree to the KickAss Elder Care agreement</span>
         </label>
+        <small style={{ color: '#c8c0aa' }}>
+          This is required so we can take your deposit and schedule your install.
+        </small>
         <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
           <label style={{ display: 'grid', gap: '0.35rem' }}>
             <span>Typed full name</span>
