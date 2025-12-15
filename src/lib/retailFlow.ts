@@ -9,10 +9,16 @@ export type AcceptanceRecord = {
   recordedAt?: string;
   acceptedAt?: string;
   emailIssuedAt?: string;
+  emailIssuedAtISO?: string;
   emailTo?: string;
   emailSubject?: string;
   emailBody?: string;
   emailStatus?: 'not_sent' | 'issued' | 'draft_opened';
+  emailProvider?: string;
+  emailMessageId?: string;
+  emailRecipients?: string[];
+  emailLastStatus?: 'sent' | 'mock' | 'failed';
+  emailLastError?: string;
   agreementVersion?: string;
   agreementHash?: string;
   supersedesAgreementHash?: string;

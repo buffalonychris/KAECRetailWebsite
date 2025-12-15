@@ -6,6 +6,8 @@ import { buildAgreementReference } from '../lib/agreementHash';
 import { shortenMiddle } from '../lib/displayUtils';
 import { buildAgreementAuthorityMeta, buildQuoteAuthorityMeta, buildSicarAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import { loadCertificate } from '../lib/sicar';
+import { buildQuoteEmailPayload, buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
+import { sendQuoteEmail, sendAgreementEmail, EmailLinks, EmailSendResponse } from '../lib/emailSend';
 
 const UAT = () => {
   const navigate = useNavigate();
@@ -13,6 +15,14 @@ const UAT = () => {
   const [quoteAuthority, setQuoteAuthority] = useState<DocAuthorityMeta | null>(null);
   const [agreementAuthority, setAgreementAuthority] = useState<DocAuthorityMeta | null>(null);
   const [sicarAuthority, setSicarAuthority] = useState<DocAuthorityMeta | null>(null);
+  const [quoteTestEmail, setQuoteTestEmail] = useState('');
+  const [agreementTestEmail, setAgreementTestEmail] = useState('');
+  const [quoteSendResult, setQuoteSendResult] = useState<EmailSendResponse | null>(null);
+  const [agreementSendResult, setAgreementSendResult] = useState<EmailSendResponse | null>(null);
+  const [quoteLinks, setQuoteLinks] = useState<EmailLinks | null>(null);
+  const [agreementLinks, setAgreementLinks] = useState<EmailLinks | null>(null);
+  const [sendingQuote, setSendingQuote] = useState(false);
+  const [sendingAgreement, setSendingAgreement] = useState(false);
 
   useEffect(() => {
     setState(loadRetailFlow());
@@ -84,6 +94,40 @@ const UAT = () => {
   const copyAgreementEmail = async () => {
     if (!agreementEmailPayload) return;
     await navigator.clipboard.writeText(agreementEmailPayload);
+  };
+
+  const sendQuoteTest = async () => {
+    if (!state.quote || !isValidEmail(quoteTestEmail)) return;
+    setSendingQuote(true);
+    const payload = await buildQuoteEmailPayload({ ...state.quote, contact: quoteTestEmail });
+    if (!payload) {
+      setQuoteSendResult({ ok: false, provider: 'mock', error: 'Unable to build payload' });
+      setSendingQuote(false);
+      return;
+    }
+    const response = await sendQuoteEmail({ ...payload, to: quoteTestEmail });
+    setQuoteSendResult(response);
+    setQuoteLinks(payload.links);
+    setSendingQuote(false);
+  };
+
+  const sendAgreementTest = async () => {
+    if (!state.quote || !state.agreementAcceptance || !state.agreementAcceptance.accepted || !isValidEmail(agreementTestEmail)) return;
+    setSendingAgreement(true);
+    const payload = await buildAgreementEmailPayload(
+      { ...state.quote, contact: agreementTestEmail },
+      { ...state.agreementAcceptance, emailTo: agreementTestEmail },
+      { resumePath: state.agreementAcceptance.accepted ? 'payment' : 'agreement' },
+    );
+    if (!payload) {
+      setAgreementSendResult({ ok: false, provider: 'mock', error: 'Unable to build payload' });
+      setSendingAgreement(false);
+      return;
+    }
+    const response = await sendAgreementEmail({ ...payload, to: agreementTestEmail });
+    setAgreementSendResult(response);
+    setAgreementLinks(payload.links);
+    setSendingAgreement(false);
   };
 
   const gateBadges = [
@@ -181,30 +225,109 @@ const UAT = () => {
         <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
           <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
             <strong>Quote email</strong>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  value={quoteTestEmail}
+                  onChange={(e) => setQuoteTestEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  style={{
+                    flex: 1,
+                    minWidth: '180px',
+                    padding: '0.65rem',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(245,192,66,0.35)',
+                    background: '#0f0e0d',
+                    color: '#fff7e6',
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={sendQuoteTest}
+                  disabled={!state.quote || !isValidEmail(quoteTestEmail) || sendingQuote}
+                >
+                  {sendingQuote ? 'Sending…' : 'Send Quote Email (test)'}
+                </button>
+              </div>
+              {!isValidEmail(quoteTestEmail) && quoteTestEmail && (
+                <small style={{ color: '#f0b267' }}>Enter a valid email to send a test quote.</small>
+              )}
+            </div>
             <ul className="list" style={{ marginTop: '0.35rem' }}>
               <li>
                 <span />
-                <span>Issued? {state.quote?.emailIssuedAt ? 'Yes' : 'No'}</span>
+                <span>Issued? {state.quote?.emailIssuedAtISO ? 'Yes' : 'No'}</span>
               </li>
               <li>
                 <span />
-                <span>Status: {state.quote?.emailStatus ?? 'not_sent'}</span>
+                <span>Status: {state.quote?.emailLastStatus ?? state.quote?.emailStatus ?? 'not_sent'}</span>
               </li>
               <li>
                 <span />
-                <span>Email to: {state.quote?.emailTo ?? state.quote?.contact ?? 'n/a'}</span>
+                <span>Provider: {state.quote?.emailProvider ?? 'mock/none'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Message ID: {state.quote?.emailMessageId ?? 'n/a'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Recipients: {state.quote?.emailRecipients?.slice(0, 3).join(', ') || state.quote?.contact || 'n/a'}</span>
               </li>
               <li>
                 <span />
                 <span>Ref: {quoteRef}</span>
               </li>
             </ul>
+            {quoteSendResult && (
+              <small style={{ color: quoteSendResult.ok ? '#c8c0aa' : '#f0b267' }}>
+                Last send: {quoteSendResult.ok ? `${quoteSendResult.provider}${quoteSendResult.id ? ` (${quoteSendResult.id})` : ''}` : `Failed: ${quoteSendResult.error}`}
+              </small>
+            )}
+            {quoteLinks && (
+              <div style={{ display: 'grid', gap: '0.25rem' }}>
+                <small style={{ color: '#c8c0aa' }}>Links: {quoteLinks.printUrl}</small>
+                <small style={{ color: '#c8c0aa' }}>Verify: {quoteLinks.verifyUrl}</small>
+                <small style={{ color: '#c8c0aa' }}>Resume: {quoteLinks.resumeUrl}</small>
+                {quoteLinks.reviewUrl && <small style={{ color: '#c8c0aa' }}>Review: {quoteLinks.reviewUrl}</small>}
+              </div>
+            )}
             <button type="button" className="btn btn-secondary" onClick={copyQuoteEmail} disabled={!quoteEmailPayload}>
               Copy quote email payload
             </button>
           </div>
           <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
             <strong>Agreement email</strong>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  value={agreementTestEmail}
+                  onChange={(e) => setAgreementTestEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  style={{
+                    flex: 1,
+                    minWidth: '180px',
+                    padding: '0.65rem',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(245,192,66,0.35)',
+                    background: '#0f0e0d',
+                    color: '#fff7e6',
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={sendAgreementTest}
+                  disabled={!state.agreementAcceptance?.accepted || !isValidEmail(agreementTestEmail) || sendingAgreement}
+                >
+                  {sendingAgreement ? 'Sending…' : 'Send Agreement Email (test)'}
+                </button>
+              </div>
+              {!isValidEmail(agreementTestEmail) && agreementTestEmail && (
+                <small style={{ color: '#f0b267' }}>Enter a valid email to send a test agreement.</small>
+              )}
+            </div>
             <ul className="list" style={{ marginTop: '0.35rem' }}>
               <li>
                 <span />
@@ -212,15 +335,23 @@ const UAT = () => {
               </li>
               <li>
                 <span />
-                <span>Email sent? {state.agreementAcceptance?.emailIssuedAt ? 'Yes' : 'No'}</span>
+                <span>Email sent? {state.agreementAcceptance?.emailIssuedAtISO ? 'Yes' : 'No'}</span>
               </li>
               <li>
                 <span />
-                <span>Status: {state.agreementAcceptance?.emailStatus ?? 'not_sent'}</span>
+                <span>Status: {state.agreementAcceptance?.emailLastStatus ?? state.agreementAcceptance?.emailStatus ?? 'not_sent'}</span>
               </li>
               <li>
                 <span />
-                <span>Email to: {state.agreementAcceptance?.emailTo ?? state.quote?.contact ?? 'n/a'}</span>
+                <span>Provider: {state.agreementAcceptance?.emailProvider ?? 'mock/none'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Message ID: {state.agreementAcceptance?.emailMessageId ?? 'n/a'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Email to: {state.agreementAcceptance?.emailRecipients?.slice(0, 3).join(', ') ?? state.agreementAcceptance?.emailTo ?? state.quote?.contact ?? 'n/a'}</span>
               </li>
               <li>
                 <span />
@@ -231,6 +362,21 @@ const UAT = () => {
                 <span>Hash: {shortenMiddle(state.agreementAcceptance?.agreementHash)}</span>
               </li>
             </ul>
+            {agreementSendResult && (
+              <small style={{ color: agreementSendResult.ok ? '#c8c0aa' : '#f0b267' }}>
+                Last send: {agreementSendResult.ok
+                  ? `${agreementSendResult.provider}${agreementSendResult.id ? ` (${agreementSendResult.id})` : ''}`
+                  : `Failed: ${agreementSendResult.error}`}
+              </small>
+            )}
+            {agreementLinks && (
+              <div style={{ display: 'grid', gap: '0.25rem' }}>
+                <small style={{ color: '#c8c0aa' }}>Links: {agreementLinks.printUrl}</small>
+                <small style={{ color: '#c8c0aa' }}>Verify: {agreementLinks.verifyUrl}</small>
+                <small style={{ color: '#c8c0aa' }}>Resume: {agreementLinks.resumeUrl}</small>
+                {agreementLinks.reviewUrl && <small style={{ color: '#c8c0aa' }}>Review: {agreementLinks.reviewUrl}</small>}
+              </div>
+            )}
             <button type="button" className="btn btn-secondary" onClick={copyAgreementEmail} disabled={!agreementEmailPayload}>
               Copy agreement email payload
             </button>

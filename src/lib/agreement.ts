@@ -15,6 +15,10 @@ export type QuoteContext = {
   emailSubject?: string;
   emailBody?: string;
   emailStatus?: 'not_sent' | 'issued' | 'draft_opened';
+  emailProvider?: string;
+  emailMessageId?: string;
+  emailLastStatus?: 'sent' | 'mock' | 'failed';
+  emailLastError?: string;
   emailRecipients?: string[];
   city?: string;
   homeType?: string;
