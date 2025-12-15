@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PackageCard from '../components/PackageCard';
+import ComparisonLadder from '../components/ComparisonLadder';
 import { packages } from '../content/packages';
 import { markFlowStep } from '../lib/retailFlow';
 
@@ -34,6 +35,8 @@ const Packages = () => {
           <PackageCard key={pkg.id} pkg={pkg} />
         ))}
       </div>
+
+      <ComparisonLadder />
     </div>
   );
 };
