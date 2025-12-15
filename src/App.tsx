@@ -23,6 +23,7 @@ import PaymentProcessing from './pages/PaymentProcessing';
 import Schedule from './pages/Schedule';
 import UAT from './pages/UAT';
 import Resume from './pages/Resume';
+import Certificate from './pages/Certificate';
 
 const App = () => {
   return (
@@ -51,6 +52,7 @@ const App = () => {
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/resume" element={<Resume />} />
         <Route path="/uat" element={<UAT />} />
+        <Route path="/sicar" element={<Certificate />} />
       </Routes>
     </Layout>
   );
