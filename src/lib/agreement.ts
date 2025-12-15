@@ -7,6 +7,12 @@ import { buildQuoteReference } from './quoteUtils';
 export type QuoteContext = {
   customerName?: string;
   contact?: string;
+  issuedAt?: string;
+  emailIssuedAt?: string;
+  emailTo?: string;
+  emailSubject?: string;
+  emailBody?: string;
+  emailStatus?: 'not_sent' | 'issued' | 'draft_opened';
   city?: string;
   homeType?: string;
   homeSize?: string;

@@ -7,6 +7,12 @@ export type AcceptanceRecord = {
   fullName?: string;
   acceptanceDate?: string;
   recordedAt?: string;
+  acceptedAt?: string;
+  emailIssuedAt?: string;
+  emailTo?: string;
+  emailSubject?: string;
+  emailBody?: string;
+  emailStatus?: 'not_sent' | 'issued' | 'draft_opened';
   agreementVersion?: string;
   agreementHash?: string;
   supersedesAgreementHash?: string;
