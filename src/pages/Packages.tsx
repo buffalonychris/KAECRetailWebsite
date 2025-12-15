@@ -1,7 +1,14 @@
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import PackageCard from '../components/PackageCard';
 import { packages } from '../content/packages';
+import { markFlowStep } from '../lib/retailFlow';
 
 const Packages = () => {
+  useEffect(() => {
+    markFlowStep('select');
+  }, []);
+
   return (
     <div className="container section">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -14,6 +21,12 @@ const Packages = () => {
             Every tier is delivered with Home Assistant as the single control surface. Pricing is
             upfront—no subscriptions required for included capabilities.
           </p>
+        </div>
+        <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'end' }}>
+          <Link className="btn btn-primary" to="/quote">
+            Build my quote
+          </Link>
+          <small style={{ color: '#c8c0aa' }}>Pro install, offline-first setup, transparent pricing.</small>
         </div>
       </div>
       <div className="card-grid">

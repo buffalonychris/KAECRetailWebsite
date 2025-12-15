@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
 import { QuoteContext } from '../lib/agreement';
-import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
 
@@ -21,6 +21,10 @@ const Quote = () => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+
+  useEffect(() => {
+    markFlowStep('quote');
+  }, []);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],

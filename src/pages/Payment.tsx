@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from '../lib/agreement';
-import { loadRetailFlow, PaymentStatus, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
+import { loadRetailFlow, PaymentStatus, updateRetailFlow, AcceptanceRecord, markFlowStep } from '../lib/retailFlow';
+import FlowGuidePanel from '../components/FlowGuidePanel';
 
 const calculateDepositDue = (total: number) => {
   const { depositPolicy } = siteConfig;
@@ -21,6 +22,10 @@ const Payment = () => {
   const [depositStatus, setDepositStatus] = useState<PaymentStatus>('pending');
   const [acceptanceRecord, setAcceptanceRecord] = useState<AcceptanceRecord | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
+
+  useEffect(() => {
+    markFlowStep('payment');
+  }, []);
 
   useEffect(() => {
     try {
@@ -119,6 +124,13 @@ const Payment = () => {
           )}
         </div>
       </div>
+
+      <FlowGuidePanel
+        currentStep="payment"
+        nextDescription="Scheduling is next. Once the deposit is recorded, move forward to propose installation windows."
+        ctaLabel="Continue to Scheduling"
+        onCta={() => navigate('/schedule')}
+      />
 
       <div className="card" style={{ display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>

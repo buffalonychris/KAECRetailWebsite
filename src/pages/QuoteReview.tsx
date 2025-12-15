@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
+import FlowGuidePanel from '../components/FlowGuidePanel';
 import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
-import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
@@ -39,6 +40,7 @@ const QuoteReview = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    markFlowStep('quote');
     if (token) {
       const payload = parseResumeToken(token);
       if (payload) {
@@ -411,6 +413,13 @@ const QuoteReview = () => {
           </ul>
         </div>
       </div>
+
+      <FlowGuidePanel
+        currentStep="quote"
+        nextDescription="Agreement review is next. Save or email this quote, then continue to formal acceptance."
+        ctaLabel="Continue to Agreement"
+        onCta={handleContinueToAgreement}
+      />
 
       <AuthorityBlock meta={authorityMeta} />
 

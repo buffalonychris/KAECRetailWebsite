@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { packages } from '../content/packages';
+import { markFlowStep } from '../lib/retailFlow';
 
 const Home = () => {
+  useEffect(() => {
+    markFlowStep('learn');
+  }, []);
+
   return (
     <div className="container">
       <section className="hero">
@@ -14,17 +20,20 @@ const Home = () => {
             KickAss Elder Care packages keep lights, locks, and cameras responsive on-site even when
             the internet is down. No subscriptions. One plainspoken app: Home Assistant.
           </p>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <Link className="btn btn-primary" to="/recommend">
-              Find my best plan
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link className="btn btn-primary" to="/quote">
+              Start my quote
             </Link>
-            <Link className="btn btn-primary" to="/packages">
+            <Link className="btn btn-secondary" to="/packages">
               Explore packages
             </Link>
             <Link className="btn btn-secondary" to="/reliability">
               Offline reliability
             </Link>
           </div>
+          <small style={{ color: '#c8c0aa' }}>
+            Professional installation. One-time pricing. Offline-first Home Assistant setup.
+          </small>
           <div className="hero-card" role="note">
             <strong style={{ color: '#fff7e6' }}>Bounded differentiator:</strong>{' '}
             Home Assistant is the only control platform we deploy. We configure it so on-site
