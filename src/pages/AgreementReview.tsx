@@ -11,6 +11,7 @@ import { loadRetailFlow, updateRetailFlow, AcceptanceRecord } from '../lib/retai
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
+import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
@@ -30,7 +31,11 @@ const AgreementReview = () => {
   const [bannerMessage, setBannerMessage] = useState('');
   const [email, setEmail] = useState('');
   const [emailBanner, setEmailBanner] = useState('');
-  const [emailCopied, setEmailCopied] = useState(false);
+  const [manualRecipient, setManualRecipient] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [agreementEmailPayload, setAgreementEmailPayload] =
+    useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [quoteHashCopied, setQuoteHashCopied] = useState(false);
@@ -76,6 +81,8 @@ const AgreementReview = () => {
 
   const acceptanceState = acceptChecked || Boolean(storedAcceptance?.accepted);
 
+  const acceptedRecord = storedAcceptance?.accepted ? storedAcceptance : null;
+
   useEffect(() => {
     let isMounted = true;
     const run = async () => {
@@ -112,6 +119,35 @@ const AgreementReview = () => {
       isMounted = false;
     };
   }, [quote, acceptanceState, fullName, acceptanceDate]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quote || !acceptedRecord) {
+        if (isMounted) setAgreementEmailPayload(null);
+        return;
+      }
+      const payload = await buildAgreementEmailPayload(
+        { ...quote, contact: email || quote.contact },
+        { ...acceptedRecord, emailTo: email || acceptedRecord.emailTo },
+        { resumePath: 'payment' },
+      );
+      if (isMounted) setAgreementEmailPayload(payload);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [acceptedRecord, email, quote, token]);
+
+  useEffect(() => {
+    if (!acceptedRecord || !agreementEmailPayload || sending) return;
+    const recipient = email || acceptedRecord.emailTo || quote?.contact || '';
+    if (!isValidEmail(recipient)) return;
+    if (acceptedRecord.emailIssuedAtISO) return;
+    handleSendAgreementEmail(recipient, 'auto');
+  }, [acceptedRecord, agreementEmailPayload, email, quote, sending]);
 
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
   const hardwareList = useMemo(() => (quote ? getHardwareList(quote.packageId, quote.selectedAddOns) : []), [quote]);
@@ -156,34 +192,34 @@ const AgreementReview = () => {
   const acceptedName = fullName || storedAcceptance?.fullName || '';
   const acceptedDate = acceptanceDate || storedAcceptance?.acceptanceDate || '';
   const acceptanceReady = (acceptChecked || storedAcceptance?.accepted) && Boolean(acceptedName.trim()) && isValidEmail(email);
-  const acceptanceSnapshot: AcceptanceRecord | null =
-    storedAcceptance?.accepted || acceptanceReady
-      ? {
-          accepted: true,
-          fullName: acceptedName,
-          acceptanceDate: acceptedDate,
-          recordedAt: storedAcceptance?.recordedAt,
-          acceptedAt: storedAcceptance?.acceptedAt ?? storedAcceptance?.recordedAt,
-          agreementVersion,
-          agreementHash: storedAcceptance?.agreementHash ?? agreementHash,
-          supersedesAgreementHash:
-            storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash,
-          emailIssuedAt: storedAcceptance?.emailIssuedAt,
-          emailTo: storedAcceptance?.emailTo,
-          emailSubject: storedAcceptance?.emailSubject,
-          emailBody: storedAcceptance?.emailBody,
-          emailStatus: storedAcceptance?.emailStatus ?? 'not_sent',
-        }
-      : null;
-  const agreementEmailPayload =
-    quote && acceptanceSnapshot
-      ? buildAgreementEmailPayload(
-          { ...quote, contact: email },
-          { ...acceptanceSnapshot, agreementHash: acceptanceSnapshot.agreementHash ?? agreementHash },
-          { resumePath: storedAcceptance?.accepted ? 'payment' : 'agreement' }
-        )
-      : null;
-  const agreementEmailStatus = acceptanceSnapshot?.emailStatus ?? 'not_sent';
+  const acceptanceSnapshot: AcceptanceRecord | null = useMemo(() => {
+    if (storedAcceptance?.accepted || acceptanceReady) {
+      return {
+        accepted: true,
+        fullName: storedAcceptance?.fullName ?? acceptedName,
+        acceptanceDate: storedAcceptance?.acceptanceDate ?? acceptedDate,
+        recordedAt: storedAcceptance?.recordedAt,
+        acceptedAt: storedAcceptance?.acceptedAt ?? storedAcceptance?.recordedAt,
+        agreementVersion,
+        agreementHash: storedAcceptance?.agreementHash ?? agreementHash,
+        supersedesAgreementHash: storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash,
+        emailIssuedAt: storedAcceptance?.emailIssuedAt,
+        emailIssuedAtISO: storedAcceptance?.emailIssuedAtISO,
+        emailTo: storedAcceptance?.emailTo ?? email,
+        emailProvider: storedAcceptance?.emailProvider,
+        emailMessageId: storedAcceptance?.emailMessageId,
+        emailRecipients: storedAcceptance?.emailRecipients,
+        emailLastStatus: storedAcceptance?.emailLastStatus,
+        emailLastError: storedAcceptance?.emailLastError,
+        emailSubject: storedAcceptance?.emailSubject,
+        emailBody: storedAcceptance?.emailBody,
+        emailStatus: storedAcceptance?.emailStatus ?? 'not_sent',
+      };
+    }
+    return null;
+  }, [acceptanceReady, acceptedDate, acceptedName, agreementHash, agreementVersion, email, storedAcceptance]);
+
+  const agreementEmailStatus = acceptanceSnapshot?.emailLastStatus ?? acceptanceSnapshot?.emailStatus ?? 'not_sent';
 
   const handleCopyAgreementHash = async () => {
     if (!agreementHash) return;
@@ -222,57 +258,50 @@ const AgreementReview = () => {
     updateRetailFlow({ quote: nextQuote });
   };
 
-  const handleIssueEmail = async () => {
-    if (!quote || !acceptanceReady || !agreementEmailPayload || !isValidEmail(email)) return;
-    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : await persistAcceptance();
+  const recordAgreementEmailResult = (
+    recipient: string,
+    result: Awaited<ReturnType<typeof sendAgreementEmail>>,
+  ) => {
+    if (!quote) return;
+    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
+    if (!baseAcceptance) return;
     const issuedAt = new Date().toISOString();
-    const record: AcceptanceRecord = {
+    const recipients = [recipient, ...(baseAcceptance.emailRecipients ?? [])].filter(Boolean);
+    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+    const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
+    const updated: AcceptanceRecord = {
       ...baseAcceptance,
-      accepted: true,
-      fullName: baseAcceptance.fullName ?? acceptedName,
-      acceptanceDate: baseAcceptance.acceptanceDate ?? acceptedDate,
-      agreementHash: baseAcceptance.agreementHash ?? agreementHash,
-      emailIssuedAt: issuedAt,
-      emailTo: email,
-      emailSubject: agreementEmailPayload.subject,
-      emailBody: agreementEmailPayload.body,
-      emailStatus: 'issued',
+      emailIssuedAt: baseAcceptance.emailIssuedAt ?? issuedAt,
+      emailIssuedAtISO: issuedAt,
+      emailTo: recipient,
+      emailProvider: result.provider,
+      emailMessageId: result.id,
+      emailLastStatus: status,
+      emailLastError: result.ok ? undefined : result.error,
+      emailRecipients: uniqueRecipients,
     };
-    setStoredAcceptance(record);
-    updateRetailFlow({ agreementAcceptance: record });
-    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
+    setStoredAcceptance(updated);
+    updateRetailFlow({ agreementAcceptance: updated });
+    const banner =
+      status === 'sent'
+        ? `A copy has been emailed to ${recipient}.`
+        : status === 'mock'
+        ? `Email queued (mock mode) for ${recipient}.`
+        : 'We could not send the email. Please try again.';
+    setEmailBanner(banner);
+    setEmailError(result.ok ? '' : result.error || 'Unable to send email');
   };
 
-  const handleOpenEmailDraft = async () => {
-    if (!quote || !acceptanceReady || !agreementEmailPayload || !isValidEmail(email)) return;
-    const mailto = `mailto:${email}?subject=${encodeURIComponent(
-      agreementEmailPayload.subject
-    )}&body=${encodeURIComponent(agreementEmailPayload.body)}`;
-    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : await persistAcceptance();
-    const issuedAt = baseAcceptance.emailIssuedAt ?? new Date().toISOString();
-    const record: AcceptanceRecord = {
-      ...baseAcceptance,
-      accepted: true,
-      fullName: baseAcceptance.fullName ?? acceptedName,
-      acceptanceDate: baseAcceptance.acceptanceDate ?? acceptedDate,
-      agreementHash: baseAcceptance.agreementHash ?? agreementHash,
-      emailIssuedAt: issuedAt,
-      emailTo: email,
-      emailSubject: agreementEmailPayload.subject,
-      emailBody: agreementEmailPayload.body,
-      emailStatus: 'draft_opened',
-    };
-    setStoredAcceptance(record);
-    updateRetailFlow({ agreementAcceptance: record });
-    setEmailBanner(`Copy issued and emailed to: ${email} (Retail preview)`);
-    window.location.href = mailto;
-  };
-
-  const handleCopyAgreementEmail = async () => {
-    if (!agreementEmailPayload || !isValidEmail(email) || !acceptanceSnapshot) return;
-    await navigator.clipboard.writeText(`Subject: ${agreementEmailPayload.subject}\n\n${agreementEmailPayload.body}`);
-    setEmailCopied(true);
-    setTimeout(() => setEmailCopied(false), 2000);
+  const handleSendAgreementEmail = async (recipient: string, source: 'auto' | 'manual') => {
+    if (!agreementEmailPayload || !isValidEmail(recipient)) return;
+    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
+    if (!baseAcceptance) return;
+    setSending(true);
+    setEmailError('');
+    const response = await sendAgreementEmail({ ...agreementEmailPayload, to: recipient });
+    recordAgreementEmailResult(recipient, response);
+    if (source === 'manual') setManualRecipient('');
+    setSending(false);
   };
 
   const persistAcceptance = async (): Promise<AcceptanceRecord> => {
@@ -294,10 +323,16 @@ const AgreementReview = () => {
       agreementHash: hash,
       supersedesAgreementHash: storedAcceptance?.agreementHash ?? storedAcceptance?.supersedesAgreementHash,
       emailIssuedAt: storedAcceptance?.emailIssuedAt,
+      emailIssuedAtISO: storedAcceptance?.emailIssuedAtISO,
       emailTo: storedAcceptance?.emailTo ?? email,
       emailSubject: storedAcceptance?.emailSubject,
       emailBody: storedAcceptance?.emailBody,
       emailStatus: storedAcceptance?.emailStatus ?? 'not_sent',
+      emailProvider: storedAcceptance?.emailProvider,
+      emailMessageId: storedAcceptance?.emailMessageId,
+      emailRecipients: storedAcceptance?.emailRecipients,
+      emailLastStatus: storedAcceptance?.emailLastStatus,
+      emailLastError: storedAcceptance?.emailLastError,
     };
     setStoredAcceptance(record);
     updateRetailFlow({ agreementAcceptance: record });
@@ -344,8 +379,13 @@ const AgreementReview = () => {
             </small>
           </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-secondary" onClick={handleIssueEmail} disabled={!acceptanceReady}>
-            Email me the signed agreement copy
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => handleSendAgreementEmail(email, 'manual')}
+            disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
+          >
+            {sending ? 'Sending…' : 'Send signed agreement copy'}
           </button>
           <button type="button" className="btn btn-primary" onClick={handlePrint}>
             Print / Save Agreement
@@ -616,54 +656,128 @@ const AgreementReview = () => {
             </small>
           )}
         </div>
-        {(acceptanceReady || storedAcceptance?.accepted) && (
+        {acceptedRecord ? (
           <div className="card" style={{ display: 'grid', gap: '0.75rem', background: '#0f0e0d', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            {emailBanner || (acceptanceSnapshot?.emailStatus && acceptanceSnapshot.emailStatus !== 'not_sent') ? (
-              <div className="card" style={{ border: '1px solid rgba(84, 160, 82, 0.5)', color: '#c8c0aa' }}>
-                <strong>{emailBanner || `Copy issued and emailed to: ${acceptanceSnapshot?.emailTo ?? email} (Retail preview)`}</strong>
-                <div style={{ marginTop: '0.25rem' }}>
-                  <small>If your email client did not open, copy the message below.</small>
-                </div>
+            {emailBanner || agreementEmailStatus !== 'not_sent' ? (
+              <div
+                className="card"
+                style={{
+                  border:
+                    agreementEmailStatus === 'failed'
+                      ? '1px solid rgba(255, 98, 98, 0.6)'
+                      : agreementEmailStatus === 'mock'
+                      ? '1px solid rgba(245, 192, 66, 0.5)'
+                      : '1px solid rgba(84, 160, 82, 0.5)',
+                  color: '#c8c0aa',
+                }}
+              >
+                <strong>
+                  {emailBanner ||
+                    (agreementEmailStatus === 'sent'
+                      ? `A copy has been emailed to ${acceptedRecord.emailRecipients?.[0] ?? acceptedRecord.emailTo ?? email}.`
+                      : agreementEmailStatus === 'mock'
+                      ? `Email queued (mock mode) for ${acceptedRecord.emailRecipients?.[0] ?? acceptedRecord.emailTo ?? email}.`
+                      : 'We could not send the email. Please try again.')}
+                </strong>
+                {acceptedRecord.emailProvider && (
+                  <div style={{ marginTop: '0.25rem' }}>
+                    <small>
+                      Provider: {acceptedRecord.emailProvider}
+                      {acceptedRecord.emailMessageId ? ` • Message ID: ${acceptedRecord.emailMessageId}` : ''}
+                    </small>
+                  </div>
+                )}
+                {(emailError || acceptedRecord.emailLastError) && (
+                  <div style={{ marginTop: '0.25rem', color: '#f0b267' }}>
+                    <small>Error: {emailError || acceptedRecord.emailLastError}</small>
+                  </div>
+                )}
               </div>
-            ) : null}
+            ) : (
+              <small style={{ color: '#c8c0aa' }}>Send the signed agreement to yourself and any caregivers.</small>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <button type="button" className="btn btn-primary" onClick={handleIssueEmail} disabled={!acceptanceReady}>
-                Email me the signed agreement copy (Issue Agreement)
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleSendAgreementEmail(email, 'manual')}
+                disabled={!agreementEmailPayload || !isValidEmail(email) || sending}
+              >
+                {sending ? 'Sending…' : 'Send to primary email'}
               </button>
-              <button type="button" className="btn btn-secondary" onClick={handleOpenEmailDraft} disabled={!acceptanceReady}>
-                Open email draft
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementEmail} disabled={!acceptanceReady}>
-                {emailCopied ? 'Copied email text' : 'Copy email text'}
-              </button>
+            </div>
+            <div style={{ display: 'grid', gap: '0.5rem', maxWidth: '540px' }}>
+              <label style={{ display: 'grid', gap: '0.35rem' }}>
+                <span>Send a copy to</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <input
+                    value={manualRecipient}
+                    onChange={(e) => setManualRecipient(e.target.value)}
+                    placeholder="name@example.com"
+                    style={{
+                      flex: 1,
+                      minWidth: '240px',
+                      padding: '0.75rem',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(245,192,66,0.35)',
+                      background: '#0f0e0d',
+                      color: '#fff7e6',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleSendAgreementEmail(manualRecipient, 'manual')}
+                    disabled={!isValidEmail(manualRecipient) || !agreementEmailPayload || sending}
+                  >
+                    {sending ? 'Sending…' : 'Send Email'}
+                  </button>
+                </div>
+                {!isValidEmail(manualRecipient) && manualRecipient && (
+                  <small style={{ color: '#f0b267' }}>Enter a valid email to send a copy.</small>
+                )}
+              </label>
+              {acceptedRecord.emailRecipients?.length ? (
+                <small style={{ color: '#c8c0aa' }}>
+                  Sent to: {acceptedRecord.emailRecipients.slice(0, 3).join(', ')}
+                </small>
+              ) : null}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <strong>Email status</strong>
               <small style={{ color: '#c8c0aa' }}>
-                {agreementEmailStatus === 'issued'
-                  ? `Issued at ${acceptanceSnapshot?.emailIssuedAt ?? 'pending'}`
-                  : agreementEmailStatus === 'draft_opened'
-                  ? `Draft opened at ${acceptanceSnapshot?.emailIssuedAt ?? 'pending'}`
+                {acceptedRecord.emailLastStatus
+                  ? `${acceptedRecord.emailLastStatus.toUpperCase()} ${acceptedRecord.emailIssuedAtISO ? `at ${acceptedRecord.emailIssuedAtISO}` : ''}`
                   : 'Not sent'}
               </small>
             </div>
-            {agreementEmailPayload && (
-              <pre
-                style={{
-                  background: '#0a0908',
-                  color: '#e6ddc7',
-                  padding: '1rem',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(245, 192, 66, 0.35)',
-                  margin: 0,
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {`Subject: ${agreementEmailPayload.subject}\n\n${agreementEmailPayload.body}`}
-              </pre>
+            {agreementEmailPayload?.links && (
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
+                <ul className="list" style={{ marginTop: 0 }}>
+                  <li>
+                    <span />
+                    <span className="break-all">Print: {agreementEmailPayload.links.printUrl}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span className="break-all">Verify: {agreementEmailPayload.links.verifyUrl}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span className="break-all">Resume: {agreementEmailPayload.links.resumeUrl}</span>
+                  </li>
+                  {agreementEmailPayload.links.reviewUrl && (
+                    <li>
+                      <span />
+                      <span className="break-all">Review: {agreementEmailPayload.links.reviewUrl}</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
             )}
           </div>
-        )}
+        ) : null}
         <small style={{ color: '#c8c0aa' }}>
           Payment unlocks after acceptance. Informational only — not medical advice.
         </small>
