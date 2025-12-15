@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
@@ -8,28 +9,39 @@ import { getHardwareList, HardwareCategory } from '../data/hardware';
 import { FeatureCategory, getFeatureCategories } from '../data/features';
 import { buildQuoteReference, formatQuoteDate } from '../lib/quoteUtils';
 import { quoteAssumptions, quoteDeliverables, quoteExclusions } from '../lib/quoteHash';
-import { buildResumeUrl } from '../lib/resumeToken';
+import { buildResumeUrl, buildQuoteFromResumePayload, parseResumeToken } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
+import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const QuotePrint = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const token = searchParams.get('t') || '';
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [resumeCopied, setResumeCopied] = useState(false);
+  const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (token) {
+      const payload = parseResumeToken(token);
+      if (payload) {
+        setQuote(buildQuoteFromResumePayload(payload));
+        return;
+      }
+    }
     const stored = loadRetailFlow();
     if (stored.quote) {
       setQuote(stored.quote);
     }
-  }, []);
+  }, [token]);
 
   const selectedPackage = useMemo(
     () => (quote ? packagePricing.find((pkg) => pkg.id === quote.packageId) ?? packagePricing[0] : packagePricing[0]),
@@ -47,6 +59,23 @@ const QuotePrint = () => {
     () => (quote ? getFeatureCategories(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quote) {
+        if (isMounted) setAuthorityMeta(null);
+        return;
+      }
+      const meta = await buildQuoteAuthorityMeta({ quote }, token || undefined);
+      if (isMounted) setAuthorityMeta(meta);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [quote, token]);
 
   useEffect(() => {
     if (!quote) return;
@@ -186,6 +215,8 @@ const QuotePrint = () => {
             you left off.
           </div>
         </div>
+
+        <AuthorityBlock meta={authorityMeta} />
 
         <section className="print-section" style={{ marginTop: '1.5rem' }}>
           <h2>Customer & Property</h2>

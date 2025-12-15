@@ -24,6 +24,7 @@ import Schedule from './pages/Schedule';
 import UAT from './pages/UAT';
 import Resume from './pages/Resume';
 import Certificate from './pages/Certificate';
+import Verify from './pages/Verify';
 
 const App = () => {
   return (
@@ -53,6 +54,7 @@ const App = () => {
         <Route path="/resume" element={<Resume />} />
         <Route path="/uat" element={<UAT />} />
         <Route path="/sicar" element={<Certificate />} />
+        <Route path="/verify" element={<Verify />} />
       </Routes>
     </Layout>
   );
