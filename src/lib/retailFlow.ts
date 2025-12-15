@@ -43,11 +43,14 @@ export type ScheduleRequest = {
   scheduleSource: 'retail';
 };
 
+export type FlowStep = 'learn' | 'select' | 'quote' | 'agreement' | 'payment' | 'schedule';
+
 export type RetailFlowState = {
   quote?: QuoteContext;
   agreementAcceptance?: AcceptanceRecord;
   payment?: { depositStatus?: PaymentStatus };
   scheduleRequest?: ScheduleRequest;
+  currentStep?: FlowStep;
 };
 
 export const FLOW_STORAGE_KEY = 'kaecRetailFlow';
@@ -80,4 +83,8 @@ export const updateRetailFlow = (patch: Partial<RetailFlowState>) => {
     scheduleRequest: patch.scheduleRequest ?? current.scheduleRequest,
   };
   return saveRetailFlow(merged);
+};
+
+export const markFlowStep = (step: FlowStep) => {
+  return updateRetailFlow({ currentStep: step });
 };

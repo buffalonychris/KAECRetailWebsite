@@ -352,6 +352,12 @@ button {
   gap: 0.75rem;
 }
 
+.flow-nav-muted {
+  opacity: 0.82;
+  transform: scale(0.99);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
 .resume-link {
   font-size: 0.95rem;
   color: var(--kaec-muted);
@@ -442,6 +448,47 @@ button {
   height: 10px;
   background: var(--kaec-gold);
   border-radius: 50%;
+}
+
+.flow-guide {
+  border: 1px solid rgba(245, 192, 66, 0.35);
+}
+
+.flow-guide-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.35rem;
+}
+
+.flow-guide-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #c8c0aa;
+}
+
+.flow-guide-step.complete {
+  background: rgba(84, 160, 82, 0.12);
+  color: #b8e1c2;
+}
+
+.flow-guide-step.current {
+  border: 1px solid rgba(245, 192, 66, 0.35);
+  color: #fff7e6;
+}
+
+.flow-guide-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(245, 192, 66, 0.15);
+  color: var(--kaec-gold);
 }
 
 @media print {

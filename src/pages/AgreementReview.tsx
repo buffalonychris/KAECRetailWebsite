@@ -7,12 +7,13 @@ import { getFeatureCategories } from '../data/features';
 import { generateAgreement, QuoteContext } from '../lib/agreement';
 import { buildAgreementReference, computeAgreementHash } from '../lib/agreementHash';
 import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
-import { loadRetailFlow, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { siteConfig } from '../config/site';
 import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
+import FlowGuidePanel from '../components/FlowGuidePanel';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -45,6 +46,7 @@ const AgreementReview = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    markFlowStep('agreement');
     if (token) {
       const payload = parseAgreementToken(token);
       if (payload?.quote) {
@@ -393,23 +395,6 @@ const AgreementReview = () => {
         </div>
         </div>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>What happens next</strong>
-          <ul className="list" style={{ marginTop: 0 }}>
-            <li>
-              <span />
-              <span>Agreement → Payment/Deposit → Schedule</span>
-            </li>
-            <li>
-              <span />
-              <span>Deterministic quote bindings ensure pricing and scope stay locked.</span>
-            </li>
-            <li>
-              <span />
-              <span>If accepted, Proceed to Payment unlocks automatically.</span>
-            </li>
-          </ul>
-        </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Agreement reference</strong>
           <ul className="list" style={{ marginTop: 0 }}>
             <li>
@@ -522,9 +507,16 @@ const AgreementReview = () => {
                   <span>{item}</span>
                 </li>
               ))}
-            </ul>
-          </div>
+          </ul>
         </div>
+      </div>
+
+      <FlowGuidePanel
+        currentStep="agreement"
+        nextDescription="Payment/Deposit comes next. Save or email the signed agreement, then continue to reserve your installation."
+        ctaLabel="Proceed to Payment"
+        onCta={handleProceedToPayment}
+      />
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Assumptions & Exclusions</strong>
           <ul className="list" style={{ marginTop: 0 }}>

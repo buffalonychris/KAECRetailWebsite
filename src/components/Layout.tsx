@@ -34,6 +34,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const navRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
+  const flowRoutes = useMemo(
+    () => ['/quote', '/quoteReview', '/agreement', '/agreementReview', '/payment', '/schedule'],
+    [],
+  );
+  const navMuted = useMemo(
+    () => flowRoutes.some((path) => location.pathname.startsWith(path)),
+    [flowRoutes, location.pathname],
+  );
+
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       setMobileOpen(false);
@@ -84,7 +93,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
-      <header className="hide-when-print">
+      <header className={`hide-when-print ${navMuted ? 'flow-nav-muted' : ''}`}>
         <div className="container nav" ref={navRef}>
           <NavLink to="/" className="brand" aria-label="KickAss Elder Care home">
             <div className="brand-mark" aria-hidden="true">

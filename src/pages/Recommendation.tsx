@@ -1,4 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BudgetRange,
   CaregiverSituation,
@@ -10,6 +11,7 @@ import {
   buildRecommendation,
 } from '../lib/recommendationRules';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
+import { markFlowStep } from '../lib/retailFlow';
 
 const optionStyles: CSSProperties = {
   display: 'grid',
@@ -134,6 +136,10 @@ const Recommendation = () => {
   const progress = ((stepIndex + 1) / steps.length) * 100;
 
   useEffect(() => {
+    markFlowStep('select');
+  }, []);
+
+  useEffect(() => {
     if (!showResult) return;
     let mounted = true;
     setNarrativeLoading(true);
@@ -170,6 +176,17 @@ const Recommendation = () => {
           Answer a few non-sensitive questions to see which KickAss package tier fits best. This tool
           is informational only and does not provide medical advice. If this is urgent, call 911.
         </p>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <Link className="btn btn-primary" to="/packages">
+            Choose a package
+          </Link>
+          <Link className="btn btn-secondary" to="/quote">
+            Jump to quote
+          </Link>
+          <small style={{ color: '#c8c0aa' }}>
+            No subscriptions. Professional installation with offline-first Home Assistant.
+          </small>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }} aria-label="Progress">
           <div style={{ flex: 1, height: '8px', background: '#1f1b14', borderRadius: '999px' }}>
             <div

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { addOns, packagePricing } from '../data/pricing';
-import { loadRetailFlow, ScheduleRequest, updateRetailFlow } from '../lib/retailFlow';
+import { loadRetailFlow, markFlowStep, ScheduleRequest, updateRetailFlow } from '../lib/retailFlow';
+import FlowGuidePanel from '../components/FlowGuidePanel';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -28,6 +29,7 @@ const Schedule = () => {
   useEffect(() => {
     const stored = loadRetailFlow();
     setFlowState(stored);
+    markFlowStep('schedule');
   }, []);
 
   const quoteContext = flowState.quote;
@@ -181,6 +183,13 @@ const Schedule = () => {
         </div>
       </div>
 
+      <FlowGuidePanel
+        currentStep="schedule"
+        nextDescription="Our team will confirm the appointment. Keep your resume/verify links handy to re-open details."
+        ctaLabel="Resume / Verify"
+        onCta={() => navigate('/resume-verify')}
+      />
+
       {gateCards
         .filter((gate) => gate.condition)
         .map((gate) => (
@@ -217,8 +226,31 @@ const Schedule = () => {
             <div className="badge">Request submitted</div>
             <h3 style={{ margin: 0, color: '#fff7e6' }}>We received your scheduling request</h3>
             <p style={{ margin: 0, color: '#c8c0aa' }}>
-              We will confirm your appointment by phone or email. Reference timestamp: {flowState.scheduleRequest.requestedAt}.
+              Thanks for submitting. A coordinator will review your windows and reach out to confirm. Reference timestamp:{' '}
+              {flowState.scheduleRequest.requestedAt}.
             </p>
+            <ul className="list" style={{ marginTop: 0 }}>
+              <li>
+                <span />
+                <span>Keep your phone nearby for a confirmation call or email.</span>
+              </li>
+              <li>
+                <span />
+                <span>Bring your resume/verify links to reopen quote, agreement, or deposit details.</span>
+              </li>
+              <li>
+                <span />
+                <span>No additional payment is collected on this page.</span>
+              </li>
+            </ul>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Link className="btn btn-secondary" to="/resume-verify">
+                Resume / Verify
+              </Link>
+              <Link className="btn btn-secondary" to="/verify">
+                Verify documents
+              </Link>
+            </div>
             <small style={{ color: '#c8c0aa' }}>
               Status: {flowState.scheduleRequest.scheduleStatus} • Source: {flowState.scheduleRequest.scheduleSource}
             </small>
