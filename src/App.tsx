@@ -25,6 +25,7 @@ import UAT from './pages/UAT';
 import Resume from './pages/Resume';
 import Certificate from './pages/Certificate';
 import Verify from './pages/Verify';
+import ResumeVerify from './pages/ResumeVerify';
 
 const App = () => {
   return (
@@ -52,6 +53,7 @@ const App = () => {
         <Route path="/payment-processing" element={<PaymentProcessing />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/resume" element={<Resume />} />
+        <Route path="/resume-verify" element={<ResumeVerify />} />
         <Route path="/uat" element={<UAT />} />
         <Route path="/sicar" element={<Certificate />} />
         <Route path="/certificate" element={<Certificate />} />
