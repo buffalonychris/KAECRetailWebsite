@@ -15,6 +15,7 @@ import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
+import SaveProgressCard from '../components/SaveProgressCard';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -300,16 +301,22 @@ const AgreementReview = () => {
     setEmailError(result.ok ? '' : result.error || 'Unable to send email');
   };
 
-  const handleSendAgreementEmail = async (recipient: string, source: 'auto' | 'manual') => {
-    if (!agreementEmailPayload || !isValidEmail(recipient)) return;
+  const sendAgreementEmailToRecipient = async (recipient: string) => {
+    if (!agreementEmailPayload || !isValidEmail(recipient)) return null;
     const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
-    if (!baseAcceptance) return;
+    if (!baseAcceptance) return null;
     setSending(true);
     setEmailError('');
     const response = await sendAgreementEmail({ ...agreementEmailPayload, to: recipient });
     recordAgreementEmailResult(recipient, response);
-    if (source === 'manual') setManualRecipient('');
     setSending(false);
+    return response;
+  };
+
+  const handleSendAgreementEmail = async (recipient: string, source: 'auto' | 'manual') => {
+    const response = await sendAgreementEmailToRecipient(recipient);
+    if (!response) return;
+    if (source === 'manual') setManualRecipient('');
   };
 
   const persistAcceptance = async (): Promise<AcceptanceRecord> => {
@@ -475,6 +482,15 @@ const AgreementReview = () => {
           </small>
         </div>
       </div>
+
+      <SaveProgressCard
+        defaultEmail={email}
+        resumeUrl={resumeUrl}
+        available={Boolean(agreementEmailPayload)}
+        sending={sending}
+        onEmailChange={handleUpdateEmail}
+        onSend={(recipient) => sendAgreementEmailToRecipient(recipient)}
+      />
 
       <AuthorityBlock meta={authorityMeta} />
 

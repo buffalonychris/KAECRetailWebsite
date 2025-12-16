@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FLOW_STORAGE_KEY, loadRetailFlow, RetailFlowState } from '../lib/retailFlow';
+import { FLOW_STORAGE_KEY, loadRetailFlow, RetailFlowState, updateRetailFlow, AcceptanceRecord } from '../lib/retailFlow';
 import { buildQuoteReference } from '../lib/quoteUtils';
 import { buildAgreementReference } from '../lib/agreementHash';
 import { shortenMiddle } from '../lib/displayUtils';
@@ -23,6 +23,8 @@ const UAT = () => {
   const [agreementLinks, setAgreementLinks] = useState<EmailLinks | null>(null);
   const [sendingQuote, setSendingQuote] = useState(false);
   const [sendingAgreement, setSendingAgreement] = useState(false);
+  const [saveProgressMessage, setSaveProgressMessage] = useState('');
+  const [saveProgressError, setSaveProgressError] = useState('');
 
   useEffect(() => {
     setState(loadRetailFlow());
@@ -128,6 +130,122 @@ const UAT = () => {
     setAgreementSendResult(response);
     setAgreementLinks(payload.links);
     setSendingAgreement(false);
+  };
+
+  const recordQuoteEmailResult = (
+    recipient: string,
+    result: Awaited<ReturnType<typeof sendQuoteEmail>>,
+  ) => {
+    if (!state.quote) return;
+    const issuedAt = new Date().toISOString();
+    const recipients = [recipient, ...(state.quote.emailRecipients ?? [])].filter(Boolean);
+    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+    const status: 'sent' | 'mock' | 'failed' = result.ok
+      ? result.provider === 'mock'
+        ? 'mock'
+        : 'sent'
+      : 'failed';
+    const updatedQuote = {
+      ...state.quote,
+      issuedAt: state.quote.issuedAt ?? issuedAt,
+      issuedAtISO: state.quote.issuedAtISO ?? issuedAt,
+      emailIssuedAt: state.quote.emailIssuedAt ?? issuedAt,
+      emailIssuedAtISO: issuedAt,
+      emailTo: recipient,
+      emailProvider: result.provider,
+      emailMessageId: result.id,
+      emailLastStatus: status,
+      emailLastError: result.ok ? undefined : result.error,
+      emailRecipients: uniqueRecipients,
+    };
+    setState((prev) => ({ ...prev, quote: updatedQuote }));
+    updateRetailFlow({ quote: updatedQuote });
+  };
+
+  const recordAgreementEmailResult = (
+    recipient: string,
+    result: Awaited<ReturnType<typeof sendAgreementEmail>>,
+  ) => {
+    if (!state.agreementAcceptance) return;
+    const issuedAt = new Date().toISOString();
+    const recipients = [recipient, ...(state.agreementAcceptance.emailRecipients ?? [])].filter(Boolean);
+    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+    const status: 'sent' | 'mock' | 'failed' = result.ok
+      ? result.provider === 'mock'
+        ? 'mock'
+        : 'sent'
+      : 'failed';
+    const updatedAcceptance: AcceptanceRecord = {
+      ...state.agreementAcceptance,
+      emailIssuedAt: state.agreementAcceptance.emailIssuedAt ?? issuedAt,
+      emailIssuedAtISO: issuedAt,
+      emailTo: recipient,
+      emailProvider: result.provider,
+      emailMessageId: result.id,
+      emailLastStatus: status,
+      emailLastError: result.ok ? undefined : result.error,
+      emailRecipients: uniqueRecipients,
+    };
+    setState((prev) => ({ ...prev, agreementAcceptance: updatedAcceptance }));
+    updateRetailFlow({ agreementAcceptance: updatedAcceptance });
+  };
+
+  const sendQuoteSaveProgress = async () => {
+    setSaveProgressMessage('');
+    setSaveProgressError('');
+    if (!state.quote) {
+      setSaveProgressError('Quote: Generate the document to enable saving.');
+      return;
+    }
+    const recipient = state.quote.contact ?? '';
+    if (!isValidEmail(recipient)) {
+      setSaveProgressError('Quote: Add a valid email to send the save-progress link.');
+      return;
+    }
+    const payload = await buildQuoteEmailPayload(state.quote);
+    if (!payload) {
+      setSaveProgressError('Quote: Generate the document to enable saving.');
+      return;
+    }
+    const response = await sendQuoteEmail({ ...payload, to: recipient });
+    recordQuoteEmailResult(recipient, response);
+    setQuoteLinks(payload.links);
+    if (response.ok) {
+      setSaveProgressMessage('Quote save-progress email sent.');
+    } else {
+      setSaveProgressError(`Quote send failed: ${response.error || 'Unknown error'}`);
+    }
+  };
+
+  const sendAgreementSaveProgress = async () => {
+    setSaveProgressMessage('');
+    setSaveProgressError('');
+    if (!state.quote || !state.agreementAcceptance?.accepted) {
+      setSaveProgressError('Agreement: Generate the document to enable saving.');
+      return;
+    }
+    const recipient = state.agreementAcceptance.emailTo || state.quote.contact || '';
+    if (!isValidEmail(recipient)) {
+      setSaveProgressError('Agreement: Add a valid email to send the save-progress link.');
+      return;
+    }
+    const payload = await buildAgreementEmailPayload(
+      { ...state.quote, contact: recipient },
+      { ...state.agreementAcceptance, emailTo: recipient },
+      { resumePath: 'payment' },
+    );
+    if (!payload) {
+      setSaveProgressError('Agreement: Generate the document to enable saving.');
+      return;
+    }
+    const response = await sendAgreementEmail({ ...payload, to: recipient });
+    recordAgreementEmailResult(recipient, response);
+    setAgreementLinks(payload.links);
+    if (response.ok) {
+      setSaveProgressMessage('Agreement save-progress email sent.');
+    } else {
+      setSaveProgressError(`Agreement send failed: ${response.error || 'Unknown error'}`);
+    }
   };
 
   const gateBadges = [
@@ -382,6 +500,37 @@ const UAT = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Save-progress quick actions</div>
+        <small style={{ color: '#c8c0aa' }}>
+          Uses the stored tokenized links to email resume/verify/print links. If a token is missing, generate the document first.
+        </small>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={sendQuoteSaveProgress}
+            disabled={!state.quote}
+          >
+            Send Quote Save-Progress Email
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={sendAgreementSaveProgress}
+            disabled={!state.quote || !state.agreementAcceptance?.accepted}
+          >
+            Send Agreement Save-Progress Email
+          </button>
+        </div>
+        {!state.quote && <small style={{ color: '#f0b267' }}>Generate the document to enable.</small>}
+        {state.quote && !state.agreementAcceptance?.accepted && (
+          <small style={{ color: '#f0b267' }}>Accept the agreement to enable agreement send.</small>
+        )}
+        {saveProgressMessage && <small style={{ color: '#c8c0aa' }}>{saveProgressMessage}</small>}
+        {saveProgressError && <small style={{ color: '#f0b267' }}>{saveProgressError}</small>}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>

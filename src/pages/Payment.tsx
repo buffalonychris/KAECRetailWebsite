@@ -4,6 +4,10 @@ import { siteConfig } from '../config/site';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, PaymentStatus, updateRetailFlow, AcceptanceRecord, markFlowStep } from '../lib/retailFlow';
 import FlowGuidePanel from '../components/FlowGuidePanel';
+import SaveProgressCard from '../components/SaveProgressCard';
+import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
+import { sendAgreementEmail } from '../lib/emailSend';
+import { buildResumeUrl } from '../lib/resumeToken';
 
 const calculateDepositDue = (total: number) => {
   const { depositPolicy } = siteConfig;
@@ -22,6 +26,10 @@ const Payment = () => {
   const [depositStatus, setDepositStatus] = useState<PaymentStatus>('pending');
   const [acceptanceRecord, setAcceptanceRecord] = useState<AcceptanceRecord | null>(null);
   const [accessGranted, setAccessGranted] = useState(false);
+  const [saveEmail, setSaveEmail] = useState('');
+  const [savePayload, setSavePayload] =
+    useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
+  const [saveSending, setSaveSending] = useState(false);
 
   useEffect(() => {
     markFlowStep('payment');
@@ -60,13 +68,73 @@ const Payment = () => {
     }
   }, [accessGranted]);
 
+  useEffect(() => {
+    const nextEmail = acceptanceRecord?.emailTo ?? quoteContext?.contact ?? '';
+    setSaveEmail(nextEmail);
+  }, [acceptanceRecord?.emailTo, quoteContext?.contact]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const run = async () => {
+      if (!quoteContext || !acceptanceRecord) {
+        if (isMounted) setSavePayload(null);
+        return;
+      }
+      const payload = await buildAgreementEmailPayload(
+        { ...quoteContext, contact: saveEmail || quoteContext.contact },
+        { ...acceptanceRecord, emailTo: saveEmail || acceptanceRecord.emailTo },
+        { resumePath: 'payment' },
+      );
+      if (isMounted) setSavePayload(payload);
+    };
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [acceptanceRecord, quoteContext, saveEmail]);
+
   const total = quoteContext?.pricing.total ?? 0;
   const depositDue = useMemo(() => calculateDepositDue(total), [total]);
   const balanceDue = useMemo(() => Math.max(total - depositDue, 0), [depositDue, total]);
+  const resumeUrl = useMemo(() => (quoteContext ? buildResumeUrl(quoteContext, 'payment') : ''), [quoteContext]);
 
   const handleSimulate = (status: PaymentStatus) => {
     setDepositStatus(status);
     updateRetailFlow({ payment: { depositStatus: status } });
+  };
+
+  const recordPaymentEmailResult = (
+    recipient: string,
+    result: Awaited<ReturnType<typeof sendAgreementEmail>>,
+  ) => {
+    if (!acceptanceRecord) return;
+    const issuedAt = new Date().toISOString();
+    const recipients = [recipient, ...(acceptanceRecord.emailRecipients ?? [])].filter(Boolean);
+    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+    const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
+    const updated: AcceptanceRecord = {
+      ...acceptanceRecord,
+      emailIssuedAt: acceptanceRecord.emailIssuedAt ?? issuedAt,
+      emailIssuedAtISO: issuedAt,
+      emailTo: recipient,
+      emailProvider: result.provider,
+      emailMessageId: result.id,
+      emailLastStatus: status,
+      emailLastError: result.ok ? undefined : result.error,
+      emailRecipients: uniqueRecipients,
+    };
+    setAcceptanceRecord(updated);
+    updateRetailFlow({ agreementAcceptance: updated });
+  };
+
+  const sendSaveProgressEmail = async (recipient: string) => {
+    if (!savePayload || !isValidEmail(recipient) || !acceptanceRecord) return null;
+    setSaveSending(true);
+    const response = await sendAgreementEmail({ ...savePayload, to: recipient });
+    recordPaymentEmailResult(recipient, response);
+    setSaveSending(false);
+    return response;
   };
 
   const handlePrint = () => {
@@ -124,6 +192,15 @@ const Payment = () => {
           )}
         </div>
       </div>
+
+      <SaveProgressCard
+        defaultEmail={saveEmail}
+        resumeUrl={resumeUrl}
+        available={Boolean(savePayload)}
+        sending={saveSending}
+        onEmailChange={setSaveEmail}
+        onSend={(recipient) => sendSaveProgressEmail(recipient)}
+      />
 
       <FlowGuidePanel
         currentStep="payment"
