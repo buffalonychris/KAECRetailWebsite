@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import FlowGuidePanel from '../components/FlowGuidePanel';
@@ -17,7 +18,47 @@ import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
-import SaveProgressCard from '../components/SaveProgressCard';
+// SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
+
+type AccordionSectionProps = {
+  title: string;
+  description?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+};
+
+const AccordionSection = ({ title, description, defaultOpen = false, children }: AccordionSectionProps) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const contentId = useId();
+
+  return (
+    <div className="card accordion-section" style={{ display: 'grid', gap: '0.5rem' }}>
+      <button
+        type="button"
+        className="accordion-toggle"
+        aria-expanded={open}
+        aria-controls={contentId}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{title}</span>
+        <span aria-hidden="true">{open ? '−' : '+'}</span>
+      </button>
+      {description && (
+        <small id={`${contentId}-desc`} style={{ color: '#c8c0aa' }}>
+          {description}
+        </small>
+      )}
+      <div
+        id={contentId}
+        className={`accordion-content ${open ? 'open' : 'collapsed'}`}
+        aria-labelledby={description ? `${contentId}-desc` : undefined}
+        style={{ gap: '0.75rem' }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -33,7 +74,7 @@ const QuoteReview = () => {
   const [hashCopied, setHashCopied] = useState(false);
   const [priorHashCopied, setPriorHashCopied] = useState(false);
   const [email, setEmail] = useState('');
-  const [manualRecipient, setManualRecipient] = useState('');
+  const [shareRecipient, setShareRecipient] = useState('');
   const [emailBanner, setEmailBanner] = useState('');
   const [emailError, setEmailError] = useState('');
   const [sending, setSending] = useState(false);
@@ -116,6 +157,10 @@ const QuoteReview = () => {
   }, [email, quote, token]);
 
   useEffect(() => {
+    setShareRecipient(email);
+  }, [email]);
+
+  useEffect(() => {
     if (!quote || !emailPayload || sending) return;
     if (!quote.contact || !isValidEmail(quote.contact)) return;
     if (quote.emailIssuedAtISO) return;
@@ -159,7 +204,6 @@ const QuoteReview = () => {
   const customerName = quote?.customerName?.trim() || 'Customer';
 
   const emailStatus = quote?.emailLastStatus ?? quote?.emailStatus ?? 'not_sent';
-  const emailValid = isValidEmail(email);
 
   const handleUpdateEmail = (value: string) => {
     setEmail(value);
@@ -216,10 +260,9 @@ const QuoteReview = () => {
   };
 
   const handleSendEmail = async (recipient: string, source: 'auto' | 'manual') => {
-    const response = await sendQuoteEmailToRecipient(recipient);
-    if (!response) return;
+    await sendQuoteEmailToRecipient(recipient);
     if (source === 'manual') {
-      setManualRecipient('');
+      setEmailBanner((prev) => prev || `Sent to ${recipient}.`);
     }
   };
 
@@ -267,17 +310,15 @@ const QuoteReview = () => {
   const supersedes = shortenMiddle(quote.priorQuoteHash);
 
   return (
-    <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+    <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div>
-            <div className="badge">Quote generated</div>
-            <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Confirm details, save a clean copy, email it to caregivers, or continue to agreement.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="badge">Decision support</div>
+          <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            Deterministic one-time estimate. No subscriptions. Save or share with family, then continue to agreement.
+          </p>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
             <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
               Continue to Agreement
             </button>
@@ -287,190 +328,25 @@ const QuoteReview = () => {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => handleSendEmail(email, 'manual')}
-              disabled={!emailValid || sending || !emailPayload}
+              onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
+              disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
             >
-              {sending ? 'Sending…' : 'Send legal copy to my email'}
+              {sending ? 'Sending…' : 'Email this quote'}
             </button>
           </div>
         </div>
-        <div style={{ display: 'grid', gap: '0.5rem' }}>
-          <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '420px' }}>
-            <span>Email for delivery (required to issue via email)</span>
-            <input
-              value={email}
-              onChange={(e) => handleUpdateEmail(e.target.value)}
-              placeholder="care@kickassfamily.com"
-              style={{
-                padding: '0.75rem',
-                borderRadius: '10px',
-                border: '1px solid rgba(245,192,66,0.35)',
-                background: '#0f0e0d',
-                color: '#fff7e6',
-              }}
-            />
-            {!emailValid && email && <small style={{ color: '#f0b267' }}>Enter a valid email to issue.</small>}
-          </label>
-          <small style={{ color: '#c8c0aa' }}>
-            We send the legally binding tokenized copy via the KAEC server. No pricing or package content is changed.
-          </small>
-        </div>
-        {emailBanner || quote.emailLastStatus ? (
-          <div
-            className="card"
-            style={{
-              border:
-                emailStatus === 'failed'
-                  ? '1px solid rgba(255, 98, 98, 0.6)'
-                  : emailStatus === 'mock'
-                  ? '1px solid rgba(245, 192, 66, 0.5)'
-                  : '1px solid rgba(84, 160, 82, 0.5)',
-              color: '#c8c0aa',
-            }}
-          >
-            <strong>
-              {emailBanner ||
-                (emailStatus === 'sent'
-                  ? `A copy has been emailed to ${quote.emailRecipients?.[0] ?? quote.emailTo ?? email}.`
-                  : emailStatus === 'mock'
-                  ? `Email queued (mock mode) for ${quote.emailRecipients?.[0] ?? quote.emailTo ?? email}.`
-                  : 'We could not send the email. Please try again.')}
-            </strong>
-            {quote.emailProvider && (
-              <div style={{ marginTop: '0.25rem' }}>
-                <small>
-                  Provider: {quote.emailProvider}
-                  {quote.emailMessageId ? ` • Message ID: ${quote.emailMessageId}` : ''}
-                </small>
-              </div>
-            )}
-            {(emailError || quote.emailLastError) && (
-              <div style={{ marginTop: '0.25rem', color: '#f0b267' }}>
-                <small>Error: {emailError || quote.emailLastError}</small>
-              </div>
-            )}
-          </div>
-        ) : null}
-        <div style={{ display: 'grid', gap: '0.5rem', maxWidth: '520px' }}>
-          <label style={{ display: 'grid', gap: '0.35rem' }}>
-            <span>Send a copy to</span>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <input
-                value={manualRecipient}
-                onChange={(e) => setManualRecipient(e.target.value)}
-                placeholder="name@example.com"
-                style={{
-                  flex: 1,
-                  minWidth: '240px',
-                  padding: '0.75rem',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(245,192,66,0.35)',
-                  background: '#0f0e0d',
-                  color: '#fff7e6',
-                }}
-              />
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleSendEmail(manualRecipient, 'manual')}
-                disabled={!isValidEmail(manualRecipient) || sending || !emailPayload}
-              >
-                {sending ? 'Sending…' : 'Send Email'}
-              </button>
-            </div>
-            {!isValidEmail(manualRecipient) && manualRecipient && (
-              <small style={{ color: '#f0b267' }}>Enter a valid email to send a copy.</small>
-            )}
-          </label>
-          {quote.emailRecipients?.length ? (
-            <small style={{ color: '#c8c0aa' }}>
-              Sent to: {quote.emailRecipients.slice(0, 3).join(', ')}
-            </small>
-          ) : null}
-        </div>
-        {resumeUrl && (
-          <div style={{ display: 'grid', gap: '0.4rem' }}>
-            <strong>Resume Link</strong>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <a href={resumeUrl} style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>
-                Continue your order
-              </a>
-              <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
-                {linkCopied ? 'Copied resume link' : 'Copy resume link'}
-              </button>
-            </div>
-            <small className="break-all" style={{ color: '#c8c0aa' }}>{resumeUrl}</small>
-          </div>
-        )}
-        <div>
-          <strong>Checklist</strong>
-          <ul className="list" style={{ marginTop: '0.35rem' }}>
-            <li>
-              <span />
-              <span>Confirm property and contact details are correct.</span>
-            </li>
-            <li>
-              <span />
-              <span>Print or save the professional quote PDF.</span>
-            </li>
-            <li>
-              <span />
-              <span>Email the summary to caregivers.</span>
-            </li>
-            <li>
-              <span />
-              <span>Continue to Agreement to finalize.</span>
-            </li>
-          </ul>
-        </div>
       </div>
 
-      <SaveProgressCard
-        defaultEmail={email}
-        resumeUrl={resumeUrl}
-        available={Boolean(emailPayload)}
-        sending={sending}
-        onEmailChange={handleUpdateEmail}
-        onSend={(recipient) => sendQuoteEmailToRecipient(recipient)}
-      />
-
-      <FlowGuidePanel
-        currentStep="quote"
-        nextDescription="Agreement review is next. Save or email this quote, then continue to formal acceptance."
-        ctaLabel="Continue to Agreement"
-        onCta={handleContinueToAgreement}
-      />
-
-      <AuthorityBlock meta={authorityMeta} />
-
-      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div className="badge">Quote reference</div>
+      <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <div className="badge">Quote summary</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <TierBadge tierId={selectedPackage.id} />
-              <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+              <h2 style={{ margin: 0 }}>{selectedPackage.name}</h2>
             </div>
             <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
-            <div style={{ display: 'grid', gap: '0.2rem', color: '#c8c0aa', marginTop: '0.35rem' }}>
-              <small>Quote Version: {quoteVersion}</small>
-              <small style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
-                {quote.quoteHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
-                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
-                  </button>
-                )}
-              </small>
-              <small style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior: {supersedes}</span>
-                {quote.priorQuoteHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
-                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
-                  </button>
-                )}
-              </small>
-            </div>
+            <small style={{ color: '#c8c0aa' }}>Quote Version: {quoteVersion}</small>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#c8c0aa', fontSize: '0.95rem' }}>One-time estimate</div>
@@ -481,7 +357,7 @@ const QuoteReview = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '0.25rem', color: '#e6ddc7' }}>
+        <div style={{ display: 'grid', gap: '0.35rem', color: '#e6ddc7' }}>
           <strong>Property context</strong>
           <small>
             Home type: {quote.homeType?.replace('-', ' ') || 'Not provided'} • Size: {quote.homeSize || 'Not provided'} • Internet
@@ -494,6 +370,18 @@ const QuoteReview = () => {
               {quote.city && <span>City: {quote.city}.</span>}
             </small>
           )}
+        </div>
+
+        <div className="card" style={{ display: 'grid', gap: '0.5rem', background: '#0f0e0d' }}>
+          <strong>What’s included</strong>
+          <ul className="list" style={{ marginTop: 0 }}>
+            {quoteDeliverables.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div style={{ display: 'grid', gap: '0.35rem' }}>
@@ -521,210 +409,329 @@ const QuoteReview = () => {
             ))}
           </ul>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
-            Continue to Agreement
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={handleExplainQuote}>
-            Explain this quote
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-            Print / Save Quote
-          </button>
-          <small style={{ color: '#c8c0aa' }}>
-            Advisory narrative only; if there is an urgent safety issue, call 911.
-          </small>
+      <FlowGuidePanel
+        currentStep="quote"
+        nextDescription="Agreement review is next. Save or email this quote, then continue to formal acceptance."
+        ctaLabel="Continue to Agreement"
+        onCta={handleContinueToAgreement}
+      />
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+        <div>
+          <div className="badge">Share &amp; Save</div>
+          <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Share this quote</h3>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            Send the quote to yourself or trusted family members. The resume link keeps progress for caregivers or caseworkers.
+          </p>
         </div>
-      <div className="card" style={{ display: 'grid', gap: '0.35rem', background: '#0f0e0d' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <strong>Email delivery</strong>
+
+        <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '520px' }}>
+          <span>Email to send</span>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <input
+              value={shareRecipient}
+              onChange={(e) => {
+                setShareRecipient(e.target.value);
+                handleUpdateEmail(e.target.value);
+              }}
+              placeholder="care@kickassfamily.com"
+              style={{
+                flex: 1,
+                minWidth: '240px',
+                padding: '0.75rem',
+                borderRadius: '10px',
+                border: '1px solid rgba(245,192,66,0.35)',
+                background: '#0f0e0d',
+                color: '#fff7e6',
+              }}
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => handleSendEmail(shareRecipient, 'manual')}
+              disabled={!isValidEmail(shareRecipient) || sending || !emailPayload}
+            >
+              {sending ? 'Sending…' : 'Send quote'}
+            </button>
+          </div>
+          {!isValidEmail(shareRecipient) && shareRecipient && (
+            <small style={{ color: '#f0b267' }}>Enter a valid email.</small>
+          )}
           <small style={{ color: '#c8c0aa' }}>
-            {quote.emailLastStatus
-              ? `${quote.emailLastStatus.toUpperCase()} ${quote.emailIssuedAtISO ? `at ${quote.emailIssuedAtISO}` : ''}`
-              : 'Not sent'}
+            We email the legally binding tokenized copy through KAEC servers without changing pricing or package content.
           </small>
-        </div>
-        <ul className="list" style={{ marginTop: 0 }}>
-          <li>
-            <span />
-            <span>Provider: {quote.emailProvider ?? 'not configured (mock mode)'}</span>
-          </li>
-          <li>
-            <span />
-            <span>Message ID: {quote.emailMessageId ?? 'n/a'}</span>
-          </li>
-          <li>
-            <span />
-            <span>Recipients: {quote.emailRecipients?.slice(0, 3).join(', ') || quote.contact || 'n/a'}</span>
-          </li>
-        </ul>
-        {emailPayload?.links && (
+        </label>
+
+        {(emailBanner || quote.emailLastStatus) && (
+          <div style={{ color: emailStatus === 'failed' ? '#f0b267' : '#c8c0aa' }}>
+            <strong>
+              {emailBanner ||
+                (emailStatus === 'sent'
+                  ? `Sent to ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
+                  : emailStatus === 'mock'
+                  ? `Email queued (mock mode) for ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
+                  : 'We could not send the email. Please try again.')}
+            </strong>
+            {(emailError || quote.emailLastError) && (
+              <div style={{ marginTop: '0.25rem' }}>
+                <small>{emailError || quote.emailLastError}</small>
+              </div>
+            )}
+            {quote.emailRecipients?.length ? (
+              <div style={{ marginTop: '0.25rem' }}>
+                <small>Recently sent to: {quote.emailRecipients.slice(0, 3).join(', ')}</small>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {resumeUrl && (
           <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
-            <ul className="list" style={{ marginTop: 0 }}>
-              <li>
-                <span />
-                <span className="break-all">Print: {emailPayload.links.printUrl}</span>
-              </li>
-              <li>
-                <span />
-                <span className="break-all">Verify: {emailPayload.links.verifyUrl}</span>
-              </li>
-              <li>
-                <span />
-                <span className="break-all">Resume: {emailPayload.links.resumeUrl}</span>
-              </li>
-              {emailPayload.links.reviewUrl && (
-                <li>
-                  <span />
-                  <span className="break-all">Review: {emailPayload.links.reviewUrl}</span>
-                </li>
-              )}
-            </ul>
+            <strong>Resume link</strong>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <a href={resumeUrl} style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>
+                Continue your order
+              </a>
+              <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
+                {linkCopied ? 'Copied resume link' : 'Copy resume link'}
+              </button>
+            </div>
+            <small className="break-all" style={{ color: '#c8c0aa' }}>{resumeUrl}</small>
           </div>
         )}
       </div>
-      </div>
 
-      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="badge">What’s included</div>
-        <ul className="list" style={{ marginTop: '0.35rem' }}>
-          {quoteDeliverables.map((item) => (
-            <li key={item}>
-              <span />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="badge">Hardware (deterministic)</div>
-        {hardwareGroups.map((group) => (
-          <div
-            key={group.heading}
-            className="card"
-            style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
-          >
-            <strong>{group.heading}</strong>
-            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-              {group.categories.map((category) => (
-                <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                  <strong>{category.title}</strong>
-                  <ul className="list" style={{ marginTop: '0.35rem' }}>
-                    {category.items.map((item) => (
-                      <li key={item.name}>
-                        <span />
-                        <span>
-                          {item.name} — qty {item.quantity}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="badge">Feature coverage</div>
-        {featureGroups.map((group) => (
-          <div
-            key={group.heading}
-            className="card"
-            style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
-          >
-            <strong>{group.heading}</strong>
-            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-              {group.categories.map((category) => (
-                <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                  <strong>{category.title}</strong>
-                  <ul className="list" style={{ marginTop: '0.35rem' }}>
-                    {category.items.map((item) => (
-                      <li key={item}>
-                        <span />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
-        <strong>Assumptions</strong>
-        <ul className="list" style={{ marginTop: 0 }}>
-          {quoteAssumptions.map((item) => (
-            <li key={item}>
-              <span />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
-        <strong>Exclusions</strong>
-        <ul className="list" style={{ marginTop: 0 }}>
-          {quoteExclusions.map((item) => (
-            <li key={item}>
-              <span />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div>
-          <div className="badge">AI Explanation (Advisory)</div>
-          <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
+      <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
+          <div className="badge">Validation &amp; Details</div>
           <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical advice;
-            if there is an urgent safety issue, call 911.
+            Expand for verification, audit trail, hardware, coverage, and advisory narrative. All technical details remain
+            available.
           </p>
         </div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-          {(narrativeLoading || !narrative) && (
-            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-              <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
+
+        <AccordionSection title="Verification & Authority" description="Hashes, authority metadata, and verification links." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <div style={{ display: 'grid', gap: '0.25rem', color: '#c8c0aa' }}>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
+                {quote.quoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior: {supersedes}</span>
+                {quote.priorQuoteHash && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                  </button>
+                )}
+              </div>
+              {quote.issuedAtISO && <small>Issued: {quote.issuedAtISO}</small>}
+              {quote.quoteDocVersion && <small>Document version: {quote.quoteDocVersion}</small>}
+            </div>
+          </div>
+          <AuthorityBlock meta={authorityMeta} />
+        </AccordionSection>
+
+        <AccordionSection title="Email delivery log" description="Provider status, recipients, and included links." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '0.35rem', background: '#0f0e0d' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <strong>Email delivery</strong>
               <small style={{ color: '#c8c0aa' }}>
-                Deterministic templates are used by default; no external AI is required.
+                {quote.emailLastStatus
+                  ? `${quote.emailLastStatus.toUpperCase()} ${quote.emailIssuedAtISO ? `at ${quote.emailIssuedAtISO}` : ''}`
+                  : 'Not sent'}
               </small>
             </div>
-          )}
-          {narrative?.sections.map((section) => (
-            <div
-              key={section.title}
-              className="card"
-              style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
-            >
-              <strong>{section.title}</strong>
-              <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
-            </div>
-          ))}
-        </div>
-        <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-          <strong>Disclaimers</strong>
-          <ul className="list" style={{ marginTop: '0.35rem' }}>
-            {(narrative?.disclaimer ?? [
-              'Informational only. Not medical advice or a diagnosis.',
-              'If you have an urgent safety concern, call 911.',
-              'Final configuration depends on on-site conditions and local code.',
-            ]).map((item) => (
-              <li key={item}>
+            <ul className="list" style={{ marginTop: 0 }}>
+              <li>
                 <span />
-                <span>{item}</span>
+                <span>Provider: {quote.emailProvider ?? 'not configured (mock mode)'}</span>
               </li>
+              <li>
+                <span />
+                <span>Message ID: {quote.emailMessageId ?? 'n/a'}</span>
+              </li>
+              <li>
+                <span />
+                <span>Recipients: {quote.emailRecipients?.slice(0, 3).join(', ') || quote.contact || 'n/a'}</span>
+              </li>
+            </ul>
+            {emailPayload?.links && (
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
+                <ul className="list" style={{ marginTop: 0 }}>
+                  <li>
+                    <span />
+                    <span className="break-all">Print: {emailPayload.links.printUrl}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span className="break-all">Verify: {emailPayload.links.verifyUrl}</span>
+                  </li>
+                  <li>
+                    <span />
+                    <span className="break-all">Resume: {emailPayload.links.resumeUrl}</span>
+                  </li>
+                  {emailPayload.links.reviewUrl && (
+                    <li>
+                      <span />
+                      <span className="break-all">Review: {emailPayload.links.reviewUrl}</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+        </AccordionSection>
+
+        <AccordionSection title="Hardware included" description="Device counts grouped by location." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '1rem' }}>
+            <div className="badge">Hardware</div>
+            {hardwareGroups.map((group) => (
+              <div
+                key={group.heading}
+                className="card"
+                style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+              >
+                <strong>{group.heading}</strong>
+                <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+                  {group.categories.map((category) => (
+                    <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                      <strong>{category.title}</strong>
+                      <ul className="list" style={{ marginTop: '0.35rem' }}>
+                        {category.items.map((item) => (
+                          <li key={item.name}>
+                            <span />
+                            <span>
+                              {item.name} — qty {item.quantity}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
-          </ul>
-        </div>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection title="Feature coverage" description="Feature categories included in this selection." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <div className="badge">Feature coverage</div>
+            {featureGroups.map((group) => (
+              <div
+                key={group.heading}
+                className="card"
+                style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+              >
+                <strong>{group.heading}</strong>
+                <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+                  {group.categories.map((category) => (
+                    <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                      <strong>{category.title}</strong>
+                      <ul className="list" style={{ marginTop: '0.35rem' }}>
+                        {category.items.map((item) => (
+                          <li key={item}>
+                            <span />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </AccordionSection>
+
+        <AccordionSection title="Narrative / Explanation" description="Advisory explanation and disclaimers." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <div className="badge">AI Explanation (Advisory)</div>
+                <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
+                <p style={{ margin: 0, color: '#c8c0aa' }}>
+                  Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
+                  advice; if there is an urgent safety issue, call 911.
+                </p>
+              </div>
+              <button type="button" className="btn btn-secondary" onClick={handleExplainQuote}>
+                {narrativeLoading ? 'Building explanation…' : 'Explain this quote'}
+              </button>
+            </div>
+            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+              {(narrativeLoading || !narrative) && (
+                <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                  <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
+                  <small style={{ color: '#c8c0aa' }}>
+                    Deterministic templates are used by default; no external AI is required.
+                  </small>
+                </div>
+              )}
+              {narrative?.sections.map((section) => (
+                <div
+                  key={section.title}
+                  className="card"
+                  style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+                >
+                  <strong>{section.title}</strong>
+                  <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
+                </div>
+              ))}
+            </div>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Disclaimers</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {(narrative?.disclaimer ?? [
+                  'Informational only. Not medical advice or a diagnosis.',
+                  'If you have an urgent safety concern, call 911.',
+                  'Final configuration depends on on-site conditions and local code.',
+                ]).map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection title="Assumptions & Exclusions" description="Context for what is and is not covered." defaultOpen={false}>
+          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Assumptions</strong>
+              <ul className="list" style={{ marginTop: 0 }}>
+                {quoteAssumptions.map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Exclusions</strong>
+              <ul className="list" style={{ marginTop: 0 }}>
+                {quoteExclusions.map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </AccordionSection>
       </div>
     </div>
   );
