@@ -17,6 +17,7 @@ import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
+import SaveProgressCard from '../components/SaveProgressCard';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -204,16 +205,22 @@ const QuoteReview = () => {
     setEmailError(result.ok ? '' : result.error || 'Unable to send email');
   };
 
-  const handleSendEmail = async (recipient: string, source: 'auto' | 'manual') => {
-    if (!quote || !emailPayload || !isValidEmail(recipient)) return;
+  const sendQuoteEmailToRecipient = async (recipient: string) => {
+    if (!quote || !emailPayload || !isValidEmail(recipient)) return null;
     setSending(true);
     setEmailError('');
     const response = await sendQuoteEmail({ ...emailPayload, to: recipient });
     recordEmailResult(recipient, response);
+    setSending(false);
+    return response;
+  };
+
+  const handleSendEmail = async (recipient: string, source: 'auto' | 'manual') => {
+    const response = await sendQuoteEmailToRecipient(recipient);
+    if (!response) return;
     if (source === 'manual') {
       setManualRecipient('');
     }
-    setSending(false);
   };
 
   const handleCopyResumeLink = async () => {
@@ -417,6 +424,15 @@ const QuoteReview = () => {
           </ul>
         </div>
       </div>
+
+      <SaveProgressCard
+        defaultEmail={email}
+        resumeUrl={resumeUrl}
+        available={Boolean(emailPayload)}
+        sending={sending}
+        onEmailChange={handleUpdateEmail}
+        onSend={(recipient) => sendQuoteEmailToRecipient(recipient)}
+      />
 
       <FlowGuidePanel
         currentStep="quote"
