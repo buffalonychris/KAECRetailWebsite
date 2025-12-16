@@ -22,6 +22,7 @@ import Payment from './pages/Payment';
 import PaymentProcessing from './pages/PaymentProcessing';
 import Schedule from './pages/Schedule';
 import UAT from './pages/UAT';
+import LaunchUAT from './pages/LaunchUAT';
 import Resume from './pages/Resume';
 import Certificate from './pages/Certificate';
 import Verify from './pages/Verify';
@@ -55,6 +56,7 @@ const App = () => {
         <Route path="/resume" element={<Resume />} />
         <Route path="/resume-verify" element={<ResumeVerify />} />
         <Route path="/uat" element={<UAT />} />
+        <Route path="/launchUat" element={<LaunchUAT />} />
         <Route path="/sicar" element={<Certificate />} />
         <Route path="/certificate" element={<Certificate />} />
         <Route path="/verify" element={<Verify />} />
