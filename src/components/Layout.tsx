@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { captureUtmParams } from '../lib/utm';
 
 type NavItem = {
   path: string;
@@ -95,6 +96,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     setMobileOpen(false);
     setLearnOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    captureUtmParams({ search: location.search, pathname: location.pathname });
+  }, [location.pathname, location.search]);
 
   const isLearnActive = useMemo(
     () => learnLinks.some((link) => location.pathname.startsWith(link.path)),
