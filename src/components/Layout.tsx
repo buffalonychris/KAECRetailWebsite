@@ -44,6 +44,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     [flowRoutes, location.pathname],
   );
 
+  const isHealthHomes = location.pathname.startsWith('/health-homes');
+
+  const healthHomeLinks: NavItem[] = [
+    { path: '/health-homes', label: 'Overview' },
+    { path: '/health-homes/outcomes', label: 'Outcomes' },
+    { path: '/health-homes/funding', label: 'Funding' },
+    { path: '/health-homes/packages', label: 'Packages' },
+    { path: '/health-homes/pilot', label: 'Pilot' },
+    { path: '/health-homes/operations', label: 'Operations' },
+    { path: '/health-homes/packet', label: 'Packet' },
+    { path: '/health-homes/intake', label: 'Intake' },
+  ];
+
+  const navLinks = isHealthHomes ? healthHomeLinks : primaryLinks;
+
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       setMobileOpen(false);
@@ -117,7 +132,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <span />
             </button>
             <nav className="nav-links" aria-label="Main navigation">
-              {primaryLinks.map((link) => {
+              {navLinks.map((link) => {
                 if ('items' in link) {
                   return (
                     <div key={link.label} className="dropdown">
@@ -151,12 +166,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               })}
             </nav>
             <div className="nav-cta">
-              <NavLink to="/quote" className="btn btn-primary">
-                Get a Quote
+              <NavLink
+                to={isHealthHomes ? '/health-homes/intake' : '/quote'}
+                className="btn btn-primary"
+              >
+                {isHealthHomes ? 'Start Pilot Intake' : 'Get a Quote'}
               </NavLink>
               <NavLink to="/resume-verify" className="resume-link">
                 Resume / Verify
               </NavLink>
+              {isHealthHomes && (
+                <NavLink to="/" className="resume-link">
+                  Back to Home
+                </NavLink>
+              )}
             </div>
           </div>
         </div>
@@ -168,14 +191,22 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             onClick={handleOverlayClick}
           >
             <div className="mobile-menu-inner">
-              <NavLink to="/quote" className="btn btn-primary mobile-quote">
-                Get a Quote
+              <NavLink
+                to={isHealthHomes ? '/health-homes/intake' : '/quote'}
+                className="btn btn-primary mobile-quote"
+              >
+                {isHealthHomes ? 'Start Pilot Intake' : 'Get a Quote'}
               </NavLink>
               <NavLink to="/resume-verify" className="resume-link">
                 Resume / Verify
               </NavLink>
+              {isHealthHomes && (
+                <NavLink to="/" className="resume-link">
+                  Back to Home
+                </NavLink>
+              )}
               <div className="mobile-links" role="menu">
-                {primaryLinks.map((link) => {
+                {navLinks.map((link) => {
                   if ('items' in link) {
                     return (
                       <details key={link.label} open>
