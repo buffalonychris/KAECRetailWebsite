@@ -27,6 +27,8 @@ const HealthHomesIntake = () => {
   const [notes, setNotes] = useState('');
   const [submittedSummary, setSubmittedSummary] = useState('');
   const [copied, setCopied] = useState(false);
+  const [packetCopied, setPacketCopied] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
 
   const handlePopulationChange = (id: string) => {
     setPopulation((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -51,6 +53,7 @@ const HealthHomesIntake = () => {
     event.preventDefault();
     setSubmittedSummary(summary);
     setCopied(false);
+    setPacketCopied(false);
   };
 
   const copySummary = async () => {
@@ -68,6 +71,45 @@ const HealthHomesIntake = () => {
     const body = encodeURIComponent(summary);
     return `mailto:hello@kickasseldercare.com?subject=${subject}&body=${body}`;
   }, [summary]);
+
+  const packetUrl = useMemo(() => `${window.location.origin}/health-homes/packet`, []);
+
+  const packetMailtoLink = useMemo(() => {
+    const recipient = encodeURIComponent(shareEmail.trim());
+    const subject = encodeURIComponent('KAEC Health Home Executive Justification Packet');
+    const mailBody = [
+      `Packet URL: ${packetUrl}`,
+      '',
+      'Intake summary:',
+      submittedSummary || summary,
+      '',
+      'For payer/MCO/internal review',
+    ].join('\n');
+
+    return `mailto:${recipient}?subject=${subject}&body=${encodeURIComponent(mailBody)}`;
+  }, [packetUrl, shareEmail, submittedSummary, summary]);
+
+  const copyPacketLink = async () => {
+    try {
+      await navigator.clipboard.writeText(packetUrl);
+      setPacketCopied(true);
+    } catch (error) {
+      setPacketCopied(false);
+    }
+  };
+
+  const openPacketAndPrint = () => {
+    const packetWindow = window.open(packetUrl, '_blank', 'noopener,noreferrer');
+
+    if (packetWindow) {
+      packetWindow.focus();
+      packetWindow.onload = () => packetWindow.print();
+      setTimeout(() => packetWindow.print(), 600);
+    } else {
+      window.location.href = packetUrl;
+      setTimeout(() => window.print(), 600);
+    }
+  };
 
   return (
     <div className="container section" style={{ display: 'grid', gap: '1.25rem' }}>
@@ -184,6 +226,54 @@ const HealthHomesIntake = () => {
           <pre style={{ margin: 0, whiteSpace: 'pre-wrap', background: 'rgba(0,0,0,0.35)', padding: '0.75rem', borderRadius: 12 }}>
             {submittedSummary}
           </pre>
+
+          <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.75rem' }}>
+            <div>
+              <strong style={{ color: '#fff7e6' }}>Next: Share the Executive Packet</strong>
+              <p style={{ margin: '0.25rem 0 0', color: '#e6ddc7' }}>
+                Open, print, and share the justification packet with payer or internal stakeholders.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button type="button" className="btn btn-primary" onClick={openPacketAndPrint}>
+                Print / Save Executive Packet
+              </button>
+              <a className="btn btn-secondary" href={packetUrl} target="_blank" rel="noreferrer">
+                Open Executive Packet
+              </a>
+              <button type="button" className="btn btn-secondary" onClick={copyPacketLink}>
+                Copy Packet Link
+              </button>
+              {packetCopied && <small style={{ alignSelf: 'center', color: '#c8c0aa' }}>Packet link copied.</small>}
+            </div>
+
+            <div className="card" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(245,192,66,0.2)', display: 'grid', gap: '0.5rem' }}>
+              <label className="form-field" style={{ margin: 0 }}>
+                <span>Email packet link to:</span>
+                <input
+                  type="email"
+                  value={shareEmail}
+                  onChange={(event) => setShareEmail(event.target.value)}
+                  placeholder="payer@example.com"
+                  style={{ maxWidth: 360 }}
+                />
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => shareEmail.trim() && (window.location.href = packetMailtoLink)}
+                  disabled={!shareEmail.trim()}
+                >
+                  Open Email Draft
+                </button>
+                <small style={{ color: '#c8c0aa' }}>
+                  Subject and body pre-filled with packet link and intake summary (mailto fallback).
+                </small>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
