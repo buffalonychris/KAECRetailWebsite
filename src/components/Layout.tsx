@@ -12,6 +12,7 @@ type DropdownItem = {
 };
 
 const learnLinks: NavItem[] = [
+  { path: '/health-homes', label: 'Health Homes' },
   { path: '/faq', label: 'FAQ Library' },
   { path: '/privacy', label: 'Privacy' },
   { path: '/terms', label: 'Terms' },

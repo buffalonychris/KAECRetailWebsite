@@ -27,6 +27,13 @@ import Resume from './pages/Resume';
 import Certificate from './pages/Certificate';
 import Verify from './pages/Verify';
 import ResumeVerify from './pages/ResumeVerify';
+import HealthHomes from './pages/HealthHomes';
+import HealthHomesOutcomes from './pages/HealthHomesOutcomes';
+import HealthHomesFunding from './pages/HealthHomesFunding';
+import HealthHomesPackages from './pages/HealthHomesPackages';
+import HealthHomesPilot from './pages/HealthHomesPilot';
+import HealthHomesOperations from './pages/HealthHomesOperations';
+import HealthHomesIntake from './pages/HealthHomesIntake';
 
 const App = () => {
   return (
@@ -60,6 +67,13 @@ const App = () => {
         <Route path="/sicar" element={<Certificate />} />
         <Route path="/certificate" element={<Certificate />} />
         <Route path="/verify" element={<Verify />} />
+        <Route path="/health-homes" element={<HealthHomes />} />
+        <Route path="/health-homes/outcomes" element={<HealthHomesOutcomes />} />
+        <Route path="/health-homes/funding" element={<HealthHomesFunding />} />
+        <Route path="/health-homes/packages" element={<HealthHomesPackages />} />
+        <Route path="/health-homes/pilot" element={<HealthHomesPilot />} />
+        <Route path="/health-homes/operations" element={<HealthHomesOperations />} />
+        <Route path="/health-homes/intake" element={<HealthHomesIntake />} />
       </Routes>
     </Layout>
   );
