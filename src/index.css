@@ -599,6 +599,17 @@ button {
     max-width: 100%;
     margin: 0;
     padding: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    padding: 0.5rem 1.25rem 0.75rem;
+    border-top: 1px solid #000000;
   }
 }
 
@@ -629,6 +640,15 @@ button {
   border-radius: 16px;
   box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
   border: 1px solid #e0e0e0;
+}
+
+.print-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #000000;
+  padding-top: 0.75rem;
+  border-top: 1px solid #000000;
 }
 
 .print-section h2 {
