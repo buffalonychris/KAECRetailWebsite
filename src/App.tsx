@@ -34,6 +34,7 @@ import HealthHomesPackages from './pages/HealthHomesPackages';
 import HealthHomesPilot from './pages/HealthHomesPilot';
 import HealthHomesOperations from './pages/HealthHomesOperations';
 import HealthHomesIntake from './pages/HealthHomesIntake';
+import HealthHomesPacket from './pages/HealthHomesPacket';
 
 const App = () => {
   return (
@@ -74,6 +75,7 @@ const App = () => {
         <Route path="/health-homes/pilot" element={<HealthHomesPilot />} />
         <Route path="/health-homes/operations" element={<HealthHomesOperations />} />
         <Route path="/health-homes/intake" element={<HealthHomesIntake />} />
+        <Route path="/health-homes/packet" element={<HealthHomesPacket />} />
       </Routes>
     </Layout>
   );
