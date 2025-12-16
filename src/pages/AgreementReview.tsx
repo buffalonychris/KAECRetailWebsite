@@ -24,19 +24,22 @@ const AgreementReview = () => {
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const token = searchParams.get('t') || '';
   const locationQuote = (location.state as { quoteContext?: QuoteContext } | undefined)?.quoteContext;
-  const [quote, setQuote] = useState<QuoteContext | null>(null);
+  const initialFlow = useMemo(() => loadRetailFlow(), []);
+  const [quote, setQuote] = useState<QuoteContext | null>(() => initialFlow.quote ?? null);
   const [agreementHash, setAgreementHash] = useState('');
   const [acceptChecked, setAcceptChecked] = useState(false);
   const [fullName, setFullName] = useState('');
   const [acceptanceDate, setAcceptanceDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [storedAcceptance, setStoredAcceptance] = useState<AcceptanceRecord | null>(null);
+  const [storedAcceptance, setStoredAcceptance] = useState<AcceptanceRecord | null>(
+    () => initialFlow.agreementAcceptance ?? null,
+  );
   const [bannerMessage, setBannerMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => initialFlow.quote?.contact ?? '');
   const [emailBanner, setEmailBanner] = useState('');
   const [manualRecipient, setManualRecipient] = useState('');
   const [emailError, setEmailError] = useState('');
   const [sending, setSending] = useState(false);
-  const [guidedMode, setGuidedMode] = useState<boolean>(() => loadRetailFlow().guidedMode ?? false);
+  const [guidedMode, setGuidedMode] = useState<boolean>(() => initialFlow.guidedMode ?? false);
   const [agreementEmailPayload, setAgreementEmailPayload] =
     useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
@@ -45,6 +48,7 @@ const AgreementReview = () => {
   const [resumeCopied, setResumeCopied] = useState(false);
   const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [hydrationAttempted, setHydrationAttempted] = useState(false);
   const redirectMessage = (location.state as { message?: string } | undefined)?.message;
   const acceptanceSectionRef = useRef<HTMLDivElement | null>(null);
   const shareSectionRef = useRef<HTMLDivElement | null>(null);
@@ -52,40 +56,53 @@ const AgreementReview = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     markFlowStep('agreement');
+    let hydratedFromToken = false;
     if (token) {
-      const payload = parseAgreementToken(token);
-      if (payload?.quote) {
-        setQuote(payload.quote);
-        setEmail(payload.quote.contact ?? '');
-        if (payload.acceptance) {
-          setStoredAcceptance(payload.acceptance);
-          setAcceptChecked(Boolean(payload.acceptance.accepted));
-          if (payload.acceptance.fullName) setFullName(payload.acceptance.fullName);
-          if (payload.acceptance.acceptanceDate) setAcceptanceDate(payload.acceptance.acceptanceDate);
+      try {
+        const payload = parseAgreementToken(token);
+        if (payload?.quote) {
+          hydratedFromToken = true;
+          setQuote(payload.quote);
+          setEmail(payload.quote.contact ?? '');
+          if (payload.acceptance) {
+            setStoredAcceptance(payload.acceptance);
+            setAcceptChecked(Boolean(payload.acceptance.accepted));
+            if (payload.acceptance.fullName) setFullName(payload.acceptance.fullName);
+            if (payload.acceptance.acceptanceDate) setAcceptanceDate(payload.acceptance.acceptanceDate);
+          }
         }
-        return;
+      } catch (err) {
+        console.error('KAEC AgreementReview: token parse failed', err);
       }
     }
 
-    if (locationQuote) {
+    if (!hydratedFromToken && locationQuote) {
       setQuote(locationQuote);
+      setEmail(locationQuote.contact ?? '');
       updateRetailFlow({ quote: locationQuote });
     }
 
-    const stored = loadRetailFlow();
-    if (stored.quote) {
-      setQuote((current) => current ?? stored.quote!);
-      setEmail(stored.quote.contact ?? '');
+    if (!hydratedFromToken && initialFlow.quote) {
+      setQuote((current) => current ?? initialFlow.quote!);
+      setEmail((current) => current || initialFlow.quote?.contact || '');
     }
-    if (typeof stored.guidedMode !== 'undefined') setGuidedMode(Boolean(stored.guidedMode));
-    if (stored.agreementAcceptance) {
-      setStoredAcceptance(stored.agreementAcceptance);
-      setAcceptChecked(Boolean(stored.agreementAcceptance.accepted));
-      if (stored.agreementAcceptance.fullName) setFullName(stored.agreementAcceptance.fullName);
-      if (stored.agreementAcceptance.acceptanceDate)
-        setAcceptanceDate(stored.agreementAcceptance.acceptanceDate);
+
+    if (typeof initialFlow.guidedMode !== 'undefined') setGuidedMode(Boolean(initialFlow.guidedMode));
+    if (initialFlow.agreementAcceptance) {
+      setStoredAcceptance(initialFlow.agreementAcceptance);
+      setAcceptChecked(Boolean(initialFlow.agreementAcceptance.accepted));
+      if (initialFlow.agreementAcceptance.fullName) setFullName(initialFlow.agreementAcceptance.fullName);
+      if (initialFlow.agreementAcceptance.acceptanceDate)
+        setAcceptanceDate(initialFlow.agreementAcceptance.acceptanceDate);
     }
-  }, [locationQuote, token]);
+
+    setHydrationAttempted(true);
+  }, [initialFlow, locationQuote, token]);
+
+  useEffect(() => {
+    if (!hydrationAttempted || quote) return;
+    console.error('KAEC AgreementReview: missing agreement state');
+  }, [hydrationAttempted, quote]);
 
   const acceptanceState = acceptChecked || Boolean(storedAcceptance?.accepted);
 
@@ -157,6 +174,7 @@ const AgreementReview = () => {
     handleSendAgreementEmail(recipient, 'auto');
   }, [acceptedRecord, agreementEmailPayload, email, quote, sending]);
 
+  const hasQuote = Boolean(quote);
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
   const hardwareGroups = useMemo(
     () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
@@ -166,39 +184,29 @@ const AgreementReview = () => {
     () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote]
   );
-
-  if (!quote) {
-    return (
-      <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
-        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div className="badge">Agreement review</div>
-          <h1 style={{ margin: 0, color: '#fff7e6' }}>No stored quote found</h1>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Build a deterministic quote first, then return here to review and accept the agreement.
-          </p>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/quote')}>
-            Back to quote builder
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const selectedPackage = packagePricing.find((pkg) => pkg.id === quote.packageId) ?? packagePricing[0];
-  const selectedAddOns = addOns.filter((item) => quote.selectedAddOns.includes(item.id));
-  const agreementReference = buildAgreementReference(quote);
-  const quoteHashDisplay = shortenMiddle(quote.quoteHash);
-  const supersedesQuote = shortenMiddle(quote.priorQuoteHash);
+  const selectedPackage = useMemo(() => {
+    const match = quote ? packagePricing.find((pkg) => pkg.id === quote.packageId) : null;
+    return match ?? packagePricing[0];
+  }, [quote]);
+  const selectedAddOns = useMemo(
+    () => (quote ? addOns.filter((item) => quote.selectedAddOns.includes(item.id)) : []),
+    [quote]
+  );
+  const agreementReference = quote ? buildAgreementReference(quote) : '';
+  const quoteHashDisplay = shortenMiddle(quote?.quoteHash || '');
+  const supersedesQuote = shortenMiddle(quote?.priorQuoteHash || '');
   const displayedAgreementHash = shortenMiddle(agreementHash);
   const supersedesAgreement = shortenMiddle(
     storedAcceptance?.supersedesAgreementHash ?? storedAcceptance?.agreementHash
   );
-  const resumeUrl = storedAcceptance?.accepted
-    ? buildResumeUrl(quote, 'payment')
-    : buildResumeUrl(quote, 'agreement');
+  const resumeUrl = quote
+    ? storedAcceptance?.accepted
+      ? buildResumeUrl(quote, 'payment')
+      : buildResumeUrl(quote, 'agreement')
+    : '';
   const shortResume = shortenMiddle(resumeUrl);
-  const customerName = quote.customerName?.trim() || 'Customer';
-  const agreementDate = agreement.header.generatedDate;
+  const customerName = quote?.customerName?.trim() || 'Customer';
+  const agreementDate = agreement?.header?.generatedDate || '';
   const agreementVersion = siteConfig.agreementDocVersion;
   const acceptedName = fullName || storedAcceptance?.fullName || '';
   const acceptedDate = acceptanceDate || storedAcceptance?.acceptanceDate || '';
@@ -231,6 +239,8 @@ const AgreementReview = () => {
   }, [acceptanceReady, acceptedDate, acceptedName, agreementHash, agreementVersion, email, storedAcceptance]);
 
   const agreementEmailStatus = acceptanceSnapshot?.emailLastStatus ?? acceptanceSnapshot?.emailStatus ?? 'not_sent';
+  const rebuildSourceQuote = locationQuote ?? initialFlow.quote ?? null;
+  const canRebuildFromQuote = Boolean(rebuildSourceQuote);
 
   const handleCopyAgreementHash = async () => {
     if (!agreementHash) return;
@@ -248,7 +258,7 @@ const AgreementReview = () => {
   };
 
   const handleCopyQuoteHash = async () => {
-    if (!quote.quoteHash) return;
+    if (!quote?.quoteHash) return;
     await copyToClipboard(quote.quoteHash);
     setQuoteHashCopied(true);
     setTimeout(() => setQuoteHashCopied(false), 2000);
@@ -363,12 +373,20 @@ const AgreementReview = () => {
   };
 
   const handleProceedToPayment = async () => {
-    if (!storedAcceptance?.accepted) return;
+    if (!storedAcceptance?.accepted || !quote) return;
     navigate('/payment', { state: { quoteContext: quote } });
   };
 
   const handlePrint = () => {
     navigate('/agreementPrint', { state: { autoPrint: true } });
+  };
+
+  const handleRebuildFromQuote = () => {
+    if (!rebuildSourceQuote) return;
+    setQuote(rebuildSourceQuote);
+    setEmail(rebuildSourceQuote.contact ?? '');
+    updateRetailFlow({ quote: rebuildSourceQuote });
+    setBannerMessage('Agreement rebuilt from saved quote.');
   };
 
   const toggleSection = (key: string) => {
@@ -382,7 +400,7 @@ const AgreementReview = () => {
   };
 
   const addOnTotal = selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
-  const estimatedTotal = quote.pricing?.total ?? selectedPackage.basePrice + addOnTotal;
+  const estimatedTotal = quote?.pricing?.total ?? selectedPackage.basePrice + addOnTotal;
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -397,126 +415,139 @@ const AgreementReview = () => {
         </div>
       )}
 
-      <div className="hero-card" style={{ display: 'grid', gap: '1.25rem' }}>
-        <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: '1.1fr 0.9fr', alignItems: 'start', flexWrap: 'wrap' }}>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            <div>
-              <div className="badge">Step 2 — Agreement Review</div>
-              <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Decision-ready agreement</h1>
-              <p style={{ margin: 0, color: '#c8c0aa' }}>
-                Calm, plain-language overview first. This locks in your quote so we can collect the deposit and schedule installation.
-              </p>
-            </div>
-            <div>
-              <strong>What this covers</strong>
-              <ul className="list" style={{ marginTop: '0.35rem' }}>
-                <li>
-                  <span />
-                  <span>Turns your deterministic quote into the signed agreement so hardware and installation can be reserved.</span>
-                </li>
-                <li>
-                  <span />
-                  <span>One-time purchase. No monthly subscriptions required.</span>
-                </li>
-                <li>
-                  <span />
-                  <span>Emergency response remains 911; this is not medical monitoring.</span>
-                </li>
-                <li>
-                  <span />
-                  <span>Next step after acceptance: deposit, then scheduling.</span>
-                </li>
-                <li>
-                  <span />
-                  <span>Full legal and audit details remain available below.</span>
-                </li>
-              </ul>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => handleScrollToSection(acceptanceSectionRef)}
-              >
-                Continue to acceptance
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-                Print / Save Agreement
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleSendAgreementEmail(email, 'manual')}
-                disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
-              >
-                {sending ? 'Sending…' : 'Email to primary contact'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleScrollToSection(shareSectionRef)}
-              >
-                Send to another email
-              </button>
-            </div>
-          </div>
-
-          <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <div className="badge">Agreement summary</div>
-              <TierBadge tierId={selectedPackage.id} labelOverride={selectedPackage.name} />
-            </div>
-            <div style={{ display: 'grid', gap: '0.5rem' }}>
-              <strong style={{ fontSize: '1.1rem' }}>One-time total: {formatCurrency(estimatedTotal)}</strong>
-              <small style={{ color: '#c8c0aa' }}>Based on your selected tier and add-ons.</small>
-            </div>
-            <div style={{ display: 'grid', gap: '0.35rem' }}>
-              <strong>Customer & property</strong>
-              <ul className="list" style={{ marginTop: 0 }}>
-                <li>
-                  <span />
-                  <span>{customerName} • {quote.contact || 'contact pending'}</span>
-                </li>
-                {quote.city && (
-                  <li>
-                    <span />
-                    <span>{quote.city}</span>
-                  </li>
-                )}
-                {quote.homeType && (
-                  <li>
-                    <span />
-                    <span>{quote.homeType}{quote.homeSize ? ` • ${quote.homeSize}` : ''}</span>
-                  </li>
-                )}
-                {quote.internetReliability && (
-                  <li>
-                    <span />
-                    <span>Internet reliability: {quote.internetReliability}</span>
-                  </li>
-                )}
-              </ul>
-            </div>
-            <div style={{ display: 'grid', gap: '0.35rem' }}>
-              <strong>Selected add-ons</strong>
-              {selectedAddOns.length ? (
-                <ul className="list" style={{ marginTop: 0 }}>
-                  {selectedAddOns.map((addOn) => (
-                    <li key={addOn.id}>
+      {quote ? (
+        <>
+          <div className="hero-card" style={{ display: 'grid', gap: '1.25rem' }}>
+            <div
+              style={{
+                display: 'grid',
+                gap: '1.25rem',
+                gridTemplateColumns: '1.1fr 0.9fr',
+                alignItems: 'start',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <div>
+                  <div className="badge">Step 2 — Agreement Review</div>
+                  <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Decision-ready agreement</h1>
+                  <p style={{ margin: 0, color: '#c8c0aa' }}>
+                    Calm, plain-language overview first. This locks in your quote so we can collect the deposit and schedule
+                    installation.
+                  </p>
+                </div>
+                <div>
+                  <strong>What this covers</strong>
+                  <ul className="list" style={{ marginTop: '0.35rem' }}>
+                    <li>
                       <span />
-                      <span>
-                        {addOn.label} ({formatCurrency(addOn.price)})
-                      </span>
+                      <span>Turns your deterministic quote into the signed agreement so hardware and installation can be reserved.</span>
                     </li>
-                  ))}
-                </ul>
-              ) : (
-                <small style={{ color: '#c8c0aa' }}>No add-ons selected.</small>
-              )}
+                    <li>
+                      <span />
+                      <span>One-time purchase. No monthly subscriptions required.</span>
+                    </li>
+                    <li>
+                      <span />
+                      <span>Emergency response remains 911; this is not medical monitoring.</span>
+                    </li>
+                    <li>
+                      <span />
+                      <span>Next step after acceptance: deposit, then scheduling.</span>
+                    </li>
+                    <li>
+                      <span />
+                      <span>Full legal and audit details remain available below.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => handleScrollToSection(acceptanceSectionRef)}
+                  >
+                    Continue to acceptance
+                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+                    Print / Save Agreement
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleSendAgreementEmail(email, 'manual')}
+                    disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
+                  >
+                    {sending ? 'Sending…' : 'Email to primary contact'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleScrollToSection(shareSectionRef)}
+                  >
+                    Send to another email
+                  </button>
+                </div>
+              </div>
+
+              <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}
+                >
+                  <div className="badge">Agreement summary</div>
+                  <TierBadge tierId={selectedPackage.id} labelOverride={selectedPackage.name} />
+                </div>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <strong style={{ fontSize: '1.1rem' }}>One-time total: {formatCurrency(estimatedTotal)}</strong>
+                  <small style={{ color: '#c8c0aa' }}>Based on your selected tier and add-ons.</small>
+                </div>
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <strong>Customer & property</strong>
+                  <ul className="list" style={{ marginTop: 0 }}>
+                    <li>
+                      <span />
+                      <span>{customerName} • {quote.contact || 'contact pending'}</span>
+                    </li>
+                    {quote.city && (
+                      <li>
+                        <span />
+                        <span>{quote.city}</span>
+                      </li>
+                    )}
+                    {quote.homeType && (
+                      <li>
+                        <span />
+                        <span>{quote.homeType}{quote.homeSize ? ` • ${quote.homeSize}` : ''}</span>
+                      </li>
+                    )}
+                    {quote.internetReliability && (
+                      <li>
+                        <span />
+                        <span>Internet reliability: {quote.internetReliability}</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <strong>Selected add-ons</strong>
+                  {selectedAddOns.length ? (
+                    <ul className="list" style={{ marginTop: 0 }}>
+                      {selectedAddOns.map((addOn) => (
+                        <li key={addOn.id}>
+                          <span />
+                          <span>
+                            {addOn.label} ({formatCurrency(addOn.price)})
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <small style={{ color: '#c8c0aa' }}>No add-ons selected.</small>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
       <div
         ref={acceptanceSectionRef}
@@ -938,6 +969,27 @@ const AgreementReview = () => {
           onCta={storedAcceptance?.accepted ? handleProceedToPayment : () => handleScrollToSection(acceptanceSectionRef)}
         />
       )}
+      </>
+    ) : (
+      <div className="hero-card" style={{ display: 'grid', gap: '0.9rem' }}>
+        <div className="badge">Agreement review</div>
+        <h1 style={{ margin: 0, color: '#fff7e6' }}>We need a quote to build your agreement</h1>
+        <p style={{ margin: 0, color: '#c8c0aa' }}>
+          The agreement view never stays blank. If you already built a quote, rebuild it below. Otherwise, start a fresh quote so we
+          can generate the agreement and proceed to acceptance.
+        </p>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/quote')}>
+            Back to quote builder
+          </button>
+          {canRebuildFromQuote && (
+            <button type="button" className="btn btn-secondary" onClick={handleRebuildFromQuote}>
+              Rebuild agreement from last quote
+            </button>
+          )}
+        </div>
+      </div>
+    )}
     </div>
   );
 };
