@@ -207,14 +207,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <small>
             Features and availability may vary by property conditions and local code requirements.
           </small>
-          <div className="footer-tools">
-            <small>Tools:</small>
-            <div className="footer-tool-links">
-              <NavLink to="/uat">UAT</NavLink>
-              <NavLink to="/certificate">Certificate</NavLink>
-              <NavLink to="/payment-processing">Payment processing</NavLink>
+            <div className="footer-tools">
+              <small>Tools:</small>
+              <div className="footer-tool-links">
+                <NavLink to="/uat">UAT</NavLink>
+                <NavLink to="/launchUat">Launch UAT</NavLink>
+                <NavLink to="/certificate">Certificate</NavLink>
+                <NavLink to="/payment-processing">Payment processing</NavLink>
+              </div>
             </div>
-          </div>
         </div>
       </footer>
     </div>
