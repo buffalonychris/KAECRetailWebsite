@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://reliableeldercare.com/</loc></url>
-  <url><loc>https://reliableeldercare.com/services</loc></url>
-  <url><loc>https://reliableeldercare.com/packages</loc></url>
-  <url><loc>https://reliableeldercare.com/about</loc></url>
-  <url><loc>https://reliableeldercare.com/faq</loc></url>
-  <url><loc>https://reliableeldercare.com/contact</loc></url>
-  <url><loc>https://reliableeldercare.com/privacy</loc></url>
-  <url><loc>https://reliableeldercare.com/terms</loc></url>
+  <url><loc>https://reliableeldercare.com/</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/packages</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/recommendation</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/outcomes</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/funding</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/packages</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/operations</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/pilot</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/packet</loc><lastmod>2025-12-16</lastmod></url>
+  <url><loc>https://reliableeldercare.com/health-homes/intake</loc><lastmod>2025-12-16</lastmod></url>
 </urlset>
