@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
@@ -15,7 +15,6 @@ import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
-import SaveProgressCard from '../components/SaveProgressCard';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -45,7 +44,10 @@ const AgreementReview = () => {
   const [quoteHashCopied, setQuoteHashCopied] = useState(false);
   const [resumeCopied, setResumeCopied] = useState(false);
   const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const redirectMessage = (location.state as { message?: string } | undefined)?.message;
+  const acceptanceSectionRef = useRef<HTMLDivElement | null>(null);
+  const shareSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -369,6 +371,19 @@ const AgreementReview = () => {
     navigate('/agreementPrint', { state: { autoPrint: true } });
   };
 
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleScrollToSection = (ref: { current: HTMLDivElement | null }) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const addOnTotal = selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
+  const estimatedTotal = quote.pricing?.total ?? selectedPackage.basePrice + addOnTotal;
+
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
       {redirectMessage && (
@@ -381,342 +396,138 @@ const AgreementReview = () => {
           {bannerMessage}
         </div>
       )}
-      <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div>
-            <div className="badge">Step 2 — Agreement Review</div>
-            <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Review and accept your agreement</h1>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              This agreement is required to proceed to deposit/payment and scheduling. No monthly subscriptions are required.
-            </p>
-            <small style={{ color: '#c8c0aa' }}>
-              Plain-language summary only. Informational only — not medical advice.
-            </small>
-          </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => handleSendAgreementEmail(email, 'manual')}
-            disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
-          >
-            {sending ? 'Sending…' : 'Send signed agreement copy'}
-          </button>
-          <button type="button" className="btn btn-primary" onClick={handlePrint}>
-            Print / Save Agreement
-          </button>
-        </div>
-        </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Agreement reference</strong>
-          <ul className="list" style={{ marginTop: 0 }}>
-            <li>
-              <span />
-              <span>Date: {agreementDate}</span>
-            </li>
-            <li>
-              <span />
-              <span>Agreement Version: {agreementVersion}</span>
-            </li>
-            <li>
-              <span />
-              <span>Agreement Ref: {agreementReference}</span>
-            </li>
-            <li>
-              <span />
-              <span>
-                Agreement Hash: <span className="mono-text">{displayedAgreementHash}</span>{' '}
-                {agreementHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementHash}>
-                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
-                  </button>
-                )}
-              </span>
-            </li>
-            <li>
-              <span />
-              <span>
-                Supersedes prior agreement hash: <span className="mono-text">{supersedesAgreement}</span>{' '}
-                {supersedesAgreement !== 'None' && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorAgreementHash}>
-                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
-                  </button>
-                )}
-              </span>
-            </li>
-            <li>
-              <span />
-              <span>
-                Linked quote reference: {agreement.quoteBinding.reference} (hash {quoteHashDisplay}){' '}
-                {quote.quoteHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyQuoteHash}>
-                    {quoteHashCopied ? 'Copied full hash' : 'Copy full hash'}
-                  </button>
-                )}
-              </span>
-            </li>
-            <li>
-              <span />
-              <span>
-                Supersedes prior quote hash: <span className="mono-text">{supersedesQuote}</span>
-              </span>
-            </li>
-          </ul>
-          <small style={{ color: '#c8c0aa' }}>
-            This agreement supersedes prior agreements for the same customer/property context.
-          </small>
-        </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Continue your order</strong>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href={resumeUrl} style={{ fontWeight: 800 }}>
-              Continue your order
-            </a>
-            <button type="button" className="btn btn-secondary" onClick={handleCopyResume} disabled={!resumeUrl}>
-              {resumeCopied ? 'Copied resume link' : 'Copy resume link'}
-            </button>
-          </div>
-          <small style={{ color: '#c8c0aa' }}>{shortResume}</small>
-          <small className="break-all" style={{ color: '#c8c0aa' }}>
-            {resumeUrl}
-          </small>
-        </div>
-      </div>
 
-      <SaveProgressCard
-        defaultEmail={email}
-        resumeUrl={resumeUrl}
-        available={Boolean(agreementEmailPayload)}
-        sending={sending}
-        onEmailChange={handleUpdateEmail}
-        onSend={(recipient) => sendAgreementEmailToRecipient(recipient)}
-      />
-
-      <AuthorityBlock meta={authorityMeta} />
-
-      <div className="card" style={{ display: 'grid', gap: '1rem' }}>
-        <div>
-          <div className="badge">Scope & Deliverables</div>
-          <h2 style={{ margin: '0.25rem 0' }}>Included services</h2>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Deterministic commitments based on your selected package and add-ons. No monthly subscriptions are required.
-          </p>
-        </div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Scope & Deliverables</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              {agreement.scope.map((item) => (
-                <li key={item}>
+      <div className="hero-card" style={{ display: 'grid', gap: '1.25rem' }}>
+        <div style={{ display: 'grid', gap: '1.25rem', gridTemplateColumns: '1.1fr 0.9fr', alignItems: 'start', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <div>
+              <div className="badge">Step 2 — Agreement Review</div>
+              <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Decision-ready agreement</h1>
+              <p style={{ margin: 0, color: '#c8c0aa' }}>
+                Calm, plain-language overview first. This locks in your quote so we can collect the deposit and schedule installation.
+              </p>
+            </div>
+            <div>
+              <strong>What this covers</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                <li>
                   <span />
-                  <span>{item}</span>
+                  <span>Turns your deterministic quote into the signed agreement so hardware and installation can be reserved.</span>
                 </li>
-              ))}
-            </ul>
-          </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Installation & validation</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              {agreement.installationCommitments.map((item) => (
-                <li key={item}>
+                <li>
                   <span />
-                  <span>{item}</span>
+                  <span>One-time purchase. No monthly subscriptions required.</span>
                 </li>
-              ))}
-              {agreement.validationSteps.map((item) => (
-                <li key={item}>
+                <li>
                   <span />
-                  <span>{item}</span>
+                  <span>Emergency response remains 911; this is not medical monitoring.</span>
                 </li>
-              ))}
-          </ul>
-        </div>
-      </div>
-
-      <FlowGuidePanel
-        currentStep="agreement"
-        nextDescription="Payment/Deposit comes next. Save or email the signed agreement, then continue to reserve your installation."
-        ctaLabel="Proceed to Payment"
-        onCta={handleProceedToPayment}
-      />
-      <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'grid', gap: '0.25rem' }}>
-            <div className="badge">Friendly Agreement Overview</div>
-            <h2 style={{ margin: 0 }}>You're almost done.</h2>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              A quick, plain-language check before you accept. This panel does not change any legal terms.
-            </p>
-            {guidedMode && (
-              <small style={{ color: '#c8c0aa' }}>This step is required before deposit and scheduling.</small>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-              Print/Save Agreement
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => handleSendAgreementEmail(email, 'manual')}
-              disabled={!agreementEmailPayload || !isValidEmail(email) || sending}
-            >
-              {sending ? 'Sending…' : 'Email a copy'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => authorityMeta?.verificationUrl && window.open(authorityMeta.verificationUrl, '_blank')}
-              disabled={!authorityMeta?.verificationUrl}
-            >
-              Verify authenticity
-            </button>
-          </div>
-        </div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
-            <strong>What this agreement does</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              <li>
-                <span />
-                <span>Confirms the package you selected and what’s included.</span>
-              </li>
-              <li>
-                <span />
-                <span>Confirms install expectations (professional crew, setup, training).</span>
-              </li>
-              <li>
-                <span />
-                <span>Confirms your deposit requirement so we can schedule.</span>
-              </li>
-            </ul>
-          </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
-            <strong>What this agreement does NOT do</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              <li>
-                <span />
-                <span>No subscription commitment.</span>
-              </li>
-              <li>
-                <span />
-                <span>No medical diagnosis or medical advice.</span>
-              </li>
-              <li>
-                <span />
-                <span>No hidden recurring charges.</span>
-              </li>
-              <li>
-                <span />
-                <span>You can review/print/save before proceeding.</span>
-              </li>
-            </ul>
-          </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', background: '#0f0e0d' }}>
-            <strong>What happens next</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              <li>
-                <span />
-                <span>Accept agreement → deposit → schedule install.</span>
-              </li>
-              <li>
-                <span />
-                <span>You’ll receive an emailed copy automatically.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gap: '0.35rem' }}>
-        <strong>Assumptions & Exclusions</strong>
-        <ul className="list" style={{ marginTop: 0 }}>
-            {agreement.assumptions.map((item) => (
-              <li key={item}>
-                <span />
-                <span>{item}</span>
-              </li>
-            ))}
-            {agreement.exclusions.map((item) => (
-              <li key={item}>
-                <span />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Offline behavior</strong>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>{agreement.offlineBehavior}</p>
-        </div>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <strong>Pricing note</strong>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>{agreement.noMonthlyStatement}</p>
-        </div>
-      </div>
-
-      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-        <div>
-          <div className="badge">Quote reference</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <TierBadge tierId={selectedPackage.id} />
-            <h2 style={{ margin: '0.25rem 0' }}>{selectedPackage.name}</h2>
-          </div>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Package {selectedPackage.name} • Add-ons: {selectedAddOns.length ? selectedAddOns.map((item) => item.label).join(', ') : 'None'}
-          </p>
-          <small style={{ color: '#c8c0aa' }}>One-time total: {formatCurrency(quote.pricing.total)}</small>
-        </div>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Hardware summary</strong>
-            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
-              {hardwareGroups.map((group) => (
-                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
-                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
-                  <ul className="list" style={{ marginTop: 0 }}>
-                    {group.categories.map((category) => (
-                      <li key={category.title}>
-                        <span />
-                        <span>
-                          {category.title}: {category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                <li>
+                  <span />
+                  <span>Next step after acceptance: deposit, then scheduling.</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Full legal and audit details remain available below.</span>
+                </li>
+              </ul>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleScrollToSection(acceptanceSectionRef)}
+              >
+                Continue to acceptance
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+                Print / Save Agreement
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleSendAgreementEmail(email, 'manual')}
+                disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
+              >
+                {sending ? 'Sending…' : 'Email to primary contact'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleScrollToSection(shareSectionRef)}
+              >
+                Send to another email
+              </button>
             </div>
           </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Feature summary</strong>
-            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
-              {featureGroups.map((group) => (
-                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
-                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
-                  <ul className="list" style={{ marginTop: 0 }}>
-                    {group.categories.map((category) => (
-                      <li key={category.title}>
-                        <span />
-                        <span>
-                          {category.title}: {category.items.join(', ')}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+
+          <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div className="badge">Agreement summary</div>
+              <TierBadge tierId={selectedPackage.id} labelOverride={selectedPackage.name} />
+            </div>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <strong style={{ fontSize: '1.1rem' }}>One-time total: {formatCurrency(estimatedTotal)}</strong>
+              <small style={{ color: '#c8c0aa' }}>Based on your selected tier and add-ons.</small>
+            </div>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <strong>Customer & property</strong>
+              <ul className="list" style={{ marginTop: 0 }}>
+                <li>
+                  <span />
+                  <span>{customerName} • {quote.contact || 'contact pending'}</span>
+                </li>
+                {quote.city && (
+                  <li>
+                    <span />
+                    <span>{quote.city}</span>
+                  </li>
+                )}
+                {quote.homeType && (
+                  <li>
+                    <span />
+                    <span>{quote.homeType}{quote.homeSize ? ` • ${quote.homeSize}` : ''}</span>
+                  </li>
+                )}
+                {quote.internetReliability && (
+                  <li>
+                    <span />
+                    <span>Internet reliability: {quote.internetReliability}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <strong>Selected add-ons</strong>
+              {selectedAddOns.length ? (
+                <ul className="list" style={{ marginTop: 0 }}>
+                  {selectedAddOns.map((addOn) => (
+                    <li key={addOn.id}>
+                      <span />
+                      <span>
+                        {addOn.label} ({formatCurrency(addOn.price)})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <small style={{ color: '#c8c0aa' }}>No add-ons selected.</small>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+      <div
+        ref={acceptanceSectionRef}
+        className="card"
+        style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+      >
         <div>
           <div className="badge">Acceptance</div>
-          <h2 style={{ margin: '0.25rem 0' }}>Confirm review</h2>
+          <h2 style={{ margin: '0.25rem 0' }}>Confirm and proceed</h2>
           <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Check the box, type your name, and confirm the date to accept this agreement. Acceptance unlocks payment.
+            This confirmation is required so we can collect the deposit and schedule your install. Legal wording remains unchanged.
           </p>
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -728,9 +539,7 @@ const AgreementReview = () => {
           />
           <span>I have reviewed and agree to the KickAss Elder Care agreement</span>
         </label>
-        <small style={{ color: '#c8c0aa' }}>
-          This is required so we can take your deposit and schedule your install.
-        </small>
+        <small style={{ color: '#c8c0aa' }}>This is required so we can take your deposit and schedule your install.</small>
         <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
           <label style={{ display: 'grid', gap: '0.35rem' }}>
             <span>Typed full name</span>
@@ -779,6 +588,100 @@ const AgreementReview = () => {
             </small>
           )}
         </div>
+      </div>
+
+      <div
+        ref={shareSectionRef}
+        className="card"
+        style={{ display: 'grid', gap: '0.85rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'grid', gap: '0.25rem' }}>
+            <div className="badge">Share & Save</div>
+            <strong style={{ color: '#fff7e6' }}>Email, print, or resume anytime</strong>
+            <small style={{ color: '#c8c0aa' }}>
+              Send the binding copy to yourself or another trusted contact. Resume link stays active.
+            </small>
+          </div>
+          <div style={{ display: 'grid', gap: '0.35rem', textAlign: 'right' }}>
+            <small style={{ color: '#c8c0aa' }}>Resume link</small>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <a href={resumeUrl} style={{ fontWeight: 800 }}>
+                Continue your order
+              </a>
+              <button type="button" className="btn btn-secondary" onClick={handleCopyResume} disabled={!resumeUrl}>
+                {resumeCopied ? 'Copied link' : 'Copy link'}
+              </button>
+            </div>
+            <small style={{ color: '#c8c0aa' }}>{shortResume}</small>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Send to primary email</strong>
+            <label style={{ display: 'grid', gap: '0.35rem' }}>
+              <span>Customer email</span>
+              <input
+                value={email}
+                onChange={(e) => handleUpdateEmail(e.target.value)}
+                placeholder="name@example.com"
+                style={{ padding: '0.75rem', borderRadius: '10px', border: '1px solid rgba(245,192,66,0.35)', background: '#0f0e0d', color: '#fff7e6' }}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => handleSendAgreementEmail(email, 'manual')}
+                disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(email) || sending}
+              >
+                {sending ? 'Sending…' : 'Email signed agreement'}
+              </button>
+              {!acceptedRecord && <small style={{ color: '#c8c0aa' }}>Accept first to enable sending.</small>}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Send to another email</strong>
+            <label style={{ display: 'grid', gap: '0.35rem' }}>
+              <span>Caregiver, family, or caseworker</span>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  value={manualRecipient}
+                  onChange={(e) => setManualRecipient(e.target.value)}
+                  placeholder="caregiver@example.com"
+                  style={{
+                    flex: 1,
+                    minWidth: '220px',
+                    padding: '0.75rem',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(245,192,66,0.35)',
+                    background: '#0f0e0d',
+                    color: '#fff7e6',
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => handleSendAgreementEmail(manualRecipient, 'manual')}
+                  disabled={!acceptedRecord || !agreementEmailPayload || !isValidEmail(manualRecipient) || sending}
+                >
+                  {sending ? 'Sending…' : 'Send copy'}
+                </button>
+              </div>
+              {!isValidEmail(manualRecipient) && manualRecipient && (
+                <small style={{ color: '#f0b267' }}>Enter a valid email to send a copy.</small>
+              )}
+            </label>
+            {acceptedRecord?.emailRecipients?.length ? (
+              <small style={{ color: '#c8c0aa' }}>
+                Sent to: {acceptedRecord.emailRecipients.slice(0, 3).join(', ')}
+              </small>
+            ) : null}
+          </div>
+        </div>
+
         {acceptedRecord ? (
           <div className="card" style={{ display: 'grid', gap: '0.75rem', background: '#0f0e0d', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
             {emailBanner || agreementEmailStatus !== 'not_sent' ? (
@@ -817,55 +720,9 @@ const AgreementReview = () => {
                 )}
               </div>
             ) : (
-              <small style={{ color: '#c8c0aa' }}>Send the signed agreement to yourself and any caregivers.</small>
+              <small style={{ color: '#c8c0aa' }}>Signed copy can be sent after acceptance.</small>
             )}
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => handleSendAgreementEmail(email, 'manual')}
-                disabled={!agreementEmailPayload || !isValidEmail(email) || sending}
-              >
-                {sending ? 'Sending…' : 'Send to primary email'}
-              </button>
-            </div>
-            <div style={{ display: 'grid', gap: '0.5rem', maxWidth: '540px' }}>
-              <label style={{ display: 'grid', gap: '0.35rem' }}>
-                <span>Send a copy to</span>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <input
-                    value={manualRecipient}
-                    onChange={(e) => setManualRecipient(e.target.value)}
-                    placeholder="name@example.com"
-                    style={{
-                      flex: 1,
-                      minWidth: '240px',
-                      padding: '0.75rem',
-                      borderRadius: '10px',
-                      border: '1px solid rgba(245,192,66,0.35)',
-                      background: '#0f0e0d',
-                      color: '#fff7e6',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => handleSendAgreementEmail(manualRecipient, 'manual')}
-                    disabled={!isValidEmail(manualRecipient) || !agreementEmailPayload || sending}
-                  >
-                    {sending ? 'Sending…' : 'Send Email'}
-                  </button>
-                </div>
-                {!isValidEmail(manualRecipient) && manualRecipient && (
-                  <small style={{ color: '#f0b267' }}>Enter a valid email to send a copy.</small>
-                )}
-              </label>
-              {acceptedRecord.emailRecipients?.length ? (
-                <small style={{ color: '#c8c0aa' }}>
-                  Sent to: {acceptedRecord.emailRecipients.slice(0, 3).join(', ')}
-                </small>
-              ) : null}
-            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <strong>Email status</strong>
               <small style={{ color: '#c8c0aa' }}>
@@ -874,10 +731,11 @@ const AgreementReview = () => {
                   : 'Not sent'}
               </small>
             </div>
+
             {agreementEmailPayload?.links && (
-              <div style={{ display: 'grid', gap: '0.35rem' }}>
-                <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
-                <ul className="list" style={{ marginTop: 0 }}>
+              <details style={{ color: '#c8c0aa' }}>
+                <summary style={{ cursor: 'pointer', color: '#fff7e6' }}>Email payload links</summary>
+                <ul className="list" style={{ marginTop: '0.5rem' }}>
                   <li>
                     <span />
                     <span className="break-all">Print: {agreementEmailPayload.links.printUrl}</span>
@@ -897,14 +755,189 @@ const AgreementReview = () => {
                     </li>
                   )}
                 </ul>
-              </div>
+              </details>
             )}
           </div>
         ) : null}
-        <small style={{ color: '#c8c0aa' }}>
-          Payment unlocks after acceptance. Informational only — not medical advice.
-        </small>
+
+        <small style={{ color: '#c8c0aa' }}>Payment unlocks after acceptance. Informational only — not medical advice.</small>
       </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <button type="button" className="accordion-toggle" onClick={() => toggleSection('agreement-details')}>
+          <span>Agreement details & hashes</span>
+          <span>{openSections['agreement-details'] ? '−' : '+'}</span>
+        </button>
+        <div className={`accordion-content ${openSections['agreement-details'] ? 'open' : ''}`} style={{ display: 'grid', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Reference</strong>
+            <ul className="list" style={{ marginTop: 0 }}>
+              <li>
+                <span />
+                <span>Date: {agreementDate}</span>
+              </li>
+              <li>
+                <span />
+                <span>Agreement Version: {agreementVersion}</span>
+              </li>
+              <li>
+                <span />
+                <span>Agreement Ref: {agreementReference}</span>
+              </li>
+              <li>
+                <span />
+                <span>
+                  Agreement Hash: <span className="mono-text">{displayedAgreementHash}</span>{' '}
+                  {agreementHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementHash}>
+                      {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                    </button>
+                  )}
+                </span>
+              </li>
+              <li>
+                <span />
+                <span>
+                  Supersedes prior agreement hash: <span className="mono-text">{supersedesAgreement}</span>{' '}
+                  {supersedesAgreement !== 'None' && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyPriorAgreementHash}>
+                      {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                    </button>
+                  )}
+                </span>
+              </li>
+              <li>
+                <span />
+                <span>
+                  Linked quote reference: {agreement.quoteBinding.reference} (hash {quoteHashDisplay}){' '}
+                  {quote.quoteHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyQuoteHash}>
+                      {quoteHashCopied ? 'Copied full hash' : 'Copy full hash'}
+                    </button>
+                  )}
+                </span>
+              </li>
+              <li>
+                <span />
+                <span>Supersedes prior quote hash: <span className="mono-text">{supersedesQuote}</span></span>
+              </li>
+            </ul>
+            <small style={{ color: '#c8c0aa' }}>
+              This agreement supersedes prior agreements for the same customer/property context.
+            </small>
+          </div>
+
+          <AuthorityBlock meta={authorityMeta} />
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <button type="button" className="accordion-toggle" onClick={() => toggleSection('scope')}>
+          <span>Included services, hardware, and features</span>
+          <span>{openSections.scope ? '−' : '+'}</span>
+        </button>
+        <div className={`accordion-content ${openSections.scope ? 'open' : ''}`} style={{ display: 'grid', gap: '1rem' }}>
+          <div>
+            <div className="badge">Scope & Deliverables</div>
+            <h2 style={{ margin: '0.25rem 0' }}>Included services</h2>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Deterministic commitments based on your selected package and add-ons. No monthly subscriptions are required.
+            </p>
+          </div>
+          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Scope & Deliverables</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {agreement.scope.map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Installation & validation</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {agreement.installationCommitments.map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Assumptions & exclusions</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {[...agreement.assumptions, ...agreement.exclusions].map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <strong>Hardware included</strong>
+            <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.35rem' }}>
+              {hardwareGroups.map((group) => (
+                <div key={group.heading} style={{ display: 'grid', gap: '0.5rem' }}>
+                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                  <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item.name}>
+                              <span />
+                              <span>
+                                {item.name}: x{item.quantity}
+                                {item.note ? ` (${item.note})` : ''}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+            <strong>Feature summary</strong>
+            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
+              {featureGroups.map((group) => (
+                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
+                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                  <ul className="list" style={{ marginTop: 0 }}>
+                    {group.categories.map((category) => (
+                      <li key={category.title}>
+                        <span />
+                        <span>
+                          {category.title}: {category.items.join(', ')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {guidedMode && (
+        <FlowGuidePanel
+          currentStep="agreement"
+          nextDescription="Accept the agreement to unlock deposit/payment, then we schedule installation."
+          ctaLabel={storedAcceptance?.accepted ? 'Continue to deposit' : 'Accept to continue'}
+          onCta={storedAcceptance?.accepted ? handleProceedToPayment : () => handleScrollToSection(acceptanceSectionRef)}
+        />
+      )}
     </div>
   );
 };
