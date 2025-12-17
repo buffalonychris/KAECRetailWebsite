@@ -235,4 +235,4 @@ export const handleEmailRequest = async (
   }
 };
 
-export { EmailPayload, EmailResult };
+export type { EmailPayload, EmailResult };
