@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
 
 type NavItem = {
@@ -114,6 +115,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div>
+      <Seo />
       <header className={`hide-when-print ${navMuted ? 'flow-nav-muted' : ''}`}>
         <div className="container nav" ref={navRef}>
           <NavLink to="/" className="brand" aria-label="KickAss Elder Care home">
