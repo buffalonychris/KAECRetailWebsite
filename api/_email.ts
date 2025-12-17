@@ -21,7 +21,9 @@ type EmailPayload = {
   };
 };
 
-type EmailResult = { ok: true; provider: 'resend' | 'smtp' | 'mock'; id?: string } | { ok: false; error: string };
+type EmailResult =
+  | { ok: true; provider: 'resend' | 'smtp' | 'mock'; id?: string }
+  | { ok: false; provider: 'resend' | 'smtp' | 'mock'; error: string };
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
@@ -128,7 +130,7 @@ const buildContent = (payload: EmailPayload, docLabel: 'Quote' | 'Agreement') =>
 const sendViaResend = async (payload: EmailPayload, content: { subject: string; html: string; text: string }): Promise<EmailResult> => {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.MAIL_FROM;
-  if (!apiKey || !from) return { ok: false, error: 'Resend not configured' };
+  if (!apiKey || !from) return { ok: false, provider: 'resend', error: 'Resend not configured' };
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -147,7 +149,7 @@ const sendViaResend = async (payload: EmailPayload, content: { subject: string; 
 
   if (!res.ok) {
     const errorText = await res.text();
-    return { ok: false, error: errorText || 'Resend request failed' };
+    return { ok: false, provider: 'resend', error: errorText || 'Resend request failed' };
   }
 
   const json = (await res.json()) as { id?: string };
@@ -157,7 +159,7 @@ const sendViaResend = async (payload: EmailPayload, content: { subject: string; 
 const sendViaSmtp = async (payload: EmailPayload, content: { subject: string; html: string; text: string }): Promise<EmailResult> => {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM } = process.env;
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !MAIL_FROM) {
-    return { ok: false, error: 'SMTP not configured' };
+    return { ok: false, provider: 'smtp', error: 'SMTP not configured' };
   }
 
   const nodemailer = await import('nodemailer');
@@ -188,13 +190,13 @@ export const handleEmailRequest = async (
   docLabel: 'Quote' | 'Agreement',
 ) => {
   if (req.method !== 'POST') {
-    res.status(405).json({ ok: false, error: 'Method Not Allowed' });
+    res.status(405).json({ ok: false, provider: 'mock', error: 'Method Not Allowed' });
     return;
   }
 
   const { valid, error, payload } = validatePayload(getBody(req));
   if (!valid || !payload) {
-    res.status(400).json({ ok: false, error: error || 'Invalid payload' });
+    res.status(400).json({ ok: false, provider: 'mock', error: error || 'Invalid payload' });
     return;
   }
 
@@ -228,10 +230,14 @@ export const handleEmailRequest = async (
     }
 
     // If we reach here, both providers were configured but failed
-    res.status(500).json({ ok: false, error: 'Email provider failed to send' });
+    res.status(500).json({ ok: false, provider: 'mock', error: 'Email provider failed to send' });
   } catch (err) {
     console.error('Email send error', err);
-    res.status(500).json({ ok: false, error: err instanceof Error ? err.message : 'Unknown error' });
+    res.status(500).json({
+      ok: false,
+      provider: 'mock',
+      error: err instanceof Error ? err.message : 'Unknown error',
+    });
   }
 };
 
