@@ -38,3 +38,13 @@ break.
 - One-time, upfront pricing only; no subscriptions.
 - Home Assistant is the sole control platform across packages.
 - Offline-first messaging is emphasized throughout the site.
+
+## SEO validation checklist
+- Check `/robots.txt` and `/sitemap.xml` are served from production.
+- For each route below, open "View Page Source" and confirm the `<meta name="robots">` matches the expected directive.
+
+| Route | Expected robots |
+| --- | --- |
+| `/`, `/packages`, `/recommendation`, `/health-homes`, `/health-homes/outcomes`, `/health-homes/funding`, `/health-homes/packages`, `/health-homes/operations`, `/health-homes/pilot`, `/health-homes/packet`, `/health-homes/intake` | `index, follow` |
+| `/quote`, `/quoteReview`, `/agreementReview`, `/payment`, `/schedule`, `/resume`, `/resume-verify` | `noindex, follow` |
+| `/verify`, `/quotePrint`, `/agreementPrint`, `/uat`, `/certificate` | `noindex, nofollow` |
