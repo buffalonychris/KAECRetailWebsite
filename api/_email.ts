@@ -209,12 +209,13 @@ export const handleEmailRequest = async (
     );
 
     if (resendConfigured) {
-      const result = await sendViaResend(payload, content);
-      if (result.ok) {
+      const result: EmailResult = await sendViaResend(payload, content);
+      if (!result.ok) {
+        console.error('Resend send failed', result.error);
+      } else {
         res.status(200).json(result);
         return;
       }
-      console.error('Resend send failed', result.error);
     }
 
     if (smtpConfigured) {
