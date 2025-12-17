@@ -21,9 +21,15 @@ type EmailPayload = {
   };
 };
 
-type EmailResult =
-  | { ok: true; provider: 'resend' | 'smtp' | 'mock'; id?: string }
-  | { ok: false; provider: 'resend' | 'smtp' | 'mock'; error: string };
+type EmailProvider = 'resend' | 'smtp' | 'mock';
+
+type EmailSuccess = { ok: true; provider: EmailProvider; id?: string };
+
+type EmailFailure = { ok: false; provider: EmailProvider; error: string };
+
+type EmailResult = EmailSuccess | EmailFailure;
+
+const isEmailFailure = (result: EmailResult): result is EmailFailure => result.ok === false;
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
@@ -210,7 +216,7 @@ export const handleEmailRequest = async (
 
     if (resendConfigured) {
       const result: EmailResult = await sendViaResend(payload, content);
-      if (!result.ok) {
+      if (isEmailFailure(result)) {
         console.error('Resend send failed', result.error);
       } else {
         res.status(200).json(result);
