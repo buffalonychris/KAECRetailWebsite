@@ -15,4 +15,7 @@ declare namespace NodeJS {
 
 declare var process: NodeJS.Process;
 
-export {};
+declare module 'node:process' {
+  const process: NodeJS.Process;
+  export = process;
+}
