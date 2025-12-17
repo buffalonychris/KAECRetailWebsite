@@ -15,7 +15,15 @@
     "allowSyntheticDefaultImports": true,
     "types": ["vite/client"]
   },
-  "include": ["src"],
-  "exclude": ["api", "types", "node_modules", "**/*.test.*", "**/*.spec.*"],
+  "include": ["src", "src/vite-env.d.ts"],
+  "exclude": [
+    "api",
+    "api/**",
+    "types/node",
+    "types/nodemailer",
+    "node_modules",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
