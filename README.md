@@ -48,3 +48,19 @@ break.
 | `/`, `/packages`, `/recommendation`, `/health-homes`, `/health-homes/outcomes`, `/health-homes/funding`, `/health-homes/packages`, `/health-homes/operations`, `/health-homes/pilot`, `/health-homes/packet`, `/health-homes/intake` | `index, follow` |
 | `/quote`, `/quoteReview`, `/agreementReview`, `/payment`, `/schedule`, `/resume`, `/resume-verify` | `noindex, follow` |
 | `/verify`, `/quotePrint`, `/agreementPrint`, `/uat`, `/certificate` | `noindex, nofollow` |
+
+## Server-side robots validation
+
+Use the following commands to confirm the X-Robots-Tag headers served from production:
+
+```bash
+curl -I https://reliableeldercare.com/quoteReview
+curl -I "https://reliableeldercare.com/verify?doc=quote&t=test"
+curl -I https://reliableeldercare.com/
+```
+
+Expected results:
+
+- `/quoteReview` response includes `X-Robots-Tag: noindex, follow`.
+- `/verify` response includes `X-Robots-Tag: noindex, nofollow` even with query params.
+- The home page (`/`) response does not include an X-Robots-Tag header.
