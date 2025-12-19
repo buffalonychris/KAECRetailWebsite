@@ -29,9 +29,33 @@ type EmailFailure = { ok: false; provider: EmailProvider; error: string };
 
 type EmailResult = EmailSuccess | EmailFailure;
 
+type SendEmailInput = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+};
+
+type LeadSignalPayload = {
+  event: string;
+  timestampISO: string;
+  customerEmail?: string;
+  referenceId?: string;
+  resumeUrl?: string;
+  verifyUrl?: string;
+  route: string;
+};
+
 const isEmailFailure = (result: EmailResult): result is EmailFailure => result.ok === false;
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+const getEmailProvider = (): EmailProvider => {
+  const provider = (process.env.EMAIL_PROVIDER || 'mock').toLowerCase();
+  if (provider === 'resend' || provider === 'smtp' || provider === 'mock') return provider;
+  return 'mock';
+};
 
 const getBody = (req: { body?: unknown }) => {
   if (!req.body) return null;
@@ -133,9 +157,9 @@ const buildContent = (payload: EmailPayload, docLabel: 'Quote' | 'Agreement') =>
   return { subject, html, text };
 };
 
-const sendViaResend = async (payload: EmailPayload, content: { subject: string; html: string; text: string }): Promise<EmailResult> => {
+const sendViaResend = async (message: SendEmailInput): Promise<EmailResult> => {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.MAIL_FROM;
+  const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) return { ok: false, provider: 'resend', error: 'Resend not configured' };
 
   const res = await fetch('https://api.resend.com/emails', {
@@ -146,25 +170,26 @@ const sendViaResend = async (payload: EmailPayload, content: { subject: string; 
     },
     body: JSON.stringify({
       from,
-      to: payload.to,
-      subject: content.subject,
-      html: content.html,
-      text: content.text,
+      to: message.to,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      reply_to: message.replyTo,
     }),
   });
 
   if (!res.ok) {
     const errorText = await res.text();
-    return { ok: false, provider: 'resend', error: errorText || 'Resend request failed' };
+    return { ok: false, provider: 'resend', error: errorText || `Resend request failed (${res.status})` };
   }
 
   const json = (await res.json()) as { id?: string };
   return { ok: true, provider: 'resend', id: json.id };
 };
 
-const sendViaSmtp = async (payload: EmailPayload, content: { subject: string; html: string; text: string }): Promise<EmailResult> => {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !MAIL_FROM) {
+const sendViaSmtp = async (message: SendEmailInput): Promise<EmailResult> => {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } = process.env;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !EMAIL_FROM) {
     return { ok: false, provider: 'smtp', error: 'SMTP not configured' };
   }
 
@@ -180,14 +205,77 @@ const sendViaSmtp = async (payload: EmailPayload, content: { subject: string; ht
   });
 
   const result = await transporter.sendMail({
-    from: MAIL_FROM,
-    to: payload.to,
-    subject: content.subject,
-    text: content.text,
-    html: content.html,
+    from: EMAIL_FROM,
+    to: message.to,
+    subject: message.subject,
+    text: message.text,
+    html: message.html,
+    replyTo: message.replyTo,
   });
 
   return { ok: true, provider: 'smtp', id: result.messageId };
+};
+
+const sendEmail = async (message: SendEmailInput): Promise<EmailResult> => {
+  try {
+    const provider = getEmailProvider();
+    if (provider === 'resend') {
+      return await sendViaResend(message);
+    }
+    if (provider === 'smtp') {
+      return await sendViaSmtp(message);
+    }
+    console.log('[mock-email]', { to: message.to, subject: message.subject });
+    return { ok: true, provider: 'mock' };
+  } catch (error) {
+    return {
+      ok: false,
+      provider: getEmailProvider(),
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+const buildLeadSignalContent = (payload: LeadSignalPayload) => {
+  const lines = [
+    `Event: ${payload.event}`,
+    `Timestamp: ${payload.timestampISO}`,
+    `Customer email: ${payload.customerEmail ?? 'Not provided'}`,
+    `Reference ID: ${payload.referenceId ?? 'Not provided'}`,
+    `Resume link: ${payload.resumeUrl ?? 'Not provided'}`,
+    `Verify link: ${payload.verifyUrl ?? 'Not provided'}`,
+    `Route/action: ${payload.route}`,
+  ];
+
+  const html = `
+    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5;font-size:15px;color:#0c0b0b">
+      <p style="margin:0 0 12px 0;font-size:16px;font-weight:700">${payload.event}</p>
+      <ul style="margin:0 0 12px 18px;padding:0">
+        ${lines.map((line) => `<li>${line}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+
+  return {
+    subject: payload.event,
+    html,
+    text: lines.join('\n'),
+  };
+};
+
+export const sendLeadSignalEmail = async (payload: LeadSignalPayload): Promise<EmailResult> => {
+  const adminTo = process.env.EMAIL_ADMIN_TO;
+  if (!adminTo) {
+    return { ok: false, provider: getEmailProvider(), error: 'Admin email not configured' };
+  }
+  const content = buildLeadSignalContent(payload);
+  return sendEmail({
+    to: adminTo,
+    subject: content.subject,
+    html: content.html,
+    text: content.text,
+    replyTo: payload.customerEmail,
+  });
 };
 
 export const handleEmailRequest = async (
@@ -207,42 +295,40 @@ export const handleEmailRequest = async (
   }
 
   const content = buildContent(payload, docLabel);
+  const eventName = docLabel === 'Quote' ? 'Lead Signal: Quote Email Requested' : 'Lead Signal: Agreement Email Requested';
+  const routeName = docLabel === 'Quote' ? 'api/send-quote' : 'api/send-agreement';
 
   try {
-    const resendConfigured = Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
-    const smtpConfigured = Boolean(
-      process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.MAIL_FROM,
-    );
+    const result = await sendEmail({
+      to: payload.to,
+      subject: content.subject,
+      html: content.html,
+      text: content.text,
+    });
 
-    if (resendConfigured) {
-      const result: EmailResult = await sendViaResend(payload, content);
-      if (isEmailFailure(result)) {
-        console.error('Resend send failed', result.error);
-      } else {
-        res.status(200).json(result);
-        return;
-      }
+    const leadSignal = await sendLeadSignalEmail({
+      event: eventName,
+      timestampISO: new Date().toISOString(),
+      customerEmail: payload.to,
+      referenceId: (payload.meta.reference as string) || payload.meta.docType?.toString(),
+      resumeUrl: payload.links.resumeUrl,
+      verifyUrl: payload.links.verifyUrl,
+      route: routeName,
+    });
+
+    if (isEmailFailure(result)) {
+      console.error('Email send failed', result.error);
+    }
+    if (isEmailFailure(leadSignal)) {
+      console.error('Lead signal send failed', leadSignal.error);
     }
 
-    if (smtpConfigured) {
-      const result = await sendViaSmtp(payload, content);
-      res.status(200).json(result);
-      return;
-    }
-
-    if (!resendConfigured && !smtpConfigured) {
-      console.log('[mock-email]', { ...payload, ...content });
-      res.status(200).json({ ok: true, provider: 'mock' });
-      return;
-    }
-
-    // If we reach here, both providers were configured but failed
-    res.status(500).json({ ok: false, provider: 'mock', error: 'Email provider failed to send' });
+    res.status(200).json(result);
   } catch (err) {
     console.error('Email send error', err);
-    res.status(500).json({
+    res.status(200).json({
       ok: false,
-      provider: 'mock',
+      provider: getEmailProvider(),
       error: err instanceof Error ? err.message : 'Unknown error',
     });
   }
