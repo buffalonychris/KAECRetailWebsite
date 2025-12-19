@@ -18,6 +18,8 @@ const CATEGORY_A_PATHS = new Set<string>([
   '/health-homes/pilot',
   '/health-homes/packet',
   '/health-homes/intake',
+  '/halo-pushbutton',
+  '/halo-package',
 ]);
 
 const CATEGORY_B_PATHS = new Set<string>([

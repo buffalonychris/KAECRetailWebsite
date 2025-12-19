@@ -20,8 +20,14 @@ const learnLinks: NavItem[] = [
   { path: '/terms', label: 'Terms' },
 ];
 
+const haloLinks: NavItem[] = [
+  { path: '/halo-pushbutton', label: 'HALO Pushbutton' },
+  { path: '/halo-package', label: 'HALO Package' },
+];
+
 const primaryLinks: (NavItem | DropdownItem)[] = [
   { path: '/packages', label: 'Packages' },
+  { label: 'HALO', items: haloLinks },
   { path: '/recommend', label: 'How It Works' },
   { label: 'Learn', items: learnLinks },
   { path: '/funding', label: 'Funding' },
@@ -34,6 +40,7 @@ const primaryLinks: (NavItem | DropdownItem)[] = [
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [learnOpen, setLearnOpen] = useState(false);
+  const [haloOpen, setHaloOpen] = useState(false);
   const navRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
@@ -71,6 +78,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     if (event.key === 'Escape') {
       setMobileOpen(false);
       setLearnOpen(false);
+      setHaloOpen(false);
     }
   };
 
@@ -83,6 +91,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     const onClickOutside = (event: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setLearnOpen(false);
+        setHaloOpen(false);
       }
     };
     document.addEventListener('mousedown', onClickOutside);
@@ -96,6 +105,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     setMobileOpen(false);
     setLearnOpen(false);
+    setHaloOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -104,6 +114,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const isLearnActive = useMemo(
     () => learnLinks.some((link) => location.pathname.startsWith(link.path)),
+    [location.pathname]
+  );
+  const isHaloActive = useMemo(
+    () => haloLinks.some((link) => location.pathname.startsWith(link.path)),
     [location.pathname]
   );
 
@@ -141,23 +155,27 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <nav className="nav-links" aria-label="Main navigation">
               {navLinks.map((link) => {
                 if ('items' in link) {
+                  const isHalo = link.label === 'HALO';
+                  const isOpen = isHalo ? haloOpen : learnOpen;
+                  const isActive = isHalo ? isHaloActive : isLearnActive;
+                  const setOpen = isHalo ? setHaloOpen : setLearnOpen;
                   return (
                     <div key={link.label} className="dropdown">
                       <button
-                        className={`dropdown-trigger ${isLearnActive || learnOpen ? 'active' : ''}`}
-                        aria-expanded={learnOpen}
+                        className={`dropdown-trigger ${isActive || isOpen ? 'active' : ''}`}
+                        aria-expanded={isOpen}
                         aria-haspopup="true"
-                        onClick={() => setLearnOpen((prev) => !prev)}
+                        onClick={() => setOpen((prev) => !prev)}
                         onKeyDown={(event) => {
                           if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
-                            setLearnOpen((prev) => !prev);
+                            setOpen((prev) => !prev);
                           }
                         }}
                       >
                         {link.label}
                       </button>
-                      {learnOpen && (
+                      {isOpen && (
                         <div className="dropdown-menu" role="menu">
                           {link.items.map((item) => (
                             <NavLink key={item.path} to={item.path} role="menuitem">
@@ -217,7 +235,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   if ('items' in link) {
                     return (
                       <details key={link.label} open>
-                        <summary>Learn</summary>
+                        <summary>{link.label}</summary>
                         <div className="mobile-dropdown" role="group">
                           {link.items.map((item) => renderNavLink(item))}
                         </div>
