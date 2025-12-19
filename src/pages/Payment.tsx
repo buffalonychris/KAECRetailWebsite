@@ -8,6 +8,7 @@ import SaveProgressCard from '../components/SaveProgressCard';
 import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendAgreementEmail } from '../lib/emailSend';
 import { buildResumeUrl } from '../lib/resumeToken';
+import { buildQuoteReference } from '../lib/quoteUtils';
 
 const calculateDepositDue = (total: number) => {
   const { depositPolicy } = siteConfig;
@@ -30,6 +31,7 @@ const Payment = () => {
   const [savePayload, setSavePayload] =
     useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
   const [saveSending, setSaveSending] = useState(false);
+  const [leadRequestStatus, setLeadRequestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     markFlowStep('payment');
@@ -137,6 +139,37 @@ const Payment = () => {
     return response;
   };
 
+  const handleRequestNextSteps = async () => {
+    if (leadRequestStatus === 'sending') return;
+    setLeadRequestStatus('sending');
+    const customerEmail = saveEmail || acceptanceRecord?.emailTo || quoteContext?.contact;
+    const referenceId = quoteContext ? buildQuoteReference(quoteContext) : acceptanceRecord?.agreementHash;
+    const payload = {
+      event: 'Lead Signal: Payment Next Steps Requested',
+      customerEmail,
+      referenceId,
+      resumeUrl,
+      verifyUrl: savePayload?.links.verifyUrl,
+      route: 'payment/request-next-steps',
+    };
+
+    try {
+      const response = await fetch('/api/lead-signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = (await response.json().catch(() => null)) as { ok?: boolean } | null;
+      if (response.ok && data?.ok) {
+        setLeadRequestStatus('success');
+      } else {
+        setLeadRequestStatus('error');
+      }
+    } catch (error) {
+      setLeadRequestStatus('error');
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -188,6 +221,33 @@ const Payment = () => {
           {acceptanceRecord?.fullName && (
             <small style={{ color: '#c8c0aa' }}>
               Accepted by {acceptanceRecord.fullName} on {acceptanceRecord.acceptanceDate ?? 'date not provided'}
+            </small>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="badge">Payment status</div>
+        <p style={{ margin: 0, color: '#c8c0aa' }}>
+          Payment is not enabled yet. You can still request next steps, and we will follow up by email.
+        </p>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button type="button" className="btn btn-primary" onClick={handleRequestNextSteps} disabled={leadRequestStatus === 'sending'}>
+            {leadRequestStatus === 'sending' ? 'Requesting…' : 'Request next steps'}
+          </button>
+          {leadRequestStatus === 'success' && (
+            <small style={{ color: '#c8c0aa' }}>Thanks. We received your request and will follow up by email.</small>
+          )}
+          {leadRequestStatus === 'error' && (
+            <small style={{ color: '#c8c0aa' }}>
+              We couldn&apos;t send that right now. Please email{' '}
+              <a
+                href="mailto:admin@reliableeldercare.com?subject=HALO%20Next%20Steps%20Request"
+                style={{ color: '#f5c042' }}
+              >
+                admin@reliableeldercare.com
+              </a>
+              .
             </small>
           )}
         </div>
