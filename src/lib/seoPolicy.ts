@@ -10,6 +10,10 @@ const CATEGORY_A_PATHS = new Set<string>([
   '/',
   '/halo-pushbutton',
   '/halo-package',
+  '/vendors',
+  '/vendors/standards',
+  '/vendors/evaluation-toolkit',
+  '/vendors/questionnaire',
 ]);
 
 const CATEGORY_B_PATHS = new Set<string>([
