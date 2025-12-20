@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
+import VendorJourneyNav from '../components/VendorJourneyNav';
 import VendorSelfQualificationChecklist from '../components/VendorSelfQualificationChecklist';
 
 const VendorLanding = () => {
@@ -258,6 +259,8 @@ const VendorLanding = () => {
             Contact KickAss Elder Care
           </Link>
         </section>
+
+        <VendorJourneyNav />
       </div>
     </div>
   );

@@ -44,6 +44,7 @@ import VendorLanding from './pages/VendorLanding';
 import VendorStandards from './pages/VendorStandards';
 import VendorEvaluationToolkit from './pages/VendorEvaluationToolkit';
 import VendorQuestionnaire from './pages/VendorQuestionnaire';
+import VendorApply from './pages/VendorApply';
 
 const App = () => {
   return (
@@ -94,6 +95,7 @@ const App = () => {
         <Route path="/vendors/standards" element={<VendorStandards />} />
         <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
         <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
+        <Route path="/vendors/apply" element={<VendorApply />} />
       </Routes>
     </Layout>
   );

@@ -1,4 +1,5 @@
 import Seo from '../components/Seo';
+import VendorJourneyNav from '../components/VendorJourneyNav';
 
 const VendorStandards = () => {
   return (
@@ -114,6 +115,8 @@ const VendorStandards = () => {
             internal designation and is not a consumer-facing endorsement.
           </p>
         </section>
+
+        <VendorJourneyNav />
       </div>
     </div>
   );

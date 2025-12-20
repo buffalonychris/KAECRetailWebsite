@@ -24,6 +24,7 @@ const CATEGORY_B_PATHS = new Set<string>([
   '/schedule',
   '/resume',
   '/resume-verify',
+  '/vendors/apply',
 ]);
 
 const CATEGORY_B2_PATHS = new Set<string>([

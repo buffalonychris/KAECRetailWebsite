@@ -1,4 +1,5 @@
 import Seo from '../components/Seo';
+import VendorJourneyNav from '../components/VendorJourneyNav';
 
 const VendorQuestionnaire = () => {
   return (
@@ -130,6 +131,38 @@ const VendorQuestionnaire = () => {
             </li>
           </ul>
         </section>
+
+        <section className="card" aria-labelledby="contact-for-evaluation">
+          <h3 id="contact-for-evaluation" style={{ marginTop: 0, color: '#fff7e6' }}>
+            Contact for evaluation (manual)
+          </h3>
+          <p>
+            Email only. This is a manual process and every request is reviewed individually.
+          </p>
+          <p className="mono-text break-all" style={{ marginBottom: '0.75rem' }}>
+            vendors@reliableeldercare.com
+          </p>
+          <ul className="list">
+            <li>
+              <span />
+              <span>Company name and primary contact.</span>
+            </li>
+            <li>
+              <span />
+              <span>Product summary and offline operation details.</span>
+            </li>
+            <li>
+              <span />
+              <span>Local control interface documentation or references.</span>
+            </li>
+            <li>
+              <span />
+              <span>Availability for shipping 1–2 evaluation units if requested.</span>
+            </li>
+          </ul>
+        </section>
+
+        <VendorJourneyNav />
       </div>
     </div>
   );
