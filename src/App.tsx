@@ -41,6 +41,9 @@ import AgencyLanding from './pages/AgencyLanding';
 import HaloPushbutton from './pages/HaloPushbutton';
 import HaloPackage from './pages/HaloPackage';
 import VendorLanding from './pages/VendorLanding';
+import VendorStandards from './pages/VendorStandards';
+import VendorEvaluationToolkit from './pages/VendorEvaluationToolkit';
+import VendorQuestionnaire from './pages/VendorQuestionnaire';
 
 const App = () => {
   return (
@@ -88,6 +91,9 @@ const App = () => {
         <Route path="/halo-pushbutton" element={<HaloPushbutton />} />
         <Route path="/halo-package" element={<HaloPackage />} />
         <Route path="/vendors" element={<VendorLanding />} />
+        <Route path="/vendors/standards" element={<VendorStandards />} />
+        <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
+        <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
       </Routes>
     </Layout>
   );

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
+import VendorSelfQualificationChecklist from '../components/VendorSelfQualificationChecklist';
 
 const VendorLanding = () => {
   return (
@@ -24,12 +25,43 @@ const VendorLanding = () => {
           </p>
         </section>
 
+        <section className="card" aria-labelledby="vendor-links">
+          <h3 id="vendor-links" style={{ marginTop: 0, color: '#fff7e6' }}>
+            Vendor journey resources
+          </h3>
+          <div className="card-grid">
+            <div className="card">
+              <h4 style={{ marginTop: 0, color: '#fff7e6' }}>Standards &amp; Alignment</h4>
+              <p>Read the alignment doctrine before engaging.</p>
+              <Link className="btn btn-primary" to="/vendors/standards">
+                View standards
+              </Link>
+            </div>
+            <div className="card">
+              <h4 style={{ marginTop: 0, color: '#fff7e6' }}>Evaluation Toolkit</h4>
+              <p>Understand the evaluation scope and acceptance criteria.</p>
+              <Link className="btn btn-primary" to="/vendors/evaluation-toolkit">
+                View toolkit
+              </Link>
+            </div>
+            <div className="card">
+              <h4 style={{ marginTop: 0, color: '#fff7e6' }}>Technical Questionnaire</h4>
+              <p>Binary pass/fail questions aligned to platform requirements.</p>
+              <Link className="btn btn-primary" to="/vendors/questionnaire">
+                View questionnaire
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section className="card">
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Journey at a glance</h3>
           <ol className="list" style={{ marginTop: '0.75rem' }}>
             <li>
               <span />
-              <span>Standards &amp; alignment overview</span>
+              <span>
+                <Link to="/vendors/standards">Standards &amp; alignment overview</Link>
+              </span>
             </li>
             <li>
               <span />
@@ -37,7 +69,9 @@ const VendorLanding = () => {
             </li>
             <li>
               <span />
-              <span>Evaluation toolkit access (informational)</span>
+              <span>
+                <Link to="/vendors/evaluation-toolkit">Evaluation toolkit access (informational)</Link>
+              </span>
             </li>
             <li>
               <span />
@@ -76,35 +110,9 @@ const VendorLanding = () => {
 
         <section className="card" aria-labelledby="self-qualification">
           <h3 id="self-qualification" style={{ marginTop: 0, color: '#fff7e6' }}>
-            Vendor self-qualification gate
+            Vendor self-qualification checklist
           </h3>
-          <p>Answer Yes or No to each item below.</p>
-          <ul className="list">
-            <li>
-              <span />
-              <span>Can your hardware operate without cloud connectivity?</span>
-            </li>
-            <li>
-              <span />
-              <span>Can firmware behavior be documented and deterministic?</span>
-            </li>
-            <li>
-              <span />
-              <span>Are there zero mandatory subscription fees?</span>
-            </li>
-            <li>
-              <span />
-              <span>Can branding be fully white-labeled or suppressed?</span>
-            </li>
-            <li>
-              <span />
-              <span>Can the device be locally controlled without vendor apps?</span>
-            </li>
-          </ul>
-          <p style={{ marginTop: '1rem' }}>
-            If the answer is “No” to any item, the platform is not a fit. We appreciate the time and encourage
-            vendors to self-exit early.
-          </p>
+          <VendorSelfQualificationChecklist />
         </section>
 
         <section className="card" aria-labelledby="evaluation-toolkit">
