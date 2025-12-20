@@ -40,6 +40,7 @@ import FamilyLanding from './pages/FamilyLanding';
 import AgencyLanding from './pages/AgencyLanding';
 import HaloPushbutton from './pages/HaloPushbutton';
 import HaloPackage from './pages/HaloPackage';
+import VendorLanding from './pages/VendorLanding';
 
 const App = () => {
   return (
@@ -86,6 +87,7 @@ const App = () => {
         <Route path="/lp/agency" element={<AgencyLanding />} />
         <Route path="/halo-pushbutton" element={<HaloPushbutton />} />
         <Route path="/halo-package" element={<HaloPackage />} />
+        <Route path="/vendors" element={<VendorLanding />} />
       </Routes>
     </Layout>
   );

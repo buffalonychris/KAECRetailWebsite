@@ -19,6 +19,7 @@ const learnLinks: NavItem[] = [
   { path: '/terms', label: 'Terms' },
   { path: '/contact', label: 'Contact' },
   { path: '/reliability', label: 'Offline Reliability' },
+  { path: '/vendors', label: 'Vendors' },
 ];
 
 const haloLinks: NavItem[] = [
