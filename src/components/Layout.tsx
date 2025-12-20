@@ -14,10 +14,11 @@ type DropdownItem = {
 };
 
 const learnLinks: NavItem[] = [
-  { path: '/health-homes', label: 'Health Homes' },
   { path: '/faq', label: 'FAQ Library' },
   { path: '/privacy', label: 'Privacy' },
   { path: '/terms', label: 'Terms' },
+  { path: '/contact', label: 'Contact' },
+  { path: '/reliability', label: 'Offline Reliability' },
 ];
 
 const haloLinks: NavItem[] = [
@@ -26,15 +27,8 @@ const haloLinks: NavItem[] = [
 ];
 
 const primaryLinks: (NavItem | DropdownItem)[] = [
-  { path: '/packages', label: 'Packages' },
   { label: 'HALO', items: haloLinks },
-  { path: '/recommend', label: 'How It Works' },
   { label: 'Learn', items: learnLinks },
-  { path: '/funding', label: 'Funding' },
-  { path: '/comparison', label: 'Compare' },
-  { path: '/faq', label: 'FAQ' },
-  { path: '/reliability', label: 'Offline Reliability' },
-  { path: '/contact', label: 'Contact' },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -53,20 +47,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     [flowRoutes, location.pathname],
   );
 
-  const isHealthHomes = location.pathname.startsWith('/health-homes');
-
-  const healthHomeLinks: NavItem[] = [
-    { path: '/health-homes', label: 'Overview' },
-    { path: '/health-homes/outcomes', label: 'Outcomes' },
-    { path: '/health-homes/funding', label: 'Funding' },
-    { path: '/health-homes/packages', label: 'Packages' },
-    { path: '/health-homes/pilot', label: 'Pilot' },
-    { path: '/health-homes/operations', label: 'Operations' },
-    { path: '/health-homes/packet', label: 'Packet' },
-    { path: '/health-homes/intake', label: 'Intake' },
-  ];
-
-  const navLinks = isHealthHomes ? healthHomeLinks : primaryLinks;
+  const navLinks = primaryLinks;
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -190,22 +171,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 return renderNavLink(link);
               })}
             </nav>
-            <div className="nav-cta">
-              <NavLink
-                to={isHealthHomes ? '/health-homes/intake' : '/quote'}
-                className="btn btn-primary"
-              >
-                {isHealthHomes ? 'Start Pilot Intake' : 'Get a Quote'}
-              </NavLink>
-              <NavLink to="/resume-verify" className="resume-link">
-                Resume / Verify
-              </NavLink>
-              {isHealthHomes && (
-                <NavLink to="/" className="resume-link">
-                  Back to Home
-                </NavLink>
-              )}
-            </div>
           </div>
         </div>
         {mobileOpen && (
@@ -216,20 +181,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             onClick={handleOverlayClick}
           >
             <div className="mobile-menu-inner">
-              <NavLink
-                to={isHealthHomes ? '/health-homes/intake' : '/quote'}
-                className="btn btn-primary mobile-quote"
-              >
-                {isHealthHomes ? 'Start Pilot Intake' : 'Get a Quote'}
-              </NavLink>
-              <NavLink to="/resume-verify" className="resume-link">
-                Resume / Verify
-              </NavLink>
-              {isHealthHomes && (
-                <NavLink to="/" className="resume-link">
-                  Back to Home
-                </NavLink>
-              )}
               <div className="mobile-links" role="menu">
                 {navLinks.map((link) => {
                   if ('items' in link) {
