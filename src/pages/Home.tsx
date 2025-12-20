@@ -18,6 +18,8 @@ const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [opacity, setOpacity] = useState(1);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [logoIndex, setLogoIndex] = useState(0);
+  const logoSources = ['/halo/halo-blue.png', '/halo/halo-yellow.png', '/halo/halo-green.png'];
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -51,6 +53,17 @@ const Home = () => {
     };
   }, [currentIndex, messages.length, reduceMotion]);
 
+  useEffect(() => {
+    if (reduceMotion) {
+      setLogoIndex(0);
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setLogoIndex((prev) => (prev + 1) % logoSources.length);
+    }, 7000);
+    return () => window.clearInterval(interval);
+  }, [logoSources.length, reduceMotion]);
+
   return (
     <div
       style={{
@@ -67,104 +80,28 @@ const Home = () => {
             display: none;
           }
 
-          .halo-badge {
-            height: clamp(180px, 33vh, 420px);
-            width: clamp(180px, 33vh, 420px);
-            border-radius: 50%;
-            background: #ffffff;
-            boxShadow: 0 12px 30px rgba(5, 5, 5, 0.18);
-            display: grid;
-            placeItems: center;
+          .halo-logo-stack {
+            height: clamp(180px, 33vmin, 420px);
+            width: clamp(180px, 33vmin, 420px);
             position: relative;
-            overflow: hidden;
           }
 
           .halo-logo {
             position: absolute;
             inset: 0;
-            margin: auto;
-            width: 72%;
-            height: auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             opacity: 0;
-            transition: opacity 0.6s ease-in-out;
+            transition: opacity 1200ms ease-in-out;
           }
 
-          .halo-logo.blue {
-            animation: haloBlue 15s ease-in-out infinite;
-          }
-
-          .halo-logo.yellow {
-            animation: haloYellow 15s ease-in-out infinite;
-          }
-
-          .halo-logo.green {
-            animation: haloGreen 15s ease-in-out infinite;
-          }
-
-          .halo-logo.static {
-            animation: none;
-            opacity: 0;
-          }
-
-          .halo-logo.static.blue {
+          .halo-logo.visible {
             opacity: 1;
           }
 
-          @keyframes haloBlue {
-            0% {
-              opacity: 1;
-            }
-            26.666% {
-              opacity: 1;
-            }
-            33.333% {
-              opacity: 0;
-            }
-            93.333% {
-              opacity: 0;
-            }
-            100% {
-              opacity: 1;
-            }
-          }
-
-          @keyframes haloYellow {
-            0% {
-              opacity: 0;
-            }
-            26.666% {
-              opacity: 0;
-            }
-            33.333% {
-              opacity: 1;
-            }
-            60% {
-              opacity: 1;
-            }
-            66.666% {
-              opacity: 0;
-            }
-            100% {
-              opacity: 0;
-            }
-          }
-
-          @keyframes haloGreen {
-            0% {
-              opacity: 0;
-            }
-            60% {
-              opacity: 0;
-            }
-            66.666% {
-              opacity: 1;
-            }
-            93.333% {
-              opacity: 1;
-            }
-            100% {
-              opacity: 0;
-            }
+          .halo-logo.reduce-motion {
+            transition: none;
           }
         `}
       </style>
@@ -174,25 +111,26 @@ const Home = () => {
             display: 'grid',
             placeItems: 'center',
           }}
-          aria-label="HALO brand mark"
+          aria-label="HALO logo"
           role="img"
         >
-          <div className="halo-badge" aria-hidden="true">
-            <img
-              src="/halo/halo-blue.png"
-              alt="HALO logo blue"
-              className={`halo-logo blue ${reduceMotion ? 'static' : ''}`}
-            />
-            <img
-              src="/halo/halo-yellow.png"
-              alt="HALO logo yellow"
-              className={`halo-logo yellow ${reduceMotion ? 'static' : ''}`}
-            />
-            <img
-              src="/halo/halo-green.png"
-              alt="HALO logo green"
-              className={`halo-logo green ${reduceMotion ? 'static' : ''}`}
-            />
+          <div className="halo-logo-stack" aria-hidden="true">
+            {reduceMotion ? (
+              <img
+                src="/halo/halo-blue.png"
+                alt=""
+                className="halo-logo visible reduce-motion"
+              />
+            ) : (
+              logoSources.map((source, index) => (
+                <img
+                  key={source}
+                  src={source}
+                  alt=""
+                  className={`halo-logo ${index === logoIndex ? 'visible' : ''}`}
+                />
+              ))
+            )}
           </div>
         </div>
         <div
