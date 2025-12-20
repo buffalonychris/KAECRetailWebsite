@@ -67,35 +67,103 @@ const Home = () => {
             display: none;
           }
 
-          .halo-rings.animate circle {
-            animation: haloGlow 14s ease-in-out infinite;
+          .halo-badge {
+            height: clamp(180px, 33vh, 420px);
+            width: clamp(180px, 33vh, 420px);
+            border-radius: 50%;
+            background: #ffffff;
+            boxShadow: 0 12px 30px rgba(5, 5, 5, 0.18);
+            display: grid;
+            placeItems: center;
+            position: relative;
+            overflow: hidden;
           }
 
-          .halo-rings.static circle {
-            stroke: #e7f1ff;
-            filter: drop-shadow(0 0 8px rgba(185, 219, 245, 0.35));
+          .halo-logo {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 72%;
+            height: auto;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
           }
 
-          @keyframes haloGlow {
+          .halo-logo.blue {
+            animation: haloBlue 15s ease-in-out infinite;
+          }
+
+          .halo-logo.yellow {
+            animation: haloYellow 15s ease-in-out infinite;
+          }
+
+          .halo-logo.green {
+            animation: haloGreen 15s ease-in-out infinite;
+          }
+
+          .halo-logo.static {
+            animation: none;
+            opacity: 0;
+          }
+
+          .halo-logo.static.blue {
+            opacity: 1;
+          }
+
+          @keyframes haloBlue {
             0% {
-              stroke: #f8f8f8;
-              filter: drop-shadow(0 0 0 rgba(248, 248, 248, 0));
+              opacity: 1;
             }
-            25% {
-              stroke: #f1d8a6;
-              filter: drop-shadow(0 0 10px rgba(241, 216, 166, 0.4));
+            26.666% {
+              opacity: 1;
             }
-            50% {
-              stroke: #bfe7c1;
-              filter: drop-shadow(0 0 10px rgba(191, 231, 193, 0.42));
+            33.333% {
+              opacity: 0;
             }
-            75% {
-              stroke: #b9dbf5;
-              filter: drop-shadow(0 0 10px rgba(185, 219, 245, 0.42));
+            93.333% {
+              opacity: 0;
             }
             100% {
-              stroke: #f8f8f8;
-              filter: drop-shadow(0 0 0 rgba(248, 248, 248, 0));
+              opacity: 1;
+            }
+          }
+
+          @keyframes haloYellow {
+            0% {
+              opacity: 0;
+            }
+            26.666% {
+              opacity: 0;
+            }
+            33.333% {
+              opacity: 1;
+            }
+            60% {
+              opacity: 1;
+            }
+            66.666% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+
+          @keyframes haloGreen {
+            0% {
+              opacity: 0;
+            }
+            60% {
+              opacity: 0;
+            }
+            66.666% {
+              opacity: 1;
+            }
+            93.333% {
+              opacity: 1;
+            }
+            100% {
+              opacity: 0;
             }
           }
         `}
@@ -103,27 +171,29 @@ const Home = () => {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem' }}>
         <div
           style={{
-            width: 'clamp(64px, 10vw, 96px)',
-            height: 'clamp(64px, 10vw, 96px)',
-            borderRadius: '50%',
-            background: '#ffffff',
-            boxShadow: '0 10px 28px rgba(5, 5, 5, 0.25)',
             display: 'grid',
             placeItems: 'center',
           }}
           aria-label="HALO brand mark"
           role="img"
         >
-          <svg
-            viewBox="0 0 100 100"
-            width="70%"
-            height="70%"
-            className={`halo-rings ${reduceMotion ? 'static' : 'animate'}`}
-            aria-hidden="true"
-          >
-            <circle cx="50" cy="50" r="28" fill="none" stroke="#f8f8f8" strokeWidth="6" />
-            <circle cx="50" cy="50" r="16" fill="none" stroke="#f8f8f8" strokeWidth="6" />
-          </svg>
+          <div className="halo-badge" aria-hidden="true">
+            <img
+              src="/halo/halo-blue.png"
+              alt="HALO logo blue"
+              className={`halo-logo blue ${reduceMotion ? 'static' : ''}`}
+            />
+            <img
+              src="/halo/halo-yellow.png"
+              alt="HALO logo yellow"
+              className={`halo-logo yellow ${reduceMotion ? 'static' : ''}`}
+            />
+            <img
+              src="/halo/halo-green.png"
+              alt="HALO logo green"
+              className={`halo-logo green ${reduceMotion ? 'static' : ''}`}
+            />
+          </div>
         </div>
         <div
           style={{
