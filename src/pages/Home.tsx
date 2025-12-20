@@ -18,8 +18,6 @@ const Home = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [opacity, setOpacity] = useState(1);
   const [reduceMotion, setReduceMotion] = useState(false);
-  const [logoIndex, setLogoIndex] = useState(0);
-  const logoSources = ['/halo/halo-blue.png', '/halo/halo-yellow.png', '/halo/halo-green.png'];
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -53,17 +51,6 @@ const Home = () => {
     };
   }, [currentIndex, messages.length, reduceMotion]);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      setLogoIndex(0);
-      return;
-    }
-    const interval = window.setInterval(() => {
-      setLogoIndex((prev) => (prev + 1) % logoSources.length);
-    }, 7000);
-    return () => window.clearInterval(interval);
-  }, [logoSources.length, reduceMotion]);
-
   return (
     <div
       style={{
@@ -81,8 +68,8 @@ const Home = () => {
           }
 
           .halo-logo-stack {
-            height: clamp(180px, 33vmin, 420px);
-            width: clamp(180px, 33vmin, 420px);
+            height: clamp(200px, 33vh, 420px);
+            width: clamp(200px, 33vh, 420px);
             position: relative;
           }
 
@@ -93,15 +80,40 @@ const Home = () => {
             height: 100%;
             object-fit: contain;
             opacity: 0;
-            transition: opacity 1200ms ease-in-out;
           }
 
-          .halo-logo.visible {
-            opacity: 1;
+          .halo-logo.blue {
+            animation: halo-fade 12s infinite;
+          }
+
+          .halo-logo.yellow {
+            animation: halo-fade 12s infinite;
+            animation-delay: 4s;
+          }
+
+          .halo-logo.green {
+            animation: halo-fade 12s infinite;
+            animation-delay: 8s;
           }
 
           .halo-logo.reduce-motion {
-            transition: none;
+            animation: none;
+            opacity: 1;
+          }
+
+          @keyframes halo-fade {
+            0% {
+              opacity: 1;
+            }
+            20% {
+              opacity: 1;
+            }
+            33% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 0;
+            }
           }
         `}
       </style>
@@ -119,17 +131,14 @@ const Home = () => {
               <img
                 src="/halo/halo-blue.png"
                 alt=""
-                className="halo-logo visible reduce-motion"
+                className="halo-logo reduce-motion"
               />
             ) : (
-              logoSources.map((source, index) => (
-                <img
-                  key={source}
-                  src={source}
-                  alt=""
-                  className={`halo-logo ${index === logoIndex ? 'visible' : ''}`}
-                />
-              ))
+              <>
+                <img src="/halo/halo-blue.png" alt="" className="halo-logo blue" />
+                <img src="/halo/halo-yellow.png" alt="" className="halo-logo yellow" />
+                <img src="/halo/halo-green.png" alt="" className="halo-logo green" />
+              </>
             )}
           </div>
         </div>
