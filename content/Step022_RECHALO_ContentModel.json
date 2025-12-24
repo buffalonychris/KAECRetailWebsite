@@ -82,8 +82,14 @@
           "body": "Collect Wi-Fi details or skip for now.",
           "ssid_label": "Wi-Fi network name (SSID)",
           "password_label": "Wi-Fi password",
+          "show_password_label": "Show password",
+          "hide_password_label": "Hide password",
           "skip_label": "Skip Wi-Fi for now",
-          "confirmation_note": "This prepares information; device connection is confirmed during Test & Verified."
+          "confirmation_note": "This prepares information; device connection is confirmed during Test & Verified.",
+          "wifi_assist_title": "Wi-Fi Assist",
+          "wifi_assist_body": "You are likely already connected to the Wi-Fi you want HALO to use. Confirm the network name in your device Wi-Fi settings and enter it here.",
+          "wifi_assist_cellular_hint": "It looks like you may be on cellular. Switch to your home Wi-Fi before continuing.",
+          "wifi_assist_wifi_hint": "If you are on Wi-Fi, this is likely the correct network."
         },
         "contacts": {
           "title": "Step 2 — Contacts",
@@ -92,7 +98,29 @@
           "remove_button": "Remove",
           "name_label": "Contact name",
           "phone_label": "Phone number",
+          "mobile_label": "This phone number is a mobile (cell) phone",
+          "carrier_label": "Mobile carrier (optional)",
           "email_label": "Email address",
+          "role_label": "Contact role",
+          "profile_label": "Notification profile",
+          "role_options": [
+            "Family",
+            "Caregiver",
+            "Medical Assistant",
+            "Neighbor",
+            "Other"
+          ],
+          "profile_options": [
+            "Informative",
+            "Detailed"
+          ],
+          "carrier_options": [
+            "Unknown",
+            "AT&T",
+            "Verizon",
+            "T-Mobile",
+            "Other"
+          ],
           "helper": "At least one contact must include a phone number or email address.",
           "addons_title": "Add-ons owned",
           "wrist_label": "Wrist trigger wearable",
@@ -135,6 +163,7 @@
           "generated_label": "Summary generated",
           "copy_button": "Copy Summary",
           "download_button": "Download JSON",
+          "email_button": "Email certification",
           "status_labels": {
             "pass": "Pass",
             "fail": "Fail",
