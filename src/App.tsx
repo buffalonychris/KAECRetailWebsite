@@ -40,6 +40,11 @@ import FamilyLanding from './pages/FamilyLanding';
 import AgencyLanding from './pages/AgencyLanding';
 import HaloPushbutton from './pages/HaloPushbutton';
 import HaloPackage from './pages/HaloPackage';
+import HaloLanding from './pages/HaloLanding';
+import HaloSetup from './pages/HaloSetup';
+import HaloSupport from './pages/HaloSupport';
+import HaloPrivacy from './pages/HaloPrivacy';
+import HaloTerms from './pages/HaloTerms';
 import VendorLanding from './pages/VendorLanding';
 import VendorStandards from './pages/VendorStandards';
 import VendorEvaluationToolkit from './pages/VendorEvaluationToolkit';
@@ -89,6 +94,11 @@ const App = () => {
         <Route path="/lp/senior" element={<SeniorLanding />} />
         <Route path="/lp/family" element={<FamilyLanding />} />
         <Route path="/lp/agency" element={<AgencyLanding />} />
+        <Route path="/halo" element={<HaloLanding />} />
+        <Route path="/halo/setup" element={<HaloSetup />} />
+        <Route path="/halo/support" element={<HaloSupport />} />
+        <Route path="/halo/privacy" element={<HaloPrivacy />} />
+        <Route path="/halo/terms" element={<HaloTerms />} />
         <Route path="/halo-pushbutton" element={<HaloPushbutton />} />
         <Route path="/halo-package" element={<HaloPackage />} />
         <Route path="/vendors" element={<VendorLanding />} />
