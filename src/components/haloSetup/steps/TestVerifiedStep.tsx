@@ -1,16 +1,11 @@
 import { AddOnOwnership, TestResults } from '../types';
-
-type EnabledNotifications = {
-  sms: boolean;
-  email: boolean;
-  push: boolean;
-};
+import { buildTestItems, EnabledNotifications, TestLabels } from '../testItems';
 
 type TestVerifiedStepProps = {
   title: string;
   intro: string;
   safetyCopy: string;
-  labels: Record<string, string>;
+  labels: TestLabels;
   enabledNotifications: EnabledNotifications;
   addOns: AddOnOwnership;
   enableTwoWayVoice: boolean;
@@ -29,16 +24,12 @@ const TestVerifiedStep = ({
   testResults,
   onToggle,
 }: TestVerifiedStepProps) => {
-  const items: Array<{ key: keyof TestResults; label: string; visible: boolean }> = [
-    { key: 'baseUnit', label: labels.baseUnit, visible: true },
-    { key: 'pendant', label: labels.pendant, visible: true },
-    { key: 'sms', label: labels.sms, visible: enabledNotifications.sms },
-    { key: 'email', label: labels.email, visible: enabledNotifications.email },
-    { key: 'push', label: labels.push, visible: enabledNotifications.push },
-    { key: 'wristWearable', label: labels.wristWearable, visible: addOns.wristWearable },
-    { key: 'wallButton', label: labels.wallButton, visible: addOns.wallButton },
-    { key: 'twoWayVoice', label: labels.twoWayVoice, visible: enableTwoWayVoice },
-  ];
+  const items = buildTestItems({
+    labels,
+    enabledNotifications,
+    addOns,
+    enableTwoWayVoice,
+  });
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem' }}>

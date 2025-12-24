@@ -10,6 +10,7 @@ import TestSummaryStep from '../components/haloSetup/steps/TestSummaryStep';
 import { haloContent } from '../lib/haloContent';
 import { getHaloFeatureFlags } from '../lib/haloFlags';
 import { buildSetupSummary } from '../components/haloSetup/summary';
+import { buildTestItems, TestLabels } from '../components/haloSetup/testItems';
 import { AddOnOwnership, ConnectionStatus, Contact, SetupState, TestResults } from '../components/haloSetup/types';
 
 const STORAGE_KEY = 'rechalo_setup_v1';
@@ -95,19 +96,19 @@ const HaloSetup = () => {
   );
 
   const testLabels = {
-    baseUnit: wizardContent.test_verified.base_unit,
-    pendant: wizardContent.test_verified.pendant,
-    sms: wizardContent.test_verified.sms,
-    email: wizardContent.test_verified.email,
-    push: wizardContent.test_verified.push,
-    wristWearable: wizardContent.test_verified.wrist,
-    wallButton: wizardContent.test_verified.wall,
-    twoWayVoice: wizardContent.test_verified.voice,
-  };
+    baseUnit: wizardContent.steps.test_verified.base_unit,
+    pendant: wizardContent.steps.test_verified.pendant,
+    sms: wizardContent.steps.test_verified.sms,
+    email: wizardContent.steps.test_verified.email,
+    push: wizardContent.steps.test_verified.push,
+    wristWearable: wizardContent.steps.test_verified.wrist,
+    wallButton: wizardContent.steps.test_verified.wall,
+    twoWayVoice: wizardContent.steps.test_verified.voice,
+  } as const satisfies TestLabels;
 
   const summary = useMemo(
-    () => buildSetupSummary(state, enabledNotifications, testLabels),
-    [state, enabledNotifications, testLabels]
+    () => buildSetupSummary(state, enabledNotifications, testLabels, state.addOns, enableTwoWayVoiceClaim),
+    [state, enabledNotifications, testLabels, enableTwoWayVoiceClaim]
   );
 
   const steps = [
@@ -184,16 +185,15 @@ const HaloSetup = () => {
       return state.contacts.length > 0 && state.contacts.every(isContactValid);
     }
     if (currentStep === 3) {
-      const requiredTests: Array<keyof TestResults> = [
-        'baseUnit',
-        'pendant',
-        ...(enableSms ? ['sms'] : []),
-        ...(enableEmail ? ['email'] : []),
-        ...(enablePush ? ['push'] : []),
-        ...(state.addOns.wristWearable ? ['wristWearable'] : []),
-        ...(state.addOns.wallButton ? ['wallButton'] : []),
-        ...(enableTwoWayVoiceClaim ? ['twoWayVoice'] : []),
-      ];
+      const requiredTests = buildTestItems({
+        labels: testLabels,
+        enabledNotifications,
+        addOns: state.addOns,
+        enableTwoWayVoice: enableTwoWayVoiceClaim,
+      })
+        .filter((test) => test.visible)
+        .map((test) => test.key);
+
       return requiredTests.every((key) => state.testResults[key].checked);
     }
     return true;

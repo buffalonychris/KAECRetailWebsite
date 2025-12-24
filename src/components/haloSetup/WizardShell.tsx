@@ -32,13 +32,13 @@ const WizardShell = ({
   canContinue = true,
   hideNext = false,
 }: WizardShellProps) => {
-  const currentStepNumber = currentIndex + 3;
+  const currentStepNumber = currentIndex + 1;
   return (
     <section className="card" style={{ display: 'grid', gap: '1.5rem' }}>
       <header style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
           <p className="badge" style={{ margin: 0 }}>
-            {progressLabel} {currentStepNumber} / {currentStepNumber + (steps.length - currentIndex - 1)}
+            {progressLabel} {currentStepNumber} / {steps.length}
           </p>
           <p style={{ margin: 0, color: '#fff7e6' }}>{title}</p>
         </div>
@@ -64,7 +64,7 @@ const WizardShell = ({
                 }}
               >
                 <span>
-                  Step {index + 3}: {step.label}
+                  Step {index + 1}: {step.label}
                 </span>
                 {index < currentIndex && <span aria-hidden="true">✓</span>}
               </li>

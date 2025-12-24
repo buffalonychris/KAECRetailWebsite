@@ -1,10 +1,5 @@
-import { SetupState } from './types';
-
-type EnabledNotifications = {
-  sms: boolean;
-  email: boolean;
-  push: boolean;
-};
+import { AddOnOwnership, SetupState } from './types';
+import { buildTestItems, EnabledNotifications, TestLabels } from './testItems';
 
 export type SetupSummary = {
   generatedAt: string;
@@ -30,11 +25,20 @@ const formatMethod = (method: string) => method.replace(/([a-z])([A-Z])/g, '$1 $
 export const buildSetupSummary = (
   state: SetupState,
   enabledNotifications: EnabledNotifications,
-  testLabels: Record<string, string>
+  testLabels: TestLabels,
+  addOns: AddOnOwnership,
+  enableTwoWayVoice: boolean
 ): SetupSummary => {
   const enabledMethods = Object.entries(enabledNotifications)
     .filter(([, enabled]) => enabled)
     .map(([key]) => key.toUpperCase());
+
+  const visibleTests = buildTestItems({
+    labels: testLabels,
+    enabledNotifications,
+    addOns,
+    enableTwoWayVoice,
+  }).filter((test) => test.visible);
 
   return {
     generatedAt: new Date().toLocaleString(),
@@ -50,10 +54,10 @@ export const buildSetupSummary = (
         .filter(([key, enabled]) => enabledNotifications[key as keyof EnabledNotifications] && enabled)
         .map(([key]) => key.toUpperCase()),
     })),
-    tests: Object.entries(state.testResults).map(([key, value]) => ({
-      label: testLabels[key] ?? formatMethod(key),
-      confirmed: value.checked,
-      timestamp: value.timestamp,
+    tests: visibleTests.map((test) => ({
+      label: test.label ?? formatMethod(test.key),
+      confirmed: state.testResults[test.key].checked,
+      timestamp: state.testResults[test.key].timestamp,
     })),
   };
 };
