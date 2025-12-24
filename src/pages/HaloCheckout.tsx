@@ -1,8 +1,10 @@
 import Seo from '../components/Seo';
-import haloContent from '../content/halo.json';
+import { haloContent } from '../lib/haloContent';
+import { getHaloFeatureFlags } from '../lib/haloFlags';
 
 const HaloCheckout = () => {
   const { checkout } = haloContent;
+  const { enablePayments } = getHaloFeatureFlags();
 
   return (
     <div className="container section">
@@ -40,8 +42,13 @@ const HaloCheckout = () => {
         <section className="card">
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{checkout.cta.label}</h3>
           <p>{checkout.cta.note}</p>
-          <button className="btn btn-secondary" type="button" disabled aria-disabled="true">
-            {checkout.cta.label}
+          <button
+            className="btn btn-secondary"
+            type="button"
+            disabled={!enablePayments}
+            aria-disabled={!enablePayments}
+          >
+            {enablePayments ? 'Proceed to payment' : checkout.cta.label}
           </button>
         </section>
       </div>

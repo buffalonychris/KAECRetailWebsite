@@ -1,9 +1,23 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
-import haloContent from '../content/halo.json';
+import { haloContent } from '../lib/haloContent';
+import { getHaloFeatureFlags } from '../lib/haloFlags';
 
 const HaloSupport = () => {
   const { support } = haloContent;
+  const featureFlags = getHaloFeatureFlags();
+  const topicFlags = new Map<string, boolean>([
+    ['SMS not delivered', featureFlags.enableSms],
+    ['Email not delivered', featureFlags.enableEmail],
+    ['App notifications not delivered', featureFlags.enablePush],
+    ['Voice check failed', featureFlags.enableTwoWayVoiceClaim],
+  ]);
+  const troubleshootingTopics = support.troubleshooting.topics.filter((topic) => {
+    if (!topicFlags.has(topic)) {
+      return true;
+    }
+    return topicFlags.get(topic) === true;
+  });
   return (
     <div className="container section">
       <Seo title={support.seo.title} description={support.seo.description} />
@@ -44,7 +58,7 @@ const HaloSupport = () => {
         <section className="card" id="troubleshooting">
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{support.troubleshooting.title}</h3>
           <ul className="list">
-            {support.troubleshooting.topics.map((topic) => (
+            {troubleshootingTopics.map((topic) => (
               <li key={topic}>
                 <span />
                 <span>{topic}</span>
