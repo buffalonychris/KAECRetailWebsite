@@ -1,0 +1,192 @@
+{
+  "landing": {
+    "seo": {
+      "title": "HALO Launch — Reliable Elder Care",
+      "description": "Launch guide for HALO PushButton owners: setup, support, privacy, terms, and checkout."
+    },
+    "badge": "HALO Launch",
+    "title": "HALO PushButton launch hub",
+    "intro": "Start here to set up your HALO PushButton, confirm verification, and review the plain-language privacy and terms pages for launch.",
+    "launch_essentials": {
+      "title": "Launch essentials",
+      "items": [
+        {
+          "title": "Setup",
+          "body": "Follow the start checklist and verify contacts.",
+          "href": "/halo/setup",
+          "variant": "primary",
+          "cta": "Go to setup"
+        },
+        {
+          "title": "Support",
+          "body": "Re-run Test & Verified or troubleshoot any issues.",
+          "href": "/halo/support",
+          "variant": "primary",
+          "cta": "Get support"
+        },
+        {
+          "title": "Checkout",
+          "body": "Review the launch purchase details and current checkout status.",
+          "href": "/halo/checkout",
+          "variant": "primary",
+          "cta": "View checkout"
+        },
+        {
+          "title": "Privacy",
+          "body": "Review HALO privacy commitments in plain language.",
+          "href": "/halo/privacy",
+          "variant": "primary",
+          "cta": "Read privacy"
+        },
+        {
+          "title": "Terms",
+          "body": "Launch placeholder terms pending legal review.",
+          "href": "/halo/terms",
+          "variant": "primary",
+          "cta": "Read terms"
+        }
+      ]
+    },
+    "package_cta": {
+      "title": "Need the full HALO experience?",
+      "body": "HALO Pushbutton works as a standalone launch. For broader coverage, review the full Reliable Elder Care system.",
+      "href": "/halo-package",
+      "label": "Explore HALO Package"
+    }
+  },
+  "setup": {
+    "seo": {
+      "title": "Setup — HALO PushButton",
+      "description": "Start the HALO PushButton launch checklist, confirm contacts, and complete Test & Verified."
+    },
+    "badge": "HALO Setup",
+    "title": "Start your HALO PushButton launch",
+    "intro": "Use this checklist to get set up, confirm contacts, and run Test & Verified when it is safe.",
+    "checklist": {
+      "title": "Start checklist",
+      "items": [
+        "Place the pushbutton where it is easy to reach.",
+        "Add primary and backup contacts.",
+        "Confirm the device and contacts are ready before testing.",
+        "Run Test & Verified at a safe time.",
+        "Review any add-ons you own."
+      ]
+    },
+    "after_setup": {
+      "title": "After setup",
+      "body": "If anything fails during Test & Verified, use the support steps to fix only what failed and re-test.",
+      "cta": {
+        "label": "Go to support",
+        "href": "/halo/support"
+      }
+    }
+  },
+  "support": {
+    "seo": {
+      "title": "Support — HALO PushButton",
+      "description": "Re-run verification, update contacts, or troubleshoot."
+    },
+    "badge": "HALO Support",
+    "title": "Support tools for HALO PushButton",
+    "intro": "Re-run verification, update contacts, or walk through plain-language troubleshooting steps.",
+    "tiles_title": "What would you like to do?",
+    "tiles": [
+      {
+        "title": "Run Test & Verified again",
+        "body": "Re-run the verification test at a safe time for ongoing confidence.",
+        "href": "/halo/setup#start",
+        "isExternal": false
+      },
+      {
+        "title": "Update contacts",
+        "body": "Update who gets notified and how.",
+        "href": "/halo/setup#start",
+        "isExternal": false
+      },
+      {
+        "title": "Troubleshooting",
+        "body": "Fix common issues with plain-language steps, then re-test only what failed.",
+        "href": "#troubleshooting",
+        "isExternal": true
+      }
+    ],
+    "troubleshooting": {
+      "title": "Troubleshooting topics",
+      "topics": [
+        "Connection not ready",
+        "Contact details incomplete",
+        "SMS not delivered",
+        "Email not delivered",
+        "App notifications not delivered",
+        "Voice check failed",
+        "Pendant wearable not responding",
+        "Wrist wearable not responding (if owned)",
+        "Wall button not responding (if owned)"
+      ],
+      "note": "Troubleshooting content should map to Step019 Fix Screens (F01–F12) in implementation."
+    }
+  },
+  "privacy": {
+    "seo": {
+      "title": "Privacy — HALO — Reliable Elder Care",
+      "description": "Plain-language privacy posture. Avoid absolutes unless enforceable."
+    },
+    "badge": "HALO Privacy",
+    "title": "Privacy, plainly",
+    "body_blocks": [
+      {
+        "title": "Privacy, plainly",
+        "body": "We aim to keep the HALO experience focused on safety and usability. Privacy commitments published here must be specific, enforceable, and consistent with our policies and agreements."
+      },
+      {
+        "title": "What this page is not",
+        "body": "This page is not a promise of absolutes unless explicitly stated in enforceable terms. We avoid broad claims that cannot be verified or controlled."
+      },
+      {
+        "title": "Your choices",
+        "body": "You choose who gets notified and how. Verification is documented through Test & Verified."
+      }
+    ]
+  },
+  "terms": {
+    "seo": {
+      "title": "Terms — HALO — Reliable Elder Care",
+      "description": "Terms of sale and site use (placeholder pending legal review)."
+    },
+    "badge": "HALO Terms",
+    "title": "Terms",
+    "body_blocks": [
+      {
+        "title": "Terms",
+        "body": "These terms are a launch placeholder pending legal review. Use final approved terms before scaling paid traffic."
+      }
+    ]
+  },
+  "checkout": {
+    "seo": {
+      "title": "Checkout — HALO — Reliable Elder Care",
+      "description": "Review the HALO PushButton order summary and current checkout status."
+    },
+    "badge": "HALO Checkout",
+    "title": "HALO PushButton checkout",
+    "intro": "Review the HALO PushButton order summary and confirm next steps before launch.",
+    "summary": {
+      "title": "Order summary",
+      "body": "HALO PushButton is a one-time purchase with no monthly subscription required.",
+      "price": "$399 one-time purchase",
+      "note": "Payments are currently disabled by default. Checkout will remain informational until payments are enabled."
+    },
+    "steps": {
+      "title": "What happens next",
+      "items": [
+        "Confirm the hardware details with our team.",
+        "Review launch readiness and contact verification.",
+        "Enable payment only after internal approval."
+      ]
+    },
+    "cta": {
+      "label": "Checkout coming soon",
+      "note": "Payments are disabled right now. Contact the team if you need to move forward."
+    }
+  }
+}

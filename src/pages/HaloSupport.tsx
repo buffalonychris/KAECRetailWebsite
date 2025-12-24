@@ -1,63 +1,29 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
-
-const supportTiles = [
-  {
-    title: 'Run Test & Verified again',
-    body: 'Re-run the verification test at a safe time for ongoing confidence.',
-    href: '/halo/setup#start',
-    isExternal: false,
-  },
-  {
-    title: 'Update contacts',
-    body: 'Update who gets notified and how.',
-    href: '/halo/setup#start',
-    isExternal: false,
-  },
-  {
-    title: 'Troubleshooting',
-    body: 'Fix common issues with plain-language steps, then re-test only what failed.',
-    href: '#troubleshooting',
-    isExternal: true,
-  },
-];
-
-const troubleshootingTopics = [
-  'Connection not ready',
-  'Contact details incomplete',
-  'SMS not delivered',
-  'Email not delivered',
-  'App notifications not delivered',
-  'Voice check failed',
-  'Pendant wearable not responding',
-  'Wrist wearable not responding (if owned)',
-  'Wall button not responding (if owned)',
-];
+import haloContent from '../content/halo.json';
 
 const HaloSupport = () => {
+  const { support } = haloContent;
   return (
     <div className="container section">
-      <Seo
-        title="Support — HALO PushButton"
-        description="Re-run verification, update contacts, or troubleshoot."
-      />
+      <Seo title={support.seo.title} description={support.seo.description} />
       <div style={{ display: 'grid', gap: '1.5rem' }}>
         <section style={{ textAlign: 'center' }}>
           <p className="badge" style={{ marginBottom: '0.5rem' }}>
-            HALO Support
+            {support.badge}
           </p>
-          <h2 style={{ margin: 0 }}>Support tools for HALO PushButton</h2>
+          <h2 style={{ margin: 0 }}>{support.title}</h2>
           <p style={{ maxWidth: 760, margin: '0.75rem auto 0' }}>
-            Re-run verification, update contacts, or walk through plain-language troubleshooting steps.
+            {support.intro}
           </p>
         </section>
 
         <section className="card" aria-labelledby="support-tiles">
           <h3 id="support-tiles" style={{ marginTop: 0, color: '#fff7e6' }}>
-            What would you like to do?
+            {support.tiles_title}
           </h3>
           <div className="card-grid">
-            {supportTiles.map((tile) => (
+            {support.tiles.map((tile) => (
               <div className="card" key={tile.title}>
                 <h4 style={{ marginTop: 0, color: '#fff7e6' }}>{tile.title}</h4>
                 <p>{tile.body}</p>
@@ -76,9 +42,9 @@ const HaloSupport = () => {
         </section>
 
         <section className="card" id="troubleshooting">
-          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Troubleshooting topics</h3>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{support.troubleshooting.title}</h3>
           <ul className="list">
-            {troubleshootingTopics.map((topic) => (
+            {support.troubleshooting.topics.map((topic) => (
               <li key={topic}>
                 <span />
                 <span>{topic}</span>
@@ -86,7 +52,7 @@ const HaloSupport = () => {
             ))}
           </ul>
           <p style={{ marginTop: '1rem' }}>
-            Troubleshooting content should map to Step019 Fix Screens (F01–F12) in implementation.
+            {support.troubleshooting.note}
           </p>
         </section>
       </div>
