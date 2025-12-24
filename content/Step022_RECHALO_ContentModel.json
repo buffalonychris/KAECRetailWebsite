@@ -79,6 +79,54 @@
         "Review any add-ons you own."
       ]
     },
+    "wizard": {
+      "title": "Guided setup",
+      "progress_label": "Setup progress",
+      "steps": {
+        "contacts": {
+          "title": "Contacts",
+          "intro": "Add at least one trusted contact. Include phone and/or email so we can reach them.",
+          "connection_label": "Connection status",
+          "connection_options": ["Connected and ready", "Needs help", "Not sure yet"],
+          "add_contact_label": "Add another contact",
+          "addons_title": "Add-ons you own",
+          "addons_wrist": "Wrist wearable",
+          "addons_wall": "Wall button"
+        },
+        "notifications": {
+          "title": "Notification preferences",
+          "intro": "Choose how each contact should be notified when options are enabled.",
+          "empty_state": "Notification methods will be confirmed during setup."
+        },
+        "review": {
+          "title": "Review",
+          "intro": "Review the connection status, contacts, and notification choices.",
+          "cta": "Begin Test & Verified",
+          "connection_title": "Connection",
+          "contacts_title": "Contacts",
+          "notifications_title": "Notification preferences"
+        },
+        "test_verified": {
+          "title": "Test & Verified",
+          "intro": "Confirm each test when it is safe to do so.",
+          "safety_copy": "Do not use Test Mode during an emergency.",
+          "base_unit": "Base unit HELP trigger test confirmed",
+          "pendant": "Included pendant HELP trigger test confirmed",
+          "sms": "SMS delivery confirmed",
+          "email": "Email delivery confirmed",
+          "push": "App notification confirmed",
+          "wrist": "Wrist trigger test confirmed",
+          "wall": "Wall button trigger test confirmed",
+          "voice": "Two-way voice verified"
+        },
+        "summary": {
+          "title": "Test Summary",
+          "intro": "Save or share this summary for your records.",
+          "copy_cta": "Copy Summary",
+          "download_cta": "Download Summary (JSON)"
+        }
+      }
+    },
     "after_setup": {
       "title": "After setup",
       "body": "If anything fails during Test & Verified, use the support steps to fix only what failed and re-test.",
