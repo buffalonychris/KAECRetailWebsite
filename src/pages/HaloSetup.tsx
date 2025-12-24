@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
 import { getHaloFeatureFlags } from '../lib/haloFlags';
 import { haloContent } from '../lib/haloContent';
 import {
   AddOnSelections,
+  CarrierOption,
   ContactEntry,
+  ContactRole,
   NotificationPreferences,
+  NotificationProfile,
   TestResults,
   TestStatus,
 } from '../lib/haloSetupWizard';
@@ -18,6 +21,10 @@ const createContact = (): ContactEntry => ({
   name: '',
   phone: '',
   email: '',
+  isMobile: false,
+  role: 'Family',
+  notificationProfile: 'Detailed',
+  carrier: 'Unknown',
 });
 
 const createEmptyTestResults = (): TestResults => ({
@@ -55,7 +62,18 @@ const sanitizeContacts = (entries: ContactEntry[]) =>
     .map((contact) => ({
       ...contact,
       name: contact.name.trim() || 'Contact',
+      carrier: contact.isMobile ? contact.carrier : 'Unknown',
     }));
+
+const getDefaultProfileForRole = (role: ContactRole): NotificationProfile => {
+  if (role === 'Medical Assistant') {
+    return 'Informative';
+  }
+  if (role === 'Family') {
+    return 'Detailed';
+  }
+  return 'Detailed';
+};
 
 const HaloSetup = () => {
   const { setup } = haloContent;
@@ -64,6 +82,7 @@ const HaloSetup = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [wifi, setWifi] = useState({ ssid: '', password: '', skip: false });
+  const [showPassword, setShowPassword] = useState(false);
   const [contacts, setContacts] = useState<ContactEntry[]>([createContact()]);
   const [addons, setAddons] = useState<AddOnSelections>({ wristWearable: false, wallButton: false });
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
@@ -136,8 +155,54 @@ const HaloSetup = () => {
   const anyNotificationMethodEnabled = flags.enableSms || flags.enableEmail || flags.enablePush;
   const statusLabels = wizard.steps.summary.status_labels as Record<TestStatus, string>;
 
+  const wifiAssistHint = useMemo(() => {
+    if (typeof navigator === 'undefined' || !('connection' in navigator)) {
+      return null;
+    }
+
+    const connection = navigator.connection as { type?: string } | undefined;
+    if (connection?.type === 'cellular') {
+      return wizard.steps.connection.wifi_assist_cellular_hint;
+    }
+
+    return wizard.steps.connection.wifi_assist_wifi_hint;
+  }, [
+    wizard.steps.connection.wifi_assist_cellular_hint,
+    wizard.steps.connection.wifi_assist_wifi_hint,
+  ]);
+
   const updateContact = (id: string, updates: Partial<ContactEntry>) => {
     setContacts((prev) => prev.map((contact) => (contact.id === id ? { ...contact, ...updates } : contact)));
+  };
+
+  const handleRoleChange = (id: string, role: ContactRole) => {
+    setContacts((prev) =>
+      prev.map((contact) => {
+        if (contact.id !== id) {
+          return contact;
+        }
+        const defaultProfile = getDefaultProfileForRole(role);
+        return {
+          ...contact,
+          role,
+          notificationProfile: defaultProfile,
+        };
+      }),
+    );
+  };
+
+  const handleMobileToggle = (id: string, isMobile: boolean) => {
+    setContacts((prev) =>
+      prev.map((contact) =>
+        contact.id === id
+          ? {
+              ...contact,
+              isMobile,
+              carrier: isMobile ? contact.carrier : 'Unknown',
+            }
+          : contact,
+      ),
+    );
   };
 
   const removeContact = (id: string) => {
@@ -195,6 +260,43 @@ const HaloSetup = () => {
     return lines.join('\n');
   };
 
+  const buildCertificationEmail = () => {
+    const lines = [
+      'HALO Setup — System Test & Install Certification',
+      '',
+      `${wizard.steps.summary.generated_label}: ${new Date().toLocaleString()}`,
+      '',
+      'Contacts:',
+      ...sanitizedContacts.map((contact) => {
+        const base = [
+          contact.name,
+          `Phone: ${contact.phone || 'No phone'}`,
+          `Email: ${contact.email || 'No email'}`,
+          `Role: ${contact.role}`,
+          `Profile: ${contact.notificationProfile}`,
+          `Mobile: ${contact.isMobile ? 'Yes' : 'No'}`,
+        ];
+        if (contact.isMobile) {
+          base.push(`Carrier: ${contact.carrier}`);
+        }
+        return `- ${base.join(' | ')}`;
+      }),
+      '',
+      'Test & Verified Results:',
+      ...visibleTests.map((test) => {
+        const result = testResults[test.key];
+        return `- ${test.label}: ${statusLabels[result.status]} (${formatTimestamp(result.timestamp)})`;
+      }),
+      '',
+      'This certification is informational and reflects user-confirmed Test & Verified steps.',
+    ];
+
+    return {
+      subject: 'HALO Setup — System Test & Install Certification',
+      body: lines.join('\n'),
+    };
+  };
+
   const copySummary = async () => {
     await navigator.clipboard.writeText(buildSummaryText());
   };
@@ -202,6 +304,15 @@ const HaloSetup = () => {
   const downloadSummaryJson = () => {
     const payload = {
       generatedAt: new Date().toISOString(),
+      contacts: sanitizedContacts.map((contact) => ({
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        isMobile: contact.isMobile,
+        role: contact.role,
+        notificationProfile: contact.notificationProfile,
+        carrier: contact.carrier,
+      })),
       tests: visibleTests.map((test) => ({
         key: test.key,
         label: test.label,
@@ -218,6 +329,17 @@ const HaloSetup = () => {
     link.click();
     URL.revokeObjectURL(url);
   };
+
+  const emailCertification = () => {
+    const { subject, body } = buildCertificationEmail();
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  useEffect(() => {
+    if (currentStep !== 0) {
+      setShowPassword(false);
+    }
+  }, [currentStep]);
 
   const handleNext = () => {
     if (currentStep === 1) {
@@ -276,14 +398,40 @@ const HaloSetup = () => {
                 </label>
                 <label style={{ display: 'grid', gap: '0.35rem' }}>
                   <span>{wizard.steps.connection.password_label}</span>
-                  <input
-                    className="input"
-                    type="password"
-                    value={wifi.password}
-                    onChange={(event) => setWifi((prev) => ({ ...prev, password: event.target.value }))}
-                    disabled={wifi.skip}
-                  />
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      className="input"
+                      type={showPassword ? 'text' : 'password'}
+                      value={wifi.password}
+                      onChange={(event) => setWifi((prev) => ({ ...prev, password: event.target.value }))}
+                      disabled={wifi.skip}
+                    />
+                    <button
+                      className="btn"
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      disabled={wifi.skip}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? '🙈' : '👁'}{' '}
+                      {showPassword
+                        ? wizard.steps.connection.hide_password_label
+                        : wizard.steps.connection.show_password_label}
+                    </button>
+                  </div>
                 </label>
+                <div
+                  style={{
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                  }}
+                >
+                  <strong>{wizard.steps.connection.wifi_assist_title}</strong>
+                  <p style={{ margin: '0.35rem 0 0' }}>{wizard.steps.connection.wifi_assist_body}</p>
+                  {wifiAssistHint && <p style={{ margin: '0.35rem 0 0' }}>{wifiAssistHint}</p>}
+                </div>
                 <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <input
                     type="checkbox"
@@ -336,6 +484,32 @@ const HaloSetup = () => {
                           onChange={(event) => updateContact(contact.id, { phone: event.target.value })}
                         />
                       </label>
+                      <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={contact.isMobile}
+                          onChange={(event) => handleMobileToggle(contact.id, event.target.checked)}
+                        />
+                        <span>{wizard.steps.contacts.mobile_label}</span>
+                      </label>
+                      {contact.isMobile && (
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span>{wizard.steps.contacts.carrier_label}</span>
+                          <select
+                            className="input"
+                            value={contact.carrier}
+                            onChange={(event) =>
+                              updateContact(contact.id, { carrier: event.target.value as CarrierOption })
+                            }
+                          >
+                            {wizard.steps.contacts.carrier_options.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
                       <label style={{ display: 'grid', gap: '0.35rem' }}>
                         <span>{wizard.steps.contacts.email_label}</span>
                         <input
@@ -344,6 +518,38 @@ const HaloSetup = () => {
                           value={contact.email}
                           onChange={(event) => updateContact(contact.id, { email: event.target.value })}
                         />
+                      </label>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span>{wizard.steps.contacts.role_label}</span>
+                        <select
+                          className="input"
+                          value={contact.role}
+                          onChange={(event) => handleRoleChange(contact.id, event.target.value as ContactRole)}
+                        >
+                          {wizard.steps.contacts.role_options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span>{wizard.steps.contacts.profile_label}</span>
+                        <select
+                          className="input"
+                          value={contact.notificationProfile}
+                          onChange={(event) =>
+                            updateContact(contact.id, {
+                              notificationProfile: event.target.value as NotificationProfile,
+                            })
+                          }
+                        >
+                          {wizard.steps.contacts.profile_options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                       {contacts.length > 1 && (
                         <button className="btn" type="button" onClick={() => removeContact(contact.id)}>
@@ -459,7 +665,19 @@ const HaloSetup = () => {
                     <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1rem' }}>
                       {sanitizedContacts.map((contact) => (
                         <li key={contact.id}>
-                          {contact.name} — {contact.phone || 'No phone'} / {contact.email || 'No email'}
+                          <div style={{ display: 'grid', gap: '0.25rem' }}>
+                            <span>
+                              {contact.name} — {contact.phone || 'No phone'} / {contact.email || 'No email'}
+                            </span>
+                            <span>
+                              {wizard.steps.contacts.role_label}: {contact.role} · {wizard.steps.contacts.profile_label}:{' '}
+                              {contact.notificationProfile}
+                            </span>
+                            <span>
+                              {wizard.steps.contacts.mobile_label}: {contact.isMobile ? 'Yes' : 'No'}
+                              {contact.isMobile ? ` · ${wizard.steps.contacts.carrier_label}: ${contact.carrier}` : ''}
+                            </span>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -555,6 +773,9 @@ const HaloSetup = () => {
                   </button>
                   <button className="btn" type="button" onClick={downloadSummaryJson}>
                     {wizard.steps.summary.download_button}
+                  </button>
+                  <button className="btn" type="button" onClick={emailCertification}>
+                    {wizard.steps.summary.email_button}
                   </button>
                 </div>
               </div>

@@ -3,7 +3,17 @@ export type ContactEntry = {
   name: string;
   phone: string;
   email: string;
+  isMobile: boolean;
+  role: ContactRole;
+  notificationProfile: NotificationProfile;
+  carrier: CarrierOption;
 };
+
+export type ContactRole = 'Family' | 'Caregiver' | 'Medical Assistant' | 'Neighbor' | 'Other';
+
+export type NotificationProfile = 'Informative' | 'Detailed';
+
+export type CarrierOption = 'Unknown' | 'AT&T' | 'Verizon' | 'T-Mobile' | 'Other';
 
 export type NotificationPreferences = {
   sms: boolean;
