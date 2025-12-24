@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-import Home from './pages/Home';
+import RechaloLayout from './components/RechaloLayout';
 import Packages from './pages/Packages';
 import PackageDetail from './pages/PackageDetail';
 import Comparison from './pages/Comparison';
@@ -8,8 +8,13 @@ import Funding from './pages/Funding';
 import Reliability from './pages/Reliability';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
+import RechaloCheckout from './pages/RechaloCheckout';
+import RechaloHalo from './pages/RechaloHalo';
+import RechaloHome from './pages/RechaloHome';
+import RechaloPrivacy from './pages/RechaloPrivacy';
+import RechaloSetup from './pages/RechaloSetup';
+import RechaloSupport from './pages/RechaloSupport';
+import RechaloTerms from './pages/RechaloTerms';
 import Recommendation from './pages/Recommendation';
 import Quote from './pages/Quote';
 import QuoteReview from './pages/QuoteReview';
@@ -48,9 +53,17 @@ import VendorApply from './pages/VendorApply';
 
 const App = () => {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Home />} />
+    <Routes>
+      <Route path="/" element={<RechaloLayout />}>
+        <Route index element={<RechaloHome />} />
+        <Route path="halo" element={<RechaloHalo />} />
+        <Route path="checkout" element={<RechaloCheckout />} />
+        <Route path="setup" element={<RechaloSetup />} />
+        <Route path="support" element={<RechaloSupport />} />
+        <Route path="privacy" element={<RechaloPrivacy />} />
+        <Route path="terms" element={<RechaloTerms />} />
+      </Route>
+      <Route element={<Layout />}>
         <Route path="/packages" element={<Packages />} />
         <Route path="/packages/:id" element={<PackageDetail />} />
         <Route path="/comparison" element={<Comparison />} />
@@ -58,8 +71,6 @@ const App = () => {
         <Route path="/reliability" element={<Reliability />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
         <Route path="/recommend" element={<Recommendation />} />
         <Route path="/quote" element={<Quote />} />
         <Route path="/quoteReview" element={<QuoteReview />} />
@@ -96,8 +107,8 @@ const App = () => {
         <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
         <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
         <Route path="/vendors/apply" element={<VendorApply />} />
-      </Routes>
-    </Layout>
+      </Route>
+    </Routes>
   );
 };
 

@@ -8,6 +8,12 @@ const CANONICAL_BASE_URL = 'https://reliableeldercare.com';
 
 const CATEGORY_A_PATHS = new Set<string>([
   '/',
+  '/halo',
+  '/checkout',
+  '/setup',
+  '/support',
+  '/privacy',
+  '/terms',
   '/halo-pushbutton',
   '/halo-package',
   '/vendors',

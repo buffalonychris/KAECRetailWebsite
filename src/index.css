@@ -810,3 +810,243 @@ button {
     align-items: flex-start;
   }
 }
+
+.rechalo-shell {
+  background: #0b0b0b;
+  color: #f9f7f2;
+  min-height: 100vh;
+}
+
+.rechalo-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 8, 8, 0.95);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rechalo-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.rechalo-brand {
+  font-weight: 700;
+  color: #fff7e6;
+  text-decoration: none;
+}
+
+.rechalo-nav-links {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.rechalo-nav-links a {
+  color: #f9f7f2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.rechalo-nav-links a.active {
+  color: #f7d57b;
+}
+
+.rechalo-hero {
+  padding: 4rem 0 3rem;
+  background: radial-gradient(circle at top, rgba(247, 213, 123, 0.2), transparent 60%);
+}
+
+.rechalo-hero-inner h1 {
+  font-size: 2.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.rechalo-hero-subtitle {
+  color: var(--kaec-muted);
+  max-width: 640px;
+}
+
+.rechalo-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #f7d57b;
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.rechalo-hero-actions {
+  margin-top: 1.5rem;
+}
+
+.rechalo-button-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.rechalo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  background: #f7d57b;
+  color: #1c1a12;
+  text-decoration: none;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.rechalo-button.secondary {
+  background: transparent;
+  color: #f7d57b;
+  border: 1px solid rgba(247, 213, 123, 0.6);
+}
+
+.rechalo-section {
+  padding: 2.5rem 0;
+}
+
+.rechalo-section-header h2 {
+  margin-bottom: 0.5rem;
+}
+
+.rechalo-section-header p {
+  color: var(--kaec-muted);
+  margin-top: 0;
+}
+
+.rechalo-card-grid,
+.rechalo-support-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.rechalo-card {
+  padding: 1.4rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rechalo-card h3 {
+  margin-top: 0;
+}
+
+.rechalo-faq {
+  display: grid;
+  gap: 1rem;
+}
+
+.rechalo-faq-item {
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rechalo-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.rechalo-form label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 500;
+}
+
+.rechalo-form input {
+  background: #101010;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  color: inherit;
+}
+
+.rechalo-form-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.rechalo-addon {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rechalo-addon input {
+  margin-top: 0.2rem;
+}
+
+.rechalo-payment {
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.rechalo-setup {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.rechalo-setup-notes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rechalo-pricing {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rechalo-troubleshooting ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.rechalo-muted {
+  color: var(--kaec-muted);
+}
+
+.rechalo-legal {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.rechalo-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.5rem 0;
+  text-align: center;
+  color: var(--kaec-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .rechalo-hero-inner h1 {
+    font-size: 2rem;
+  }
+
+  .rechalo-nav {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

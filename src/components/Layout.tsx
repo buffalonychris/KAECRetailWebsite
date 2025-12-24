@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
 
@@ -32,7 +32,7 @@ const primaryLinks: (NavItem | DropdownItem)[] = [
   { label: 'Learn', items: learnLinks },
 ];
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = ({ children }: { children?: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [learnOpen, setLearnOpen] = useState(false);
   const [haloOpen, setHaloOpen] = useState(false);
@@ -201,7 +201,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
       </header>
-      <main>{children}</main>
+      <main>{children ?? <Outlet />}</main>
       <footer className="footer hide-when-print">
         <div className="container" style={{ display: 'grid', gap: '0.75rem' }}>
           <div style={{ fontWeight: 700, color: '#fff7e6' }}>Sitewide notices</div>

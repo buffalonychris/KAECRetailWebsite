@@ -1,0 +1,321 @@
+{
+  "site": {
+    "brand": "Reliable Elder Care",
+    "product": "HALO PushButton",
+    "short_description": "A calm, local-first pushbutton built for simple, reliable help requests without monthly fees.",
+    "footer_notice": "© 2025 KickAss Inc. All Rights Reserved. Unauthorized use is prohibited."
+  },
+  "feature_flags": {
+    "RECHALO_ENABLE_ETHERNET_IP": false,
+    "RECHALO_ENABLE_LTE": false,
+    "RECHALO_ENABLE_SMS": false,
+    "RECHALO_ENABLE_EMAIL": false,
+    "RECHALO_ENABLE_PUSH": false,
+    "RECHALO_ENABLE_TWO_WAY_VOICE_CLAIM": false,
+    "RECHALO_ENABLE_PAYMENTS": false
+  },
+  "pages": {
+    "home": {
+      "seo": {
+        "title": "Reliable Elder Care | HALO PushButton",
+        "description": "HALO PushButton is a calm, local-first way to request help with simple setup and one-time pricing."
+      },
+      "hero": {
+        "title": "HALO PushButton keeps help reachable, without monthly fees.",
+        "subtitle": "A minimal, local-first device designed for reliable help requests with straightforward setup and clear status feedback.",
+        "primary_cta": "See HALO PushButton",
+        "secondary_cta": "Start setup"
+      },
+      "highlights": {
+        "title": "Built for calm, everyday readiness",
+        "items": [
+          {
+            "title": "Local-first operation",
+            "description": "Core actions stay inside the home so the system can stay responsive even during typical outages."
+          },
+          {
+            "title": "Straightforward setup",
+            "description": "Start quickly with a guided flow designed for caregivers and households that want clarity."
+          },
+          {
+            "title": "One-time pricing",
+            "description": "Pay once for the device and focus on reliable support without recurring fees."
+          }
+        ]
+      },
+      "capabilities": {
+        "title": "Notification pathways and connectivity",
+        "intro": "Capabilities are configurable. Only enabled methods appear in the system experience.",
+        "empty_state": "Optional pathways are currently disabled.",
+        "items": [
+          {
+            "label": "Ethernet/IP connection",
+            "description": "Supports a wired network connection where available.",
+            "flag": "RECHALO_ENABLE_ETHERNET_IP"
+          },
+          {
+            "label": "LTE backup connection",
+            "description": "Offers an optional cellular path for compatible deployments.",
+            "flag": "RECHALO_ENABLE_LTE"
+          },
+          {
+            "label": "SMS notifications",
+            "description": "Send text alerts to designated contacts when enabled.",
+            "flag": "RECHALO_ENABLE_SMS"
+          },
+          {
+            "label": "Email notifications",
+            "description": "Send email alerts to designated contacts when enabled.",
+            "flag": "RECHALO_ENABLE_EMAIL"
+          },
+          {
+            "label": "Mobile push notifications",
+            "description": "Deliver app push alerts to caregivers when enabled.",
+            "flag": "RECHALO_ENABLE_PUSH"
+          },
+          {
+            "label": "Two-way voice option",
+            "description": "Enable voice assistance capabilities when configured.",
+            "flag": "RECHALO_ENABLE_TWO_WAY_VOICE_CLAIM"
+          }
+        ]
+      },
+      "faq": {
+        "title": "Questions, answered",
+        "items": [
+          {
+            "question": "Does HALO require a subscription?",
+            "answer": "No. HALO PushButton is a one-time purchase."
+          },
+          {
+            "question": "Is it hard to install?",
+            "answer": "The setup flow is designed to be simple, with clear prompts and minimal steps."
+          },
+          {
+            "question": "Who receives alerts?",
+            "answer": "You choose the contacts and notification methods that are enabled for your household."
+          }
+        ]
+      }
+    },
+    "halo": {
+      "seo": {
+        "title": "HALO PushButton | Reliable Elder Care",
+        "description": "A calm, local-first pushbutton with one-time pricing and clear alert pathways."
+      },
+      "hero": {
+        "title": "HALO PushButton",
+        "subtitle": "A minimal help button built for clarity, local-first reliability, and straightforward setup.",
+        "primary_cta": "Go to checkout"
+      },
+      "what_you_get": {
+        "title": "What you get",
+        "items": [
+          {
+            "title": "HALO PushButton",
+            "description": "A tactile, easy-to-use button built for daily readiness."
+          },
+          {
+            "title": "Setup guidance",
+            "description": "Simple steps with reminders for testing and contact confirmation."
+          },
+          {
+            "title": "Caregiver-ready alerts",
+            "description": "Configurable alerts so the right people are notified based on your settings."
+          }
+        ]
+      },
+      "capability_claims": {
+        "title": "Configurable pathways",
+        "intro": "Only the enabled methods below are shown in your configuration.",
+        "empty_state": "Optional pathways are currently disabled.",
+        "items": [
+          {
+            "label": "Ethernet/IP connection",
+            "description": "Supports a wired network connection where available.",
+            "flag": "RECHALO_ENABLE_ETHERNET_IP"
+          },
+          {
+            "label": "LTE backup connection",
+            "description": "Offers an optional cellular path for compatible deployments.",
+            "flag": "RECHALO_ENABLE_LTE"
+          },
+          {
+            "label": "SMS notifications",
+            "description": "Send text alerts to designated contacts when enabled.",
+            "flag": "RECHALO_ENABLE_SMS"
+          },
+          {
+            "label": "Email notifications",
+            "description": "Send email alerts to designated contacts when enabled.",
+            "flag": "RECHALO_ENABLE_EMAIL"
+          },
+          {
+            "label": "Mobile push notifications",
+            "description": "Deliver app push alerts to caregivers when enabled.",
+            "flag": "RECHALO_ENABLE_PUSH"
+          },
+          {
+            "label": "Two-way voice option",
+            "description": "Enable voice assistance capabilities when configured.",
+            "flag": "RECHALO_ENABLE_TWO_WAY_VOICE_CLAIM"
+          }
+        ]
+      },
+      "who_its_for": {
+        "title": "Who it is for",
+        "items": [
+          {
+            "title": "Independent adults",
+            "description": "A direct, low-friction way to ask for help when needed."
+          },
+          {
+            "title": "Family caregivers",
+            "description": "Clear alerts and a simple setup flow to stay connected."
+          },
+          {
+            "title": "Care teams",
+            "description": "A reliable request mechanism that fits into existing routines."
+          }
+        ]
+      },
+      "pricing": {
+        "title": "Pricing",
+        "price": "$399 one-time",
+        "note": "No monthly fees."
+      }
+    },
+    "checkout": {
+      "seo": {
+        "title": "HALO PushButton Checkout | Reliable Elder Care",
+        "description": "Complete shipping and contact details for HALO PushButton. Payments are intentionally disabled by default."
+      },
+      "hero": {
+        "title": "Checkout",
+        "subtitle": "Share delivery details and configure optional add-ons."
+      },
+      "form": {
+        "title": "Shipping & contact",
+        "fields": {
+          "full_name": "Full name",
+          "email": "Email",
+          "phone": "Phone",
+          "address": "Street address",
+          "city": "City",
+          "state": "State",
+          "postal": "Postal code"
+        }
+      },
+      "addons": {
+        "title": "Optional add-ons",
+        "items": [
+          {
+            "label": "Wrist wearable",
+            "description": "Pair a wearable button for quick access."
+          },
+          {
+            "label": "Wall button",
+            "description": "Add a wall-mounted button for a fixed location."
+          }
+        ]
+      },
+      "payment": {
+        "title": "Payment",
+        "disabled_note": "Payments are not enabled yet.",
+        "placeholder": "Payment details will appear here when enabled."
+      }
+    },
+    "setup": {
+      "seo": {
+        "title": "HALO PushButton Setup | Reliable Elder Care",
+        "description": "Start a guided HALO setup with a simple helper mode and safety notes."
+      },
+      "hero": {
+        "title": "Start HALO setup",
+        "subtitle": "Use this QR destination to begin a guided setup flow with minimal reading."
+      },
+      "steps": {
+        "start_button": "Start setup",
+        "helper_mode": "Helper mode lets a caregiver guide setup on behalf of the wearer.",
+        "safety_note": "Always confirm the primary contact list before relying on the system."
+      }
+    },
+    "support": {
+      "seo": {
+        "title": "HALO Support | Reliable Elder Care",
+        "description": "Run quick tests, update contacts, or troubleshoot HALO PushButton."
+      },
+      "hero": {
+        "title": "Support",
+        "subtitle": "Quick actions and troubleshooting for HALO PushButton."
+      },
+      "tiles": [
+        {
+          "title": "Run Test & Verify again",
+          "description": "Confirm button activation and alert delivery with a guided re-test."
+        },
+        {
+          "title": "Update contacts",
+          "description": "Edit notification recipients and confirm the order of alerts."
+        },
+        {
+          "title": "Troubleshooting",
+          "description": "Review common fixes and re-test only what failed."
+        }
+      ],
+      "troubleshooting": {
+        "title": "Troubleshooting topics",
+        "note": "Fix then re-test only what failed.",
+        "topics": [
+          "Button did not trigger",
+          "Alert was delayed",
+          "Contact did not receive notification",
+          "Device needs pairing",
+          "Power or battery check"
+        ]
+      }
+    },
+    "privacy": {
+      "seo": {
+        "title": "Privacy | Reliable Elder Care",
+        "description": "Read how HALO PushButton handles personal data and notification settings."
+      },
+      "title": "Privacy",
+      "sections": [
+        {
+          "title": "What we collect",
+          "body": "We collect the minimum contact and delivery details needed to fulfill orders and configure alerts."
+        },
+        {
+          "title": "How data is used",
+          "body": "Contact details are used to route notifications and support requests when you enable those features."
+        },
+        {
+          "title": "Your control",
+          "body": "You can update or remove notification contacts during setup and through support workflows."
+        }
+      ]
+    },
+    "terms": {
+      "seo": {
+        "title": "Terms | Reliable Elder Care",
+        "description": "Review the terms for purchasing and using HALO PushButton."
+      },
+      "title": "Terms",
+      "sections": [
+        {
+          "title": "Purchase terms",
+          "body": "HALO PushButton is sold as a one-time purchase. Taxes and shipping may apply."
+        },
+        {
+          "title": "Usage",
+          "body": "The device is intended as a help-request tool and should be tested after setup and updates."
+        },
+        {
+          "title": "Support",
+          "body": "Support is available for setup, configuration changes, and troubleshooting guidance."
+        }
+      ]
+    }
+  }
+}

@@ -39,6 +39,14 @@ break.
 - Home Assistant is the sole control platform across packages.
 - Offline-first messaging is emphasized throughout the site.
 
+## HALO PushButton content + flags
+- Content model lives at `content/Step022_RECHALO_ContentModel.json`. All marketing copy for `/`, `/halo`,
+  `/checkout`, `/setup`, `/support`, `/privacy`, and `/terms` is sourced from this JSON file.
+- Feature flags are resolved in this order: environment variables → JSON `feature_flags` → default `false`.
+  In Vite, expose flags with a `VITE_` prefix (example: `VITE_RECHALO_ENABLE_SMS=true`).
+- Payments are intentionally disabled by default via `RECHALO_ENABLE_PAYMENTS=false`. The checkout UI renders
+  a disabled payment section until the flag is explicitly enabled.
+
 ## SEO validation checklist
 - Check `/robots.txt` and `/sitemap.xml` are served from production.
 - For each route below, open "View Page Source" and confirm the `<meta name="robots">` matches the expected directive.
