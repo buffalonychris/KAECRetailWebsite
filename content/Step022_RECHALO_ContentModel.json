@@ -69,6 +69,80 @@
     "badge": "HALO Setup",
     "title": "Start your HALO PushButton launch",
     "intro": "Use this checklist to get set up, confirm contacts, and run Test & Verified when it is safe.",
+    "wizard": {
+      "title": "HALO Setup Wizard",
+      "intro": "Complete each step to capture contact details and document Test & Verified.",
+      "navigation": {
+        "back": "Back",
+        "next": "Next"
+      },
+      "steps": {
+        "connection": {
+          "title": "Step 1 — Connection",
+          "body": "Collect Wi-Fi details or skip for now.",
+          "ssid_label": "Wi-Fi network name (SSID)",
+          "password_label": "Wi-Fi password",
+          "skip_label": "Skip Wi-Fi for now",
+          "confirmation_note": "This prepares information; device connection is confirmed during Test & Verified."
+        },
+        "contacts": {
+          "title": "Step 2 — Contacts",
+          "body": "Add at least one contact. Each contact can include a phone number and/or email address.",
+          "add_button": "Add contact",
+          "remove_button": "Remove",
+          "name_label": "Contact name",
+          "phone_label": "Phone number",
+          "email_label": "Email address",
+          "helper": "At least one contact must include a phone number or email address.",
+          "addons_title": "Add-ons owned",
+          "wrist_label": "Wrist trigger wearable",
+          "wall_label": "Wall pushbutton"
+        },
+        "notifications": {
+          "title": "Step 3 — Notification Preferences",
+          "body": "Select which notification methods should be used once enabled.",
+          "sms_label": "SMS",
+          "email_label": "Email",
+          "push_label": "App notification",
+          "none_enabled_note": "Notification methods will be confirmed during verification."
+        },
+        "review": {
+          "title": "Step 4 — Review",
+          "body": "Confirm the details below before beginning Test & Verified.",
+          "edit_note": "Update any step as needed before proceeding.",
+          "cta_label": "Begin Test & Verified"
+        },
+        "test_verified": {
+          "title": "Step 5 — Test & Verified",
+          "body": "Confirm each test when it is safe to do so.",
+          "safety_note": "Do not use Test Mode during an emergency.",
+          "status_label": "Status",
+          "timestamp_label": "Timestamp",
+          "checks": {
+            "base_unit": "Base unit HELP trigger test confirmed",
+            "pendant": "Included pendant HELP trigger test confirmed",
+            "sms_delivery": "SMS delivery confirmed",
+            "email_delivery": "Email delivery confirmed",
+            "push_delivery": "App notification confirmed",
+            "wrist_trigger": "Wrist trigger test confirmed",
+            "wall_button": "Wall button trigger test confirmed",
+            "two_way_voice": "Two-way voice verified"
+          }
+        },
+        "summary": {
+          "title": "Step 6 — Test Summary",
+          "body": "Summary of Test & Verified checks that applied.",
+          "generated_label": "Summary generated",
+          "copy_button": "Copy Summary",
+          "download_button": "Download JSON",
+          "status_labels": {
+            "pass": "Pass",
+            "fail": "Fail",
+            "unchecked": "Unchecked"
+          }
+        }
+      }
+    },
     "checklist": {
       "title": "Start checklist",
       "items": [
