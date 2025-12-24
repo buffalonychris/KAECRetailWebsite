@@ -9,6 +9,21 @@ npm install
 npm run dev
 ```
 
+## Install prerequisites (npm registry 403)
+
+This repo uses the public npm registry. If you see `npm ERR! 403` during install, your environment is likely pointing at a
+private registry. Confirm with:
+
+```bash
+npm config get registry
+```
+
+It must resolve to `https://registry.npmjs.org/`. If it does not, set it before running installs:
+
+```bash
+npm config set registry https://registry.npmjs.org/
+```
+
 ## Quality checks
 
 ```bash

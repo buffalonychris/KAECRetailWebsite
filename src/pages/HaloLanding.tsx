@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
-import haloContent from '../content/halo.json';
+import { haloContent } from '../lib/haloContent';
 
 const HaloLanding = () => {
   const { landing } = haloContent;

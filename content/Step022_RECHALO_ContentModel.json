@@ -1,4 +1,11 @@
 {
+  "feature_flags": {
+    "enable_sms": false,
+    "enable_email": false,
+    "enable_push": false,
+    "enable_two_way_voice_claim": false,
+    "enable_payments": false
+  },
   "landing": {
     "seo": {
       "title": "HALO Launch — Reliable Elder Care",
