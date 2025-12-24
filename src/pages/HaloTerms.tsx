@@ -1,27 +1,25 @@
 import Seo from '../components/Seo';
+import haloContent from '../content/halo.json';
 
 const HaloTerms = () => {
+  const { terms } = haloContent;
   return (
     <div className="container section">
-      <Seo
-        title="Terms — HALO — Reliable Elder Care"
-        description="Terms of sale and site use (placeholder pending legal review)."
-      />
+      <Seo title={terms.seo.title} description={terms.seo.description} />
       <div style={{ display: 'grid', gap: '1.5rem' }}>
         <section style={{ textAlign: 'center' }}>
           <p className="badge" style={{ marginBottom: '0.5rem' }}>
-            HALO Terms
+            {terms.badge}
           </p>
-          <h2 style={{ margin: 0 }}>Terms</h2>
+          <h2 style={{ margin: 0 }}>{terms.title}</h2>
         </section>
 
-        <section className="card">
-          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Terms</h3>
-          <p>
-            These terms are a launch placeholder pending legal review. Use final approved terms before scaling
-            paid traffic.
-          </p>
-        </section>
+        {terms.body_blocks.map((block) => (
+          <section className="card" key={block.title}>
+            <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{block.title}</h3>
+            <p>{block.body}</p>
+          </section>
+        ))}
       </div>
     </div>
   );

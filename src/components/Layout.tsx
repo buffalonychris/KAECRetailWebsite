@@ -24,6 +24,7 @@ const learnLinks: NavItem[] = [
 
 const haloLinks: NavItem[] = [
   { path: '/halo', label: 'HALO Launch' },
+  { path: '/halo/checkout', label: 'HALO Checkout' },
   { path: '/halo-pushbutton', label: 'HALO Pushbutton' },
   { path: '/halo-package', label: 'HALO Package' },
 ];
