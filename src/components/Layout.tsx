@@ -218,6 +218,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <small>
             Features and availability may vary by property conditions and local code requirements.
           </small>
+          {import.meta.env.DEV && (
             <div className="footer-tools">
               <small>Tools:</small>
               <div className="footer-tool-links">
@@ -227,6 +228,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <NavLink to="/payment-processing">Payment processing</NavLink>
               </div>
             </div>
+          )}
         </div>
       </footer>
     </div>

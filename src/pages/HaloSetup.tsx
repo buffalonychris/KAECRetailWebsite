@@ -49,6 +49,14 @@ const formatTimestamp = (timestamp?: string) => {
   return new Date(timestamp).toLocaleString();
 };
 
+const sanitizeContacts = (entries: ContactEntry[]) =>
+  entries
+    .filter((contact) => contact.phone.trim() || contact.email.trim())
+    .map((contact) => ({
+      ...contact,
+      name: contact.name.trim() || 'Contact',
+    }));
+
 const HaloSetup = () => {
   const { setup } = haloContent;
   const { wizard } = setup;
@@ -123,7 +131,8 @@ const HaloSetup = () => {
 
   const visibleTests = useMemo(() => getVisibleTests(testItems, flags, addons), [addons, flags, testItems]);
 
-  const hasUsableContact = contacts.some((contact) => contact.phone.trim() || contact.email.trim());
+  const sanitizedContacts = useMemo(() => sanitizeContacts(contacts), [contacts]);
+  const hasUsableContact = sanitizedContacts.length > 0;
   const anyNotificationMethodEnabled = flags.enableSms || flags.enableEmail || flags.enablePush;
   const statusLabels = wizard.steps.summary.status_labels as Record<TestStatus, string>;
 
@@ -208,6 +217,17 @@ const HaloSetup = () => {
     link.download = 'halo-test-summary.json';
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1) {
+      const nextContacts = sanitizeContacts(contacts);
+      if (!nextContacts.length) {
+        return;
+      }
+      setContacts(nextContacts);
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, stepCount - 1));
   };
 
   return (
@@ -437,9 +457,9 @@ const HaloSetup = () => {
                   <div>
                     <strong>{wizard.steps.contacts.title}</strong>
                     <ul style={{ margin: '0.35rem 0 0', paddingLeft: '1rem' }}>
-                      {contacts.map((contact) => (
+                      {sanitizedContacts.map((contact) => (
                         <li key={contact.id}>
-                          {contact.name || 'Unnamed contact'} — {contact.phone || 'No phone'} / {contact.email || 'No email'}
+                          {contact.name} — {contact.phone || 'No phone'} / {contact.email || 'No email'}
                         </li>
                       ))}
                     </ul>
@@ -563,7 +583,7 @@ const HaloSetup = () => {
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => setCurrentStep((prev) => Math.min(prev + 1, stepCount - 1))}
+              onClick={handleNext}
               disabled={currentStep >= stepCount - 1 || !canMoveNext()}
             >
               {wizard.navigation.next}
