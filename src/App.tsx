@@ -3,6 +3,10 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 
 const Home = lazy(() => import('./pages/Home'));
+const RetailLanding = lazy(() => import('./pages/RetailLanding'));
+const HomeSecurity = lazy(() => import('./pages/HomeSecurity'));
+const HomeAutomation = lazy(() => import('./pages/HomeAutomation'));
+const ElderCare = lazy(() => import('./pages/ElderCare'));
 const Packages = lazy(() => import('./pages/Packages'));
 const PackageDetail = lazy(() => import('./pages/PackageDetail'));
 const Comparison = lazy(() => import('./pages/Comparison'));
@@ -65,7 +69,8 @@ const App = () => {
         }
       >
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<RetailLanding />} />
+          <Route path="/halo-splash" element={<Home />} />
           <Route path="/packages" element={<Packages />} />
           <Route path="/packages/:id" element={<PackageDetail />} />
           <Route path="/comparison" element={<Comparison />} />
@@ -105,6 +110,9 @@ const App = () => {
           <Route path="/lp/family" element={<FamilyLanding />} />
           <Route path="/lp/agency" element={<AgencyLanding />} />
           <Route path="/halo" element={<HaloLanding />} />
+          <Route path="/home-security" element={<HomeSecurity />} />
+          <Route path="/home-automation" element={<HomeAutomation />} />
+          <Route path="/elder-care" element={<ElderCare />} />
           <Route path="/halo/setup" element={<HaloSetup />} />
           <Route path="/halo/support" element={<HaloSupport />} />
           <Route path="/halo/privacy" element={<HaloPrivacy />} />

@@ -29,7 +29,15 @@ const haloLinks: NavItem[] = [
   { path: '/halo-package', label: 'HALO Package' },
 ];
 
+const systemsLinks: NavItem[] = [
+  { path: '/halo', label: 'HALO' },
+  { path: '/home-security', label: 'Home Security Systems' },
+  { path: '/home-automation', label: 'Home Automation Systems' },
+  { path: '/elder-care', label: 'Elder Care System' },
+];
+
 const primaryLinks: (NavItem | DropdownItem)[] = [
+  { label: 'Systems', items: systemsLinks },
   { label: 'HALO', items: haloLinks },
   { label: 'Learn', items: learnLinks },
 ];
@@ -38,6 +46,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [learnOpen, setLearnOpen] = useState(false);
   const [haloOpen, setHaloOpen] = useState(false);
+  const [systemsOpen, setSystemsOpen] = useState(false);
   const navRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
@@ -63,6 +72,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       setMobileOpen(false);
       setLearnOpen(false);
       setHaloOpen(false);
+      setSystemsOpen(false);
     }
   };
 
@@ -76,6 +86,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       if (navRef.current && !navRef.current.contains(event.target as Node)) {
         setLearnOpen(false);
         setHaloOpen(false);
+        setSystemsOpen(false);
       }
     };
     document.addEventListener('mousedown', onClickOutside);
@@ -90,6 +101,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     setMobileOpen(false);
     setLearnOpen(false);
     setHaloOpen(false);
+    setSystemsOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -104,12 +116,27 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     () => haloLinks.some((link) => location.pathname.startsWith(link.path)),
     [location.pathname]
   );
+  const isSystemsActive = useMemo(
+    () => systemsLinks.some((link) => location.pathname.startsWith(link.path)),
+    [location.pathname]
+  );
+
+  const dropdownState = useMemo(
+    () => ({
+      Systems: { isOpen: systemsOpen, setOpen: setSystemsOpen, isActive: isSystemsActive },
+      HALO: { isOpen: haloOpen, setOpen: setHaloOpen, isActive: isHaloActive },
+      Learn: { isOpen: learnOpen, setOpen: setLearnOpen, isActive: isLearnActive },
+    }),
+    [haloOpen, learnOpen, systemsOpen, isHaloActive, isLearnActive, isSystemsActive]
+  );
 
   const renderNavLink = (item: NavItem) => (
     <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
       {item.label}
     </NavLink>
   );
+
+  const noopSetOpen: React.Dispatch<React.SetStateAction<boolean>> = () => undefined;
 
   return (
     <div>
@@ -139,10 +166,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <nav className="nav-links" aria-label="Main navigation">
               {navLinks.map((link) => {
                 if ('items' in link) {
-                  const isHalo = link.label === 'HALO';
-                  const isOpen = isHalo ? haloOpen : learnOpen;
-                  const isActive = isHalo ? isHaloActive : isLearnActive;
-                  const setOpen = isHalo ? setHaloOpen : setLearnOpen;
+                  const dropdown = dropdownState[link.label as keyof typeof dropdownState];
+                  const isOpen = dropdown?.isOpen ?? false;
+                  const isActive = dropdown?.isActive ?? false;
+                  const setOpen = dropdown?.setOpen ?? noopSetOpen;
                   return (
                     <div key={link.label} className="dropdown">
                       <button
