@@ -312,6 +312,46 @@ header.hide-when-print {
   color: var(--kaec-text-subtle);
 }
 
+.footer-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.footer-heading {
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  color: #fff7e6;
+}
+
+.footer-links {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.footer-links a {
+  color: var(--kaec-text);
+}
+
+.footer-note {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--kaec-text-subtle);
+}
+
+.footer-meta {
+  margin-top: 1.5rem;
+}
+
+.sitewide-notice {
+  background: rgba(56, 189, 248, 0.08);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  color: var(--kaec-text);
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+}
+
 .nav {
   display: flex;
   align-items: center;

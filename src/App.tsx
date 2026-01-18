@@ -57,6 +57,12 @@ const VendorStandards = lazy(() => import('./pages/VendorStandards'));
 const VendorEvaluationToolkit = lazy(() => import('./pages/VendorEvaluationToolkit'));
 const VendorQuestionnaire = lazy(() => import('./pages/VendorQuestionnaire'));
 const VendorApply = lazy(() => import('./pages/VendorApply'));
+const NeverMissAnotherEstimate = lazy(() => import('./pages/NeverMissAnotherEstimate'));
+const Demo = lazy(() => import('./pages/Demo'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const FiveDayDemo = lazy(() => import('./pages/FiveDayDemo'));
+const Partners = lazy(() => import('./pages/Partners'));
+const Support = lazy(() => import('./pages/Support'));
 
 const App = () => {
   return (
@@ -125,6 +131,12 @@ const App = () => {
           <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
           <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
           <Route path="/vendors/apply" element={<VendorApply />} />
+          <Route path="/never-miss-another-estimate" element={<NeverMissAnotherEstimate />} />
+          <Route path="/demo" element={<Demo />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/5-day-demo" element={<FiveDayDemo />} />
+          <Route path="/partners" element={<Partners />} />
+          <Route path="/support" element={<Support />} />
         </Routes>
       </Suspense>
     </Layout>

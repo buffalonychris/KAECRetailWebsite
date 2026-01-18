@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
@@ -8,58 +8,18 @@ type NavItem = {
   label: string;
 };
 
-type DropdownItem = {
-  label: string;
-  items: NavItem[];
-};
-
-const learnLinks: NavItem[] = [
-  { path: '/faq', label: 'FAQ Library' },
-  { path: '/privacy', label: 'Privacy' },
-  { path: '/terms', label: 'Terms' },
-  { path: '/contact', label: 'Contact' },
-  { path: '/reliability', label: 'Offline Reliability' },
-  { path: '/vendors', label: 'Vendors' },
-];
-
-const haloLinks: NavItem[] = [
-  { path: '/halo', label: 'HALO Launch' },
-  { path: '/halo/checkout', label: 'HALO Checkout' },
-  { path: '/halo-pushbutton', label: 'HALO Pushbutton' },
-  { path: '/halo-package', label: 'HALO Package' },
-];
-
-const systemsLinks: NavItem[] = [
-  { path: '/halo', label: 'HALO' },
-  { path: '/home-security', label: 'Home Security Systems' },
-  { path: '/home-automation', label: 'Home Automation Systems' },
-  { path: '/elder-care', label: 'Elder Care System' },
-];
-
-const primaryLinks: (NavItem | DropdownItem)[] = [
-  { label: 'Systems', items: systemsLinks },
-  { label: 'HALO', items: haloLinks },
-  { label: 'Learn', items: learnLinks },
+const navLinks: NavItem[] = [
+  { path: '/never-miss-another-estimate', label: 'Product' },
+  { path: '/demo', label: 'Live Demo' },
+  { path: '/pricing', label: 'Pricing' },
+  { path: '/5-day-demo', label: '5-Day Demo' },
+  { path: '/partners', label: 'Partners' },
+  { path: '/support', label: 'Support' },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [learnOpen, setLearnOpen] = useState(false);
-  const [haloOpen, setHaloOpen] = useState(false);
-  const [systemsOpen, setSystemsOpen] = useState(false);
-  const navRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
-
-  const flowRoutes = useMemo(
-    () => ['/quote', '/quoteReview', '/agreement', '/agreementReview', '/payment', '/schedule'],
-    [],
-  );
-  const navMuted = useMemo(
-    () => flowRoutes.some((path) => location.pathname.startsWith(path)),
-    [flowRoutes, location.pathname],
-  );
-
-  const navLinks = primaryLinks;
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -70,9 +30,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const handleEscape = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       setMobileOpen(false);
-      setLearnOpen(false);
-      setHaloOpen(false);
-      setSystemsOpen(false);
     }
   };
 
@@ -82,74 +39,29 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    const onClickOutside = (event: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(event.target as Node)) {
-        setLearnOpen(false);
-        setHaloOpen(false);
-        setSystemsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
-
-  useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
   }, [mobileOpen]);
 
   useEffect(() => {
     setMobileOpen(false);
-    setLearnOpen(false);
-    setHaloOpen(false);
-    setSystemsOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
     captureUtmParams({ search: location.search, pathname: location.pathname });
   }, [location.pathname, location.search]);
 
-  const isLearnActive = useMemo(
-    () => learnLinks.some((link) => location.pathname.startsWith(link.path)),
-    [location.pathname]
-  );
-  const isHaloActive = useMemo(
-    () => haloLinks.some((link) => location.pathname.startsWith(link.path)),
-    [location.pathname]
-  );
-  const isSystemsActive = useMemo(
-    () => systemsLinks.some((link) => location.pathname.startsWith(link.path)),
-    [location.pathname]
-  );
-
-  const dropdownState = useMemo(
-    () => ({
-      Systems: { isOpen: systemsOpen, setOpen: setSystemsOpen, isActive: isSystemsActive },
-      HALO: { isOpen: haloOpen, setOpen: setHaloOpen, isActive: isHaloActive },
-      Learn: { isOpen: learnOpen, setOpen: setLearnOpen, isActive: isLearnActive },
-    }),
-    [haloOpen, learnOpen, systemsOpen, isHaloActive, isLearnActive, isSystemsActive]
-  );
-
-  const renderNavLink = (item: NavItem) => (
-    <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
-      {item.label}
-    </NavLink>
-  );
-
-  const noopSetOpen: React.Dispatch<React.SetStateAction<boolean>> = () => undefined;
-
   return (
     <div>
       <Seo />
-      <header className={`hide-when-print ${navMuted ? 'flow-nav-muted' : ''}`}>
-        <div className="container nav" ref={navRef}>
-          <NavLink to="/" className="brand" aria-label="KickAss Elder Care home">
+      <header className="hide-when-print">
+        <div className="container nav">
+          <NavLink to="/" className="brand" aria-label="Never Miss Another Estimate home">
             <div className="brand-mark" aria-hidden="true">
-              KA
+              NM
             </div>
             <div>
-              <div className="brand-name">KickAss Elder Care</div>
-              <small className="brand-tagline">Local-first safety packages</small>
+              <div className="brand-name">Never Miss Another Estimate</div>
+              <small className="brand-tagline">24/7 Estimate Scheduling Assistant</small>
             </div>
           </NavLink>
           <div className="nav-actions">
@@ -164,43 +76,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <span />
             </button>
             <nav className="nav-links" aria-label="Main navigation">
-              {navLinks.map((link) => {
-                if ('items' in link) {
-                  const dropdown = dropdownState[link.label as keyof typeof dropdownState];
-                  const isOpen = dropdown?.isOpen ?? false;
-                  const isActive = dropdown?.isActive ?? false;
-                  const setOpen = dropdown?.setOpen ?? noopSetOpen;
-                  return (
-                    <div key={link.label} className="dropdown">
-                      <button
-                        className={`dropdown-trigger ${isActive || isOpen ? 'active' : ''}`}
-                        aria-expanded={isOpen}
-                        aria-haspopup="true"
-                        onClick={() => setOpen((prev) => !prev)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            setOpen((prev) => !prev);
-                          }
-                        }}
-                      >
-                        {link.label}
-                      </button>
-                      {isOpen && (
-                        <div className="dropdown-menu" role="menu">
-                          {link.items.map((item) => (
-                            <NavLink key={item.path} to={item.path} role="menuitem">
-                              {item.label}
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                return renderNavLink(link);
-              })}
+              {navLinks.map((item) => (
+                <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
+                  {item.label}
+                </NavLink>
+              ))}
             </nav>
+            <NavLink className="btn btn-primary nav-cta" to="/demo">
+              See a Live Demo
+            </NavLink>
           </div>
         </div>
         {mobileOpen && (
@@ -212,50 +96,57 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="mobile-menu-inner">
               <div className="mobile-links" role="menu">
-                {navLinks.map((link) => {
-                  if ('items' in link) {
-                    return (
-                      <details key={link.label} open>
-                        <summary>{link.label}</summary>
-                        <div className="mobile-dropdown" role="group">
-                          {link.items.map((item) => renderNavLink(item))}
-                        </div>
-                      </details>
-                    );
-                  }
-                  return renderNavLink(link);
-                })}
+                {navLinks.map((item) => (
+                  <NavLink key={item.path} to={item.path} role="menuitem">
+                    {item.label}
+                  </NavLink>
+                ))}
+                <NavLink className="btn btn-primary" to="/demo">
+                  See a Live Demo
+                </NavLink>
               </div>
             </div>
           </div>
         )}
       </header>
+      <div className="sitewide-notice" role="status">
+        No pricing, guarantees, or promises are given by the assistant.
+      </div>
       <main>{children}</main>
       <footer className="footer hide-when-print">
-        <div className="container" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div style={{ fontWeight: 700, color: '#fff7e6' }}>Sitewide notices</div>
-          <small>
-            © 2025 KickAss Inc. All Rights Reserved. Unauthorized use is prohibited.
-          </small>
-          <small>
-            “KickAss” and “KickAss Elder Care” are trademarks of KickAss Inc. (VERIFY)
-          </small>
-          <small>Home Assistant is a trademark of its respective owner.</small>
-          <small>This website is for informational purposes and does not provide medical advice.</small>
-          <small>
-            Features and availability may vary by property conditions and local code requirements.
-          </small>
-          {import.meta.env.DEV && (
-            <div className="footer-tools">
-              <small>Tools:</small>
-              <div className="footer-tool-links">
-                <NavLink to="/uat">UAT</NavLink>
-                <NavLink to="/launchUat">Launch UAT</NavLink>
-                <NavLink to="/certificate">Certificate</NavLink>
-                <NavLink to="/payment-processing">Payment processing</NavLink>
-              </div>
+        <div className="container footer-grid">
+          <div>
+            <div className="footer-heading">Product</div>
+            <div className="footer-links">
+              <NavLink to="/never-miss-another-estimate">Never Miss Another Estimate</NavLink>
+              <NavLink to="/demo">Request Demo</NavLink>
+              <NavLink to="/pricing">View Pricing</NavLink>
+              <NavLink to="/5-day-demo">Start Free 5-Day Demo</NavLink>
+              <NavLink to="/partners">Become a Partner</NavLink>
             </div>
-          )}
+          </div>
+          <div>
+            <div className="footer-heading">Actions</div>
+            <div className="footer-links">
+              <NavLink to="/pricing">Purchase / Start Plan</NavLink>
+              <NavLink to="/demo#mailing-list">Join Mailing List</NavLink>
+              <NavLink to="/support">Contact Support</NavLink>
+            </div>
+          </div>
+          <div>
+            <div className="footer-heading">Legal</div>
+            <div className="footer-links">
+              <NavLink to="/privacy">Privacy Policy</NavLink>
+              <NavLink to="/terms">Terms &amp; Conditions</NavLink>
+              <NavLink to="/support">Support</NavLink>
+            </div>
+            <small className="footer-note">
+              No pricing, guarantees, or promises are given by the assistant.
+            </small>
+          </div>
+        </div>
+        <div className="container footer-meta">
+          <small>© 2025 KickAss Inc. All Rights Reserved.</small>
         </div>
       </footer>
     </div>
