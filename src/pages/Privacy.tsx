@@ -1,33 +1,44 @@
 const Privacy = () => (
-  <div className="container section">
-    <h2 style={{ marginTop: 0 }}>Privacy</h2>
-    <p>
-      We use Home Assistant as the single control platform so you know exactly where your data is
-      flowing. Local recording is prioritized wherever possible.
-    </p>
-    <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-      <div>
-        <strong>Data minimization</strong>
-        <p style={{ margin: '0.35rem 0' }}>
-          We avoid sending footage or sensor data to third-party clouds unless you explicitly opt in
-          for remote viewing. Local storage is recommended for Reolink NVR and camera deployments.
-        </p>
-      </div>
-      <div>
-        <strong>Access control</strong>
-        <p style={{ margin: '0.35rem 0' }}>
-          Home Assistant roles keep caregivers and family on one secure platform. We recommend strong
-          passwords and multi-factor authentication where available.
-        </p>
-      </div>
-      <div>
-        <strong>Retention</strong>
-        <p style={{ margin: '0.35rem 0' }}>
-          Recording retention depends on your chosen local storage. You can adjust retention policies
-          in Home Assistant or the included NVR to match property requirements.
-        </p>
-      </div>
-    </div>
+  <div className="container section" style={{ display: 'grid', gap: '1.5rem' }}>
+    <section style={{ display: 'grid', gap: '0.75rem' }}>
+      <div className="badge">Privacy Policy</div>
+      <h1 style={{ marginTop: 0, color: '#fff7e6' }}>Privacy for the scheduling assistant</h1>
+      <p style={{ margin: 0, color: '#c8c0aa' }}>
+        This policy explains how call and text data is handled for the estimate scheduling assistant.
+      </p>
+    </section>
+
+    <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+      <h2 style={{ marginTop: 0 }}>Call recordings</h2>
+      <p style={{ margin: 0, color: '#c8c0aa' }}>
+        Calls may be recorded for quality, scheduling accuracy, and audit trail purposes. Access is limited to
+        authorized users.
+      </p>
+    </section>
+
+    <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+      <h2 style={{ marginTop: 0 }}>SMS usage</h2>
+      <p style={{ margin: 0, color: '#c8c0aa' }}>
+        SMS is used for appointment confirmations, reminders, and opt-in scheduling updates. Message rates may
+        apply based on your carrier.
+      </p>
+    </section>
+
+    <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+      <h2 style={{ marginTop: 0 }}>Data retention</h2>
+      <p style={{ margin: 0, color: '#c8c0aa' }}>
+        Scheduling interactions are retained only as long as needed for audit trails, scheduling accuracy, and
+        compliance. Retention windows are shared during onboarding.
+      </p>
+    </section>
+
+    <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+      <h2 style={{ marginTop: 0 }}>Opt-out handling</h2>
+      <p style={{ margin: 0, color: '#c8c0aa' }}>
+        Customers can opt out of SMS updates at any time. Opt-out requests are honored promptly and recorded in
+        the scheduling log.
+      </p>
+    </section>
   </div>
 );
 
