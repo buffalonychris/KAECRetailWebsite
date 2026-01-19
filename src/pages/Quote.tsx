@@ -53,6 +53,16 @@ const Quote = () => {
       .reduce((sum, addOn) => sum + addOn.price, 0);
   }, [selectedAddOns]);
 
+  const addOnGroups = useMemo(() => {
+    return addOns.reduce<Record<'Low' | 'Mid' | 'High', typeof addOns>>(
+      (groups, addOn) => {
+        groups[addOn.tier].push(addOn);
+        return groups;
+      },
+      { Low: [], Mid: [], High: [] },
+    );
+  }, []);
+
   const total = selectedPackage.basePrice + addOnTotal;
 
   const persistQuote = async () => {
@@ -281,39 +291,51 @@ const Quote = () => {
 
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="badge">Optional add-ons</div>
-          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-            {addOns.map((addOn) => {
-              const checked = selectedAddOns.includes(addOn.id);
-              return (
-                <label
-                  key={addOn.id}
-                  style={{
-                    display: 'grid',
-                    gap: '0.35rem',
-                    padding: '1rem',
-                    borderRadius: '14px',
-                    border: checked ? '1px solid var(--kaec-gold)' : '1px solid rgba(245, 192, 66, 0.25)',
-                    background: checked ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleAddOn(addOn.id)}
-                      style={{ width: '18px', height: '18px' }}
-                    />
-                    <div>
-                      <strong>{addOn.label}</strong>
-                      <div style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(addOn.price)}</div>
-                    </div>
-                  </div>
-                  <small style={{ color: '#c8c0aa' }}>{addOn.description}</small>
-                </label>
-              );
-            })}
-          </div>
+          {(['Low', 'Mid', 'High'] as const).map((tier) => (
+            <div key={tier} style={{ display: 'grid', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <strong style={{ color: '#fff7e6' }}>{tier} investment</strong>
+                <small style={{ color: '#c8c0aa' }}>
+                  {tier === 'Low' && 'Easy wins to tighten entry coverage.'}
+                  {tier === 'Mid' && 'Balanced upgrades for broader visibility.'}
+                  {tier === 'High' && 'High-tech resilience for wide footprints.'}
+                </small>
+              </div>
+              <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+                {addOnGroups[tier].map((addOn) => {
+                  const checked = selectedAddOns.includes(addOn.id);
+                  return (
+                    <label
+                      key={addOn.id}
+                      style={{
+                        display: 'grid',
+                        gap: '0.35rem',
+                        padding: '1rem',
+                        borderRadius: '14px',
+                        border: checked ? '1px solid var(--kaec-gold)' : '1px solid rgba(245, 192, 66, 0.25)',
+                        background: checked ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleAddOn(addOn.id)}
+                          style={{ width: '18px', height: '18px' }}
+                        />
+                        <div>
+                          <strong>{addOn.label}</strong>
+                          <div style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(addOn.price)}</div>
+                        </div>
+                      </div>
+                      <small style={{ color: '#c8c0aa' }}>{addOn.description}</small>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

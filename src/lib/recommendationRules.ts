@@ -30,9 +30,9 @@ const clampTierByBudget = (tier: RecommendationResult['tier'], budget: BudgetRan
 };
 
 const baseRationale: Record<RecommendationResult['tier'], string> = {
-  A1: 'Elder Care Bronze keeps essentials covered with a single Home Assistant hub and a straightforward install.',
-  A2: 'Elder Care Silver expands lighting, cameras, and alerts so caregivers can see issues sooner without more apps.',
-  A3: 'Elder Care Gold hardens the whole property with pro-grade recording, redundancy, and cellular options.',
+  A1: 'Security Basic keeps essentials covered with a single Home Assistant hub and a straightforward install.',
+  A2: 'Security Plus expands lighting, cameras, and hazard alerts so households see issues sooner without more apps.',
+  A3: 'Security Pro hardens the property with pro-grade recording, redundancy, and system health assurance.',
 };
 
 const offlineBaseline: Record<RecommendationResult['tier'], number> = {
@@ -79,19 +79,19 @@ export const buildRecommendation = (input: RecommendationInput): RecommendationR
   const suggestedAddOns: string[] = [];
 
   if (input.internetReliability !== 'good') {
-    suggestedAddOns.push('Cellular backup path for alerts when available');
+    suggestedAddOns.push('Cellular notification failover for alerts during outages');
   }
 
   if (input.homeSize === 'large') {
-    suggestedAddOns.push('Extra exterior lighting and entry sensors for wide footprints');
+    suggestedAddOns.push('Extra smart lighting circuits to cover wide entry points');
   }
 
   if (input.fallRisk !== 'low') {
-    suggestedAddOns.push('Voice-friendly panic triggers mapped to Home Assistant');
+    suggestedAddOns.push('Water leak sensors for early warning in kitchens and baths');
   }
 
   if (input.caregiverSituation === 'solo') {
-    suggestedAddOns.push('Automated daily check-ins with simple acknowledgments');
+    suggestedAddOns.push('Additional camera coverage for shared oversight');
   }
 
   const installComplexity = Math.min(
@@ -111,7 +111,7 @@ export const buildRecommendation = (input: RecommendationInput): RecommendationR
   }
 
   if (input.fallRisk !== 'low') {
-    rationaleParts.push('Adds clearer pathways and alerts to reduce fall impact.');
+    rationaleParts.push('Adds environmental alerts to reduce damage and safety risks.');
   }
 
   if (input.caregiverSituation === 'professional') {

@@ -5,11 +5,11 @@ import TierBadge from './TierBadge';
 
 const normalizeHeading = (tierId: PackageTierId, heading: string): string => {
   if (tierId === 'A1') return 'Included Features';
-  if (tierId === 'A2' && heading.toLowerCase().includes('bronze')) {
-    return 'Includes Everything in Bronze';
+  if (tierId === 'A2' && heading.toLowerCase().includes('basic')) {
+    return 'Includes Everything in Basic';
   }
-  if (tierId === 'A3' && heading.toLowerCase().includes('bronze')) {
-    return 'Includes Everything in Bronze & Silver';
+  if (tierId === 'A3' && heading.toLowerCase().includes('basic')) {
+    return 'Includes Everything in Basic & Plus';
   }
   return heading;
 };
@@ -18,11 +18,11 @@ const tierOrder: PackageTierId[] = ['A1', 'A2', 'A3'];
 
 const ComparisonLadder = () => {
   return (
-    <div className="comparison-ladder" aria-label="Elder Care comparison ladder">
+    <div className="comparison-ladder" aria-label="Security comparison ladder">
       <div className="ladder-header">
         <div>
-          <p className="badge">Bronze → Silver → Gold</p>
-          <h2 style={{ margin: '0.25rem 0' }}>Compare Elder Care tiers</h2>
+          <p className="badge">Basic → Plus → Pro</p>
+          <h2 style={{ margin: '0.25rem 0' }}>Compare security tiers</h2>
           <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
             See exactly what you gain as you move up. Pricing, package contents, and checkout flows remain
             unchanged.
@@ -88,8 +88,8 @@ const ComparisonLadder = () => {
                 >
                   Get a Quote
                 </Link>
-                {tierId === 'A2' && <small className="ladder-note">Adds Bronze coverage + Silver upgrades</small>}
-                {tierId === 'A3' && <small className="ladder-note">Includes Bronze & Silver plus Gold exclusives</small>}
+                {tierId === 'A2' && <small className="ladder-note">Adds Basic coverage + Plus upgrades</small>}
+                {tierId === 'A3' && <small className="ladder-note">Includes Basic & Plus plus Pro exclusives</small>}
               </div>
             </div>
           );

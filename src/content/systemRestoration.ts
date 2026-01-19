@@ -85,22 +85,25 @@ export const legacyMappings: LegacyMapping[] = [
 export const verticalContent: Record<string, VerticalContent> = {
   homeSecurity: {
     journeySteps: [
-      'Signal intake and property profile',
-      'Coverage design + package match',
+      'Security consult intake and property profile',
+      'Coverage design + tier match',
       'Quote and agreement confirmation',
       'Deposit capture and installation scheduling',
-      'Install, verification, and monitoring review',
+      'Install, verification, and homeowner handoff',
     ],
     agreements: [
       'Security coverage agreement',
-      'Privacy + data handling acknowledgement',
+      'Privacy-first, local data handling acknowledgement',
+      'Offline Dignity Rule confirmation (local control stays available)',
       'Deposit and scheduling gate confirmation',
       'Verification summary and handoff record',
     ],
     packageHighlights: [
-      'Local-first sensors, cameras, and perimeter deterrence',
-      'Deterministic lighting automation coverage',
-      'Caregiver notification routing',
+      'Security Basic: entry awareness, on-site lighting deterrence, and local siren response.',
+      'Security Plus: expanded perimeter visibility with environmental hazard alerts.',
+      'Security Pro: redundancy, system health assurance, and pro-grade local recording.',
+      'No subscriptions sold; optional third-party monitoring can be added directly by the homeowner.',
+      'Home Assistant remains the single dashboard for arming, sensors, lighting, and alerts.',
     ],
     playbooks: automationPlaybooks.homeSecurity,
   },

@@ -10,6 +10,7 @@ export type PackagePricing = {
 export type AddOn = {
   id: string;
   label: string;
+  tier: 'Low' | 'Mid' | 'High';
   price: number;
   description: string;
 };
@@ -17,28 +18,28 @@ export type AddOn = {
 export const packagePricing: PackagePricing[] = [
   {
     id: 'A1',
-    name: 'Elder Care Bronze',
+    name: 'Security Basic',
     basePrice: 2850,
-    summary: 'Baseline safety with Home Assistant as the single control hub.',
+    summary: 'Entry-ready protection with local-first control and offline continuity.',
   },
   {
     id: 'A2',
-    name: 'Elder Care Silver',
+    name: 'Security Plus',
     basePrice: 4950,
-    summary: 'Expanded lighting, cameras, and alerts with local-first control.',
+    summary: 'Expanded perimeter and environmental awareness with local alerts.',
   },
   {
     id: 'A3',
-    name: 'Elder Care Gold',
+    name: 'Security Pro',
     basePrice: 7750,
-    summary: 'Comprehensive coverage with redundancy and pro-grade storage.',
+    summary: 'Full-property resilience with redundancy and health assurance.',
   },
 ];
 
 const tierLabels: Record<PackageTierId, string> = {
-  A1: 'Elder Care Bronze',
-  A2: 'Elder Care Silver',
-  A3: 'Elder Care Gold',
+  A1: 'Security Basic',
+  A2: 'Security Plus',
+  A3: 'Security Pro',
 };
 
 const tierBadgeClass: Record<PackageTierId, string> = {
@@ -55,31 +56,36 @@ export const addOns: AddOn[] = [
   {
     id: 'extra-lighting',
     label: 'Extra smart lighting circuit',
+    tier: 'Low',
     price: 350,
-    description: 'Adds a dedicated pathway or night-lighting circuit.',
+    description: 'Adds a dedicated pathway circuit and automatic entry lighting. Helps deter entry and prevent trips.',
   },
   {
     id: 'additional-camera',
     label: 'Additional camera (indoor or outdoor)',
+    tier: 'Mid',
     price: 320,
-    description: 'Extends visual coverage and recording zones.',
+    description: 'Extends local video coverage for driveways or common areas. Adds visibility without cloud dependence.',
   },
   {
     id: 'water-leak-sensors',
     label: 'Water leak sensor kit',
+    tier: 'Low',
     price: 280,
-    description: 'Multipack of leak sensors for kitchens, laundry, and baths.',
+    description: 'Local alerts for kitchens, laundry, and baths. Reduces damage from silent leaks.',
   },
   {
     id: 'cellular-failover',
     label: 'Cellular notification failover',
+    tier: 'High',
     price: 540,
-    description: 'Keeps caregiver alerts flowing during internet outages.',
+    description: 'Keeps alerts moving when the internet drops. Optional third-party cellular plan contracted directly.',
   },
   {
     id: 'onsite-training',
     label: 'On-site training and handoff',
+    tier: 'Mid',
     price: 450,
-    description: 'Guided session for caregivers to use dashboards and automations.',
+    description: 'Guided session to fine-tune dashboards and automations. Ensures household confidence on day one.',
   },
 ];

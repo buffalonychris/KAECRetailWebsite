@@ -84,9 +84,9 @@ const steps = [
     title: 'Budget guardrail',
     description: 'All packages are one-time pricing. We right-size within your range.',
     options: [
-      { value: 'entry', label: 'Entry: under $3k', helper: 'Elder Care Bronze starter fit' },
-      { value: 'core', label: 'Core: $3k-$5k', helper: 'Elder Care Bronze or Silver depending on need' },
-      { value: 'expanded', label: 'Expanded: $5k-$8k', helper: 'Elder Care Silver or Gold coverage' },
+      { value: 'entry', label: 'Entry: under $3k', helper: 'Security Basic starter fit' },
+      { value: 'core', label: 'Core: $3k-$5k', helper: 'Security Basic or Plus depending on need' },
+      { value: 'expanded', label: 'Expanded: $5k-$8k', helper: 'Security Plus or Pro coverage' },
       { value: 'flexible', label: 'Flexible for the right fit', helper: 'We prioritize coverage' },
     ],
   },

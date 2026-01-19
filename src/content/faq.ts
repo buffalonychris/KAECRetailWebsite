@@ -5,24 +5,34 @@ export type FAQ = {
 
 export const faqs: FAQ[] = [
   {
-    question: 'Do I need any monthly subscription to use these packages?',
+    question: 'Do you sell subscriptions or monitoring plans?',
     answer:
-      'No. All packages are sold as one-time purchases. Core features, local recording, and automations run without required subscriptions.',
+      'No. Packages are one-time purchases. Optional third-party monitoring can be integrated directly by the customer.',
   },
   {
     question: 'What happens if the internet goes out?',
     answer:
-      'Home Assistant keeps lights, locks, and automations running locally as long as the equipment has power. Remote access may pause, but on-site control and alerts designed for local delivery continue.',
+      'Home Assistant keeps arming, sensors, lights, and siren control running locally as long as equipment has power. Remote access may pause, but on-site controls and local alerts remain.',
   },
   {
     question: 'Which app do I use?',
     answer:
-      'Home Assistant is the single control platform. We configure your dashboard so caregivers, family, and residents see one clear set of controls.',
+      'Home Assistant is the single control platform. We configure one dashboard for the household and the roles you authorize.',
+  },
+  {
+    question: 'Who owns the equipment and data?',
+    answer:
+      'You do. The hardware, automations, and local data belong to the customer, and access is controlled by the homeowner.',
   },
   {
     question: 'Can I add on to a package later?',
     answer:
-      'Yes. We can extend lighting, cameras, sensors, and automations over time while keeping Home Assistant as the hub.',
+      'Yes. You can extend lighting, cameras, sensors, and automations over time while keeping Home Assistant as the hub.',
+  },
+  {
+    question: 'How do you keep the system privacy-first?',
+    answer:
+      'Core functions stay local. Video and sensor data can be stored on-site, and cloud services are optional rather than required.',
   },
   {
     question: 'Do you support Reolink cameras?',
