@@ -1,6 +1,8 @@
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import { verticalContent } from '../content/systemRestoration';
 
 const HaloLanding = () => {
+  const content = verticalContent.halo;
   return (
     <VerticalLandingShell
       verticalName="HALO PERS"
@@ -20,6 +22,10 @@ const HaloLanding = () => {
         'Local alerting paths that stay active during connectivity loss.',
         'Operational reporting to keep families and teams aligned.',
       ]}
+      journeySteps={content.journeySteps}
+      agreementHighlights={content.agreements}
+      packageHighlights={content.packageHighlights}
+      playbooks={content.playbooks}
     />
   );
 };

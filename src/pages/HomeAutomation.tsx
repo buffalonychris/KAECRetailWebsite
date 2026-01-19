@@ -1,6 +1,8 @@
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import { verticalContent } from '../content/systemRestoration';
 
 const HomeAutomation = () => {
+  const content = verticalContent.homeAutomation;
   return (
     <VerticalLandingShell
       verticalName="Home Automation"
@@ -20,6 +22,10 @@ const HomeAutomation = () => {
         'Energy-aware routines for lighting, climate, and comfort systems.',
         'Integration roadmaps that prioritize reliability over novelty.',
       ]}
+      journeySteps={content.journeySteps}
+      agreementHighlights={content.agreements}
+      packageHighlights={content.packageHighlights}
+      playbooks={content.playbooks}
     />
   );
 };

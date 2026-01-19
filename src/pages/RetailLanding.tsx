@@ -15,6 +15,7 @@ import SectionHeader from '../components/operator/SectionHeader';
 import SpaceFrame from '../components/operator/SpaceFrame';
 import DeviceFrame from '../components/ui/DeviceFrame';
 import { brandSite } from '../lib/brand';
+import { legacyMappings, systemInventory } from '../content/systemRestoration';
 
 const signalTrend = [
   { week: 'W1', requests: 28 },
@@ -123,6 +124,51 @@ const RetailLanding = () => {
             </ResponsiveContainer>
           </ChartCard>
         </DeviceFrame>
+
+        <div className="space-grid two-column">
+          <SpaceFrame>
+            <div className="badge">System inventory</div>
+            <h2>Restored pages, agreements, and logic</h2>
+            <ul className="operator-list">
+              {systemInventory.pages.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <ul className="operator-list" style={{ marginTop: '1rem' }}>
+              {systemInventory.agreements.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <ul className="operator-list" style={{ marginTop: '1rem' }}>
+              {systemInventory.systemLogic.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </SpaceFrame>
+          <SpaceFrame>
+            <div className="badge">Legacy mapping</div>
+            <h2>Legacy content mapped to current architecture</h2>
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {legacyMappings.map((mapping) => (
+                <div className="card" key={mapping.legacyItem}>
+                  <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{mapping.legacyItem}</h3>
+                  <p style={{ margin: '0.35rem 0', color: '#c8c0aa' }}>{mapping.currentLocation}</p>
+                  <small style={{ color: '#c8c0aa' }}>{mapping.notes}</small>
+                </div>
+              ))}
+            </div>
+          </SpaceFrame>
+        </div>
+
+        <SpaceFrame>
+          <div className="badge">Intake journeys</div>
+          <h2>End-to-end journeys restored</h2>
+          <ul className="operator-list">
+            {systemInventory.intakeJourneys.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </SpaceFrame>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import { verticalContent } from '../content/systemRestoration';
 
 const ElderCare = () => {
+  const content = verticalContent.elderCare;
   return (
     <VerticalLandingShell
       verticalName="Elder Care Tech"
@@ -20,6 +22,10 @@ const ElderCare = () => {
         'Daily living signals that focus on support, not surveillance.',
         'Configurable check-in workflows for families and care teams.',
       ]}
+      journeySteps={content.journeySteps}
+      agreementHighlights={content.agreements}
+      packageHighlights={content.packageHighlights}
+      playbooks={content.playbooks}
     />
   );
 };
