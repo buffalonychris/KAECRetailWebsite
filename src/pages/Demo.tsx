@@ -1,5 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+
+import ChartCard from '../components/operator/ChartCard';
+import KpiTile from '../components/operator/KpiTile';
+import SectionHeader from '../components/operator/SectionHeader';
+import SpaceFrame from '../components/operator/SpaceFrame';
 
 type QuizState = {
   trade: string;
@@ -16,6 +30,14 @@ const missedCallFactor: Record<string, number> = {
   '16-30': 0.2,
   '31+': 0.3,
 };
+
+const demoTrend = [
+  { week: 'W1', captured: 8 },
+  { week: 'W2', captured: 12 },
+  { week: 'W3', captured: 11 },
+  { week: 'W4', captured: 15 },
+  { week: 'W5', captured: 14 },
+];
 
 const Demo = () => {
   const [quiz, setQuiz] = useState<QuizState>({
@@ -34,7 +56,10 @@ const Demo = () => {
     const avgValue = Number(quiz.averageJobValue || 0);
     const factor = missedCallFactor[quiz.missedCalls] ?? 0.1;
     const roi = estimates * avgValue * factor;
-    const roiRange = roi > 0 ? `$${Math.round(roi * 0.8).toLocaleString()} - $${Math.round(roi * 1.2).toLocaleString()}` : 'Complete the quiz to see an estimate.';
+    const roiRange =
+      roi > 0
+        ? `$${Math.round(roi * 0.8).toLocaleString()} - $${Math.round(roi * 1.2).toLocaleString()}`
+        : 'Complete the quiz to see an example range.';
     const level = roi >= 5000 ? 'high' : 'low';
     return {
       roiRange,
@@ -45,6 +70,15 @@ const Demo = () => {
       escalations: estimates > 0 ? Math.max(1, Math.round(estimates * 0.05)) : 0,
     };
   }, [quiz]);
+
+  const profile = {
+    trade: quiz.trade || 'General contractor',
+    calendar: quiz.calendar || 'Calendar pending',
+    crm: quiz.crm || 'None selected',
+    missedCalls: quiz.missedCalls || 'Range not selected',
+    estimatesPerMonth: quiz.estimatesPerMonth || '—',
+    averageJobValue: quiz.averageJobValue || '—',
+  };
 
   const handleChange = (field: keyof QuizState) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setQuiz((prev) => ({
@@ -61,169 +95,197 @@ const Demo = () => {
   };
 
   return (
-    <div className="container section" style={{ display: 'grid', gap: '2rem' }}>
-      <section style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="badge">Interactive Demo</div>
-        <h1 style={{ margin: 0, color: '#fff7e6' }}>QuickFit Quiz (30–60 seconds)</h1>
-        <p style={{ margin: 0, color: '#c8c0aa' }}>
-          Tell us a little about your estimate flow and see a personalized preview of the assistant in action.
-        </p>
-      </section>
+    <div className="space-shell">
+      <div className="container section space-grid">
+        <SectionHeader
+          kicker="Interactive Demo"
+          title="QuickFit Quiz (30–60 seconds)"
+          subtitle="Tell us a little about your estimate flow and see a personalized preview of the assistant in action."
+        />
 
-      <section className="card" style={{ display: 'grid', gap: '1rem' }}>
-        <div className="form">
-          <label>
-            Trade
-            <select value={quiz.trade} onChange={handleChange('trade')}>
-              <option value="">Select your trade</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="hvac">HVAC</option>
-              <option value="electrical">Electrical</option>
-              <option value="remodeling">Remodeling</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label>
-            Calendar type
-            <select value={quiz.calendar} onChange={handleChange('calendar')}>
-              <option value="">Select a calendar</option>
-              <option value="google">Google Calendar</option>
-              <option value="apple">Apple Calendar</option>
-              <option value="outlook">Outlook / Office 365</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label>
-            CRM (optional)
-            <select value={quiz.crm} onChange={handleChange('crm')}>
-              <option value="">None / Not sure</option>
-              <option value="jobber">Jobber</option>
-              <option value="servicetitan">ServiceTitan</option>
-              <option value="salesforce">Salesforce</option>
-              <option value="hubspot">HubSpot</option>
-            </select>
-          </label>
-          <label>
-            Missed call frequency
-            <select value={quiz.missedCalls} onChange={handleChange('missedCalls')}>
-              <option value="">Select range</option>
-              <option value="0-5">0-5 per week</option>
-              <option value="6-15">6-15 per week</option>
-              <option value="16-30">16-30 per week</option>
-              <option value="31+">31+ per week</option>
-            </select>
-          </label>
-          <label>
-            Estimates per month
-            <input
-              type="number"
-              min="0"
-              value={quiz.estimatesPerMonth}
-              onChange={handleChange('estimatesPerMonth')}
-              placeholder="e.g. 40"
-            />
-          </label>
-          <label>
-            Average job value
-            <input
-              type="number"
-              min="0"
-              value={quiz.averageJobValue}
-              onChange={handleChange('averageJobValue')}
-              placeholder="e.g. 2500"
-            />
-          </label>
+        <SpaceFrame>
+          <div className="form">
+            <label>
+              Trade
+              <select value={quiz.trade} onChange={handleChange('trade')}>
+                <option value="">Select your trade</option>
+                <option value="plumbing">Plumbing</option>
+                <option value="hvac">HVAC</option>
+                <option value="electrical">Electrical</option>
+                <option value="remodeling">Remodeling</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Calendar type
+              <select value={quiz.calendar} onChange={handleChange('calendar')}>
+                <option value="">Select a calendar</option>
+                <option value="google">Google Calendar</option>
+                <option value="apple">Apple Calendar</option>
+                <option value="outlook">Outlook / Office 365</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              CRM (optional)
+              <select value={quiz.crm} onChange={handleChange('crm')}>
+                <option value="">None / Not sure</option>
+                <option value="jobber">Jobber</option>
+                <option value="servicetitan">ServiceTitan</option>
+                <option value="salesforce">Salesforce</option>
+                <option value="hubspot">HubSpot</option>
+              </select>
+            </label>
+            <label>
+              Missed call frequency
+              <select value={quiz.missedCalls} onChange={handleChange('missedCalls')}>
+                <option value="">Select range</option>
+                <option value="0-5">0-5 per week</option>
+                <option value="6-15">6-15 per week</option>
+                <option value="16-30">16-30 per week</option>
+                <option value="31+">31+ per week</option>
+              </select>
+            </label>
+            <label>
+              Estimates per month
+              <input
+                type="number"
+                min="0"
+                value={quiz.estimatesPerMonth}
+                onChange={handleChange('estimatesPerMonth')}
+                placeholder="e.g. 40"
+              />
+            </label>
+            <label>
+              Average job value
+              <input
+                type="number"
+                min="0"
+                value={quiz.averageJobValue}
+                onChange={handleChange('averageJobValue')}
+                placeholder="e.g. 2500"
+              />
+            </label>
+          </div>
+        </SpaceFrame>
+
+        <div className="space-grid two-column">
+          <SpaceFrame>
+            <h2>Profile summary</h2>
+            <ul className="operator-list">
+              <li>Trade focus: {profile.trade}</li>
+              <li>Calendar: {profile.calendar}</li>
+              <li>CRM: {profile.crm}</li>
+              <li>Missed calls: {profile.missedCalls}</li>
+              <li>Estimates per month: {profile.estimatesPerMonth}</li>
+              <li>Average job value: {profile.averageJobValue}</li>
+            </ul>
+            <small className="chart-helper">Example / demo data for illustration only.</small>
+          </SpaceFrame>
+
+          <ChartCard title="After-hours capture trend" subtitle="Example trend based on similar profiles">
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={demoTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
+                <XAxis dataKey="week" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgba(15, 23, 42, 0.95)',
+                    borderColor: 'rgba(125, 211, 252, 0.35)',
+                    color: '#e2e8f0',
+                  }}
+                />
+                <Area type="monotone" dataKey="captured" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartCard>
         </div>
-      </section>
 
-      <section className="card" style={{ display: 'grid', gap: '1rem' }}>
-        <h2 style={{ marginTop: 0 }}>Personalized Owner Dashboard Preview</h2>
-        <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-          <div className="card" style={{ padding: '1rem' }}>
-            <strong>Estimates booked (today)</strong>
-            <div style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{estimateMetrics.bookedToday}</div>
-          </div>
-          <div className="card" style={{ padding: '1rem' }}>
-            <strong>Estimates booked (yesterday)</strong>
-            <div style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{estimateMetrics.bookedYesterday}</div>
-          </div>
-          <div className="card" style={{ padding: '1rem' }}>
-            <strong>After-hours calls captured</strong>
-            <div style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{estimateMetrics.afterHoursCaptured}</div>
-          </div>
-          <div className="card" style={{ padding: '1rem' }}>
-            <strong>Escalations</strong>
-            <div style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>{estimateMetrics.escalations}</div>
-          </div>
-          <div className="card" style={{ padding: '1rem' }}>
-            <strong>Estimated ROI range</strong>
-            <div style={{ fontSize: '1.1rem', marginTop: '0.5rem' }}>{estimateMetrics.roiRange}</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <h2 style={{ marginTop: 0 }}>Next steps</h2>
-        {estimateMetrics.level === 'high' ? (
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Your inputs indicate a strong fit. Book a demo or start a pilot to see the assistant live.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <Link className="btn btn-primary" to="/5-day-demo">
-                Book Demo / Start Pilot
-              </Link>
-              <Link className="btn btn-secondary" to="/pricing">
-                View Pricing
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Your inputs suggest a lighter ROI right now. Review pricing or stay in the loop as you grow.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-              <Link className="btn btn-primary" to="/pricing">
-                See Pricing
-              </Link>
-              <a className="btn btn-secondary" href="#mailing-list">
-                Join Mailing List
-              </a>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section id="mailing-list" className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <h2 style={{ marginTop: 0 }}>Join the mailing list</h2>
-        <p style={{ margin: 0, color: '#c8c0aa' }}>
-          Get product updates, demo availability, and launch notes. No spam, and you can opt out anytime.
-        </p>
-        <form onSubmit={handleMailingListSubmit} className="form" style={{ maxWidth: '420px' }}>
-          <label>
-            Email address
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setSubmitted(false);
-              }}
-              placeholder="you@company.com"
-              required
+        <SpaceFrame>
+          <h2>Personalized Owner Dashboard Preview</h2>
+          <div className="space-grid three-column" style={{ marginTop: '1rem' }}>
+            <KpiTile label="Estimates booked (today)" value={estimateMetrics.bookedToday} footer="Example / demo data" />
+            <KpiTile
+              label="Estimates booked (yesterday)"
+              value={estimateMetrics.bookedYesterday}
+              footer="Example / demo data"
             />
-          </label>
-          <small style={{ color: '#c8c0aa' }}>
-            By submitting, you agree to receive emails about the estimate scheduling assistant. We do not auto-
-            enroll you in paid plans.
-          </small>
-          <button className="btn btn-primary" type="submit">
-            Join Mailing List
-          </button>
-          {submitted && <small style={{ color: '#7dd3fc' }}>Thanks — you are on the list.</small>}
-        </form>
-      </section>
+            <KpiTile
+              label="After-hours calls captured"
+              value={estimateMetrics.afterHoursCaptured}
+              footer="Example / demo data"
+            />
+            <KpiTile label="Escalations" value={estimateMetrics.escalations} footer="Example / demo data" />
+            <KpiTile
+              label="Estimated ROI range (example)"
+              value={estimateMetrics.roiRange}
+              footer="Example / demo data"
+            />
+          </div>
+        </SpaceFrame>
+
+        <SpaceFrame>
+          <h2>Next steps</h2>
+          {estimateMetrics.level === 'high' ? (
+            <div className="space-grid">
+              <p>
+                Your inputs indicate a strong fit. Book a demo or start a pilot to see the assistant live.
+              </p>
+              <div className="space-section-actions">
+                <Link className="btn btn-primary" to="/5-day-demo">
+                  Book Demo / Start Pilot
+                </Link>
+                <Link className="btn btn-secondary" to="/pricing">
+                  View Pricing
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-grid">
+              <p>
+                Your inputs suggest a lighter ROI right now. Review pricing or stay in the loop as you grow.
+              </p>
+              <div className="space-section-actions">
+                <Link className="btn btn-primary" to="/pricing">
+                  See Pricing
+                </Link>
+                <a className="btn btn-secondary" href="#mailing-list">
+                  Join Mailing List
+                </a>
+              </div>
+            </div>
+          )}
+        </SpaceFrame>
+
+        <SpaceFrame as="section" id="mailing-list">
+          <h2>Join the mailing list</h2>
+          <p>Get product updates, demo availability, and launch notes. No spam, and you can opt out anytime.</p>
+          <form onSubmit={handleMailingListSubmit} className="form" style={{ maxWidth: '420px' }}>
+            <label>
+              Email address
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setSubmitted(false);
+                }}
+                placeholder="you@company.com"
+                required
+              />
+            </label>
+            <small style={{ color: '#c8c0aa' }}>
+              By submitting, you agree to receive emails about the estimate scheduling assistant. We do not auto-
+              enroll you in paid plans.
+            </small>
+            <button className="btn btn-primary" type="submit">
+              Join Mailing List
+            </button>
+            {submitted && <small style={{ color: '#7dd3fc' }}>Thanks — you are on the list.</small>}
+          </form>
+        </SpaceFrame>
+      </div>
     </div>
   );
 };

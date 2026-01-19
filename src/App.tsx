@@ -58,6 +58,7 @@ const VendorEvaluationToolkit = lazy(() => import('./pages/VendorEvaluationToolk
 const VendorQuestionnaire = lazy(() => import('./pages/VendorQuestionnaire'));
 const VendorApply = lazy(() => import('./pages/VendorApply'));
 const NeverMissAnotherEstimate = lazy(() => import('./pages/NeverMissAnotherEstimate'));
+const Operator = lazy(() => import('./pages/Operator'));
 const Demo = lazy(() => import('./pages/Demo'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const FiveDayDemo = lazy(() => import('./pages/FiveDayDemo'));
@@ -132,6 +133,7 @@ const App = () => {
           <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
           <Route path="/vendors/apply" element={<VendorApply />} />
           <Route path="/never-miss-another-estimate" element={<NeverMissAnotherEstimate />} />
+          <Route path="/operator" element={<Operator />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/5-day-demo" element={<FiveDayDemo />} />
