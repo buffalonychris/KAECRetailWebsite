@@ -19,7 +19,7 @@ const productLinks: NavItem[] = [
   { path: '/', label: 'Home' },
   { path: '/home-security', label: 'Home Security' },
   { path: '/home-automation', label: 'Home Automation' },
-  { path: '/elder-care', label: 'Elderly Care' },
+  { path: '/elder-care-tech', label: 'Elder Care Tech' },
   { path: '/halo', label: 'HALO' },
 ];
 
