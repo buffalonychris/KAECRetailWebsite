@@ -33,6 +33,10 @@ const Resume = lazy(() => import('./pages/Resume'));
 const Certificate = lazy(() => import('./pages/Certificate'));
 const Verify = lazy(() => import('./pages/Verify'));
 const ResumeVerify = lazy(() => import('./pages/ResumeVerify'));
+const IntakeHub = lazy(() => import('./pages/IntakeHub'));
+const IntakePrecheck = lazy(() => import('./pages/IntakePrecheck'));
+const ResidentialIntake = lazy(() => import('./pages/ResidentialIntake'));
+const BusinessIntake = lazy(() => import('./pages/BusinessIntake'));
 const HealthHomes = lazy(() => import('./pages/HealthHomes'));
 const HealthHomesOutcomes = lazy(() => import('./pages/HealthHomesOutcomes'));
 const HealthHomesFunding = lazy(() => import('./pages/HealthHomesFunding'));
@@ -78,6 +82,10 @@ const App = () => {
         <Routes>
           <Route path="/" element={<RetailLanding />} />
           <Route path="/halo-splash" element={<Home />} />
+          <Route path="/intake" element={<IntakeHub />} />
+          <Route path="/intake/precheck" element={<IntakePrecheck />} />
+          <Route path="/residential/intake" element={<ResidentialIntake />} />
+          <Route path="/business/intake" element={<BusinessIntake />} />
           <Route path="/packages" element={<Packages />} />
           <Route path="/packages/:id" element={<PackageDetail />} />
           <Route path="/comparison" element={<Comparison />} />
