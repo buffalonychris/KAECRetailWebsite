@@ -7,6 +7,18 @@ const RetailLanding = lazy(() => import('./pages/RetailLanding'));
 const HomeSecurity = lazy(() => import('./pages/HomeSecurity'));
 const HomeAutomation = lazy(() => import('./pages/HomeAutomation'));
 const ElderCareTech = lazy(() => import('./pages/ElderCare'));
+const HomeSecurityPackages = lazy(() => import('./pages/HomeSecurityPackages'));
+const HomeSecurityAddOns = lazy(() => import('./pages/HomeSecurityAddOns'));
+const HomeSecurityHowItWorks = lazy(() => import('./pages/HomeSecurityHowItWorks'));
+const HomeSecuritySupport = lazy(() => import('./pages/HomeSecuritySupport'));
+const HomeAutomationPackages = lazy(() => import('./pages/HomeAutomationPackages'));
+const HomeAutomationAddOns = lazy(() => import('./pages/HomeAutomationAddOns'));
+const HomeAutomationHowItWorks = lazy(() => import('./pages/HomeAutomationHowItWorks'));
+const HomeAutomationSupport = lazy(() => import('./pages/HomeAutomationSupport'));
+const ElderCarePackages = lazy(() => import('./pages/ElderCarePackages'));
+const ElderCareAddOns = lazy(() => import('./pages/ElderCareAddOns'));
+const ElderCareHowItWorks = lazy(() => import('./pages/ElderCareHowItWorks'));
+const ElderCareSupport = lazy(() => import('./pages/ElderCareSupport'));
 const Packages = lazy(() => import('./pages/Packages'));
 const PackageDetail = lazy(() => import('./pages/PackageDetail'));
 const Comparison = lazy(() => import('./pages/Comparison'));
@@ -118,8 +130,20 @@ const App = () => {
           <Route path="/lp/agency" element={<AgencyLanding />} />
           <Route path="/halo" element={<HaloLanding />} />
           <Route path="/home-security" element={<HomeSecurity />} />
+          <Route path="/home-security/packages" element={<HomeSecurityPackages />} />
+          <Route path="/home-security/add-ons" element={<HomeSecurityAddOns />} />
+          <Route path="/home-security/how-it-works" element={<HomeSecurityHowItWorks />} />
+          <Route path="/home-security/support" element={<HomeSecuritySupport />} />
           <Route path="/home-automation" element={<HomeAutomation />} />
+          <Route path="/home-automation/packages" element={<HomeAutomationPackages />} />
+          <Route path="/home-automation/add-ons" element={<HomeAutomationAddOns />} />
+          <Route path="/home-automation/how-it-works" element={<HomeAutomationHowItWorks />} />
+          <Route path="/home-automation/support" element={<HomeAutomationSupport />} />
           <Route path="/elder-care-tech" element={<ElderCareTech />} />
+          <Route path="/elder-care-tech/packages" element={<ElderCarePackages />} />
+          <Route path="/elder-care-tech/add-ons" element={<ElderCareAddOns />} />
+          <Route path="/elder-care-tech/how-it-works" element={<ElderCareHowItWorks />} />
+          <Route path="/elder-care-tech/support" element={<ElderCareSupport />} />
           <Route path="/halo/setup" element={<HaloSetup />} />
           <Route path="/halo/support" element={<HaloSupport />} />
           <Route path="/halo/privacy" element={<HaloPrivacy />} />
