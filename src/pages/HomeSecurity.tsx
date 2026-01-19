@@ -7,8 +7,8 @@ const HomeSecurity = () => {
     <VerticalLandingShell
       verticalName="Home Security"
       badgeLabel="Local-first"
-      heroHeadline="Home Security built for resilient, always-on protection"
-      heroSubhead="Layered sensors, verified alerts, and operator-grade reporting designed for residential safety without overpromising outcomes."
+      heroHeadline="Residential security that stays local, private, and always usable"
+      heroSubhead="Built for homeowners who want deterrence, awareness, and safety outcomes with Home Assistant as the single dashboard—no subscriptions sold and no cloud required for local control."
       primaryCTA={{ label: 'Request a Security Consult', to: '/support' }}
       chartData={[
         { label: 'Mon', value: 18 },
@@ -18,9 +18,11 @@ const HomeSecurity = () => {
         { label: 'Fri', value: 23 },
       ]}
       keyCapabilities={[
-        'Sensor coverage plans tailored to entry points and high-risk zones.',
-        'Local-first alert routing that keeps core protections working during outages.',
-        'Clear installation scopes and maintenance check-ins aligned with property needs.',
+        'Who it is for: households that want ownership, privacy-first control, and wireless-first deployment.',
+        'Outcomes: deterrence at entry points, awareness of breaches, and safer in-home response cues.',
+        'Single dashboard promise: Home Assistant unifies arming, sensors, lights, siren, and alerts.',
+        'No subscriptions promise: we do not sell monitoring plans; third-party monitoring is optional.',
+        'Offline Dignity Rule: local control remains available for arming, sensors, lighting, and siren.',
       ]}
       journeySteps={content.journeySteps}
       agreementHighlights={content.agreements}

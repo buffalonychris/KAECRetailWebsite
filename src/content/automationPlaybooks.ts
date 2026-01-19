@@ -9,26 +9,48 @@ export type AutomationPlaybook = {
 export const automationPlaybooks: Record<string, AutomationPlaybook[]> = {
   homeSecurity: [
     {
-      title: 'Entry breach verification',
-      purpose: 'Confirm a door/entry event and route a calm response without promising emergency services.',
-      trigger: 'Door contact + motion sensor event outside of expected hours.',
+      title: 'Entry lighting assurance',
+      purpose: 'Provide immediate visibility and deterrence without relying on cloud services.',
+      trigger: 'Door contact opens after-hours or when the home is armed.',
       actions: [
-        'Record the event locally and timestamp it in the Home Assistant log.',
-        'Trigger interior lighting scene to increase visibility.',
-        'Notify caregiver contacts with entry location and time.',
+        'Turn on entry and hallway lights locally.',
+        'Log the event in Home Assistant with timestamp and zone.',
+        'Notify household contacts with entry location and time.',
       ],
-      handoff: 'Escalate to caregiver phone tree for follow-up and note outcome in the console.',
+      handoff: 'Household reviews the alert and confirms status in the dashboard.',
     },
     {
-      title: 'Perimeter deterrence loop',
-      purpose: 'Use deterministic lighting cues to discourage repeat entry attempts.',
-      trigger: 'Multiple door or motion events within a 10-minute window.',
+      title: 'Perimeter breach response',
+      purpose: 'Coordinate lights, siren, and camera capture for verified entry events.',
+      trigger: 'Door contact + motion verified within a short window.',
       actions: [
-        'Pulse exterior lights on a timed loop.',
-        'Send a second alert to the primary caregiver contact.',
+        'Activate exterior lighting and local siren on a timed loop.',
         'Store a local clip or snapshot if video is available.',
+        'Notify household contacts with the verified zone.',
       ],
-      handoff: 'Document the event in the operator log for next-day review.',
+      handoff: 'Household decides next steps; optional third-party monitoring can be engaged directly.',
+    },
+    {
+      title: 'Environmental hazard response',
+      purpose: 'Detect leaks or smoke/CO and respond locally for faster awareness.',
+      trigger: 'Leak sensor, smoke/CO listener, or temperature threshold alert.',
+      actions: [
+        'Trigger local siren and interior lighting for visibility.',
+        'Notify household contacts with location details.',
+        'Log the event to Home Assistant for review.',
+      ],
+      handoff: 'Household confirms resolution and documents the outcome in the dashboard.',
+    },
+    {
+      title: 'System health assurance',
+      purpose: 'Verify that sensors, cameras, and power backups stay online.',
+      trigger: 'Daily scheduled health check or device heartbeat failure.',
+      actions: [
+        'Run device heartbeat checks locally.',
+        'Notify household contacts if a device is offline.',
+        'Queue a service reminder when repeated failures occur.',
+      ],
+      handoff: 'Schedule service or replace hardware based on the local health report.',
     },
   ],
   homeAutomation: [

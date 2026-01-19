@@ -10,20 +10,20 @@ export type FeatureGroup = {
   categories: FeatureCategory[];
 };
 
-const bronzeFeatures: FeatureCategory[] = [
+const basicFeatures: FeatureCategory[] = [
   {
     title: 'Safety & Response',
     items: [
       'Entry and motion alerts with local siren tones',
-      'Smoke/CO listener announcements',
-      'Emergency lighting cues near exits',
+      'Emergency lighting cues near primary entries',
+      'Local arming/disarming from wall and dashboard',
     ],
   },
   {
-    title: 'Caregiver Visibility',
+    title: 'Household Visibility',
     items: [
       'Basic event history in Home Assistant',
-      'Arrival/departure notifications for caregivers',
+      'Arrival/departure notifications for household members',
     ],
   },
   {
@@ -32,17 +32,17 @@ const bronzeFeatures: FeatureCategory[] = [
   },
 ];
 
-const silverAdds: FeatureCategory[] = [
+const plusAdds: FeatureCategory[] = [
   {
     title: 'Safety & Response',
     items: [
       'Coordinated lighting paths on alerts',
       'Indoor/outdoor camera motion snapshots (local)',
-      'Automated check-in prompts via voice assistants',
+      'Environmental alerts for leak or smoke/CO triggers',
     ],
   },
   {
-    title: 'Caregiver Visibility',
+    title: 'Household Visibility',
     items: [
       'Secure remote access to live feeds',
       'Timeline of key events (doors, motion, water)',
@@ -51,7 +51,7 @@ const silverAdds: FeatureCategory[] = [
   },
   {
     title: 'Home Monitoring',
-    items: ['Leak notifications with room labels', 'Scene buttons for caregivers and residents'],
+    items: ['Leak notifications with room labels', 'Scene buttons for household use'],
   },
   {
     title: 'Offline Resilience',
@@ -62,21 +62,21 @@ const silverAdds: FeatureCategory[] = [
   },
 ];
 
-const goldAdds: FeatureCategory[] = [
+const proAdds: FeatureCategory[] = [
   {
     title: 'Safety & Response',
     items: [
       'Full-property alerting with zoned responses',
       'Perimeter video verification with local clips',
-      'Redundant siren/voice paths for critical events',
+      'Redundant siren paths for critical events',
     ],
   },
   {
-    title: 'Caregiver Visibility',
+    title: 'Household Visibility',
     items: [
       'High-retention local recording for all cameras',
-      'Private dashboards for family and professional caregivers',
-      'Custom schedules for on-site and remote teams',
+      'Private dashboards for household roles',
+      'Custom schedules for on-site and remote access',
     ],
   },
   {
@@ -127,8 +127,8 @@ const addOnFeatures: Record<string, FeatureCategory[]> = {
   ],
   'onsite-training': [
     {
-      title: 'Caregiver Visibility',
-      items: ['Hands-on coaching for caregivers to use dashboards and automations'],
+      title: 'Household Visibility',
+      items: ['Hands-on coaching to use dashboards and automations confidently'],
     },
   ],
 };
@@ -147,22 +147,22 @@ const mergeFeatures = (categories: FeatureCategory[]): FeatureCategory[] => {
 
 const buildGroups = (packageId: PackageTierId): FeatureGroup[] => {
   if (packageId === 'A1') {
-    return [{ heading: 'Included Features', categories: mergeFeatures(bronzeFeatures) }];
+    return [{ heading: 'Included Features', categories: mergeFeatures(basicFeatures) }];
   }
 
   if (packageId === 'A2') {
     return [
-      { heading: 'Included from Bronze', categories: mergeFeatures(bronzeFeatures) },
-      { heading: 'Additional in Silver', categories: mergeFeatures(silverAdds) },
+      { heading: 'Included from Basic', categories: mergeFeatures(basicFeatures) },
+      { heading: 'Additional in Plus', categories: mergeFeatures(plusAdds) },
     ];
   }
 
   return [
     {
-      heading: 'Included from Bronze + Silver',
-      categories: mergeFeatures([...bronzeFeatures, ...silverAdds]),
+      heading: 'Included from Basic + Plus',
+      categories: mergeFeatures([...basicFeatures, ...plusAdds]),
     },
-    { heading: 'Additional in Gold', categories: mergeFeatures(goldAdds) },
+    { heading: 'Additional in Pro', categories: mergeFeatures(proAdds) },
   ];
 };
 

@@ -219,14 +219,14 @@ const buildHardwareGroups = (packageId: PackageTierId): HardwareGroup[] => {
 
   if (packageId === 'A2') {
     return [
-      { heading: 'Included from Bronze', categories: bronzeHardware },
-      { heading: 'Additional in Silver', categories: silverAdds },
+      { heading: 'Included from Basic', categories: bronzeHardware },
+      { heading: 'Additional in Plus', categories: silverAdds },
     ];
   }
 
   return [
-    { heading: 'Included from Bronze + Silver', categories: silverRollup },
-    { heading: 'Additional in Gold', categories: goldAdds },
+    { heading: 'Included from Basic + Plus', categories: silverRollup },
+    { heading: 'Additional in Pro', categories: goldAdds },
   ];
 };
 
