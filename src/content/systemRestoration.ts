@@ -24,8 +24,11 @@ export const systemInventory: SystemInventory = {
   pages: [
     'Holding Company Hub (/) and vertical portals',
     'Home Security (/home-security)',
+    'Home Security packages, add-ons, how-it-works, support',
     'Home Automation (/home-automation)',
+    'Home Automation packages, add-ons, how-it-works, support',
     'Elder Care Tech (/elder-care-tech)',
+    'Elder Care Tech packages, add-ons, how-it-works, support',
     'HALO PERS (/halo)',
     'Operator SaaS (/operator)',
     'Package catalog (/packages, /packages/:id)',
