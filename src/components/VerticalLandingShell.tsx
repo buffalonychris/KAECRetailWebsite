@@ -24,6 +24,16 @@ export type VerticalLandingShellProps = {
   };
   chartData: Array<{ label: string; value: number }>;
   keyCapabilities: string[];
+  journeySteps?: string[];
+  agreementHighlights?: string[];
+  packageHighlights?: string[];
+  playbooks?: Array<{
+    title: string;
+    purpose: string;
+    trigger: string;
+    actions: string[];
+    handoff: string;
+  }>;
 };
 
 const VerticalLandingShell = ({
@@ -34,6 +44,10 @@ const VerticalLandingShell = ({
   primaryCTA,
   chartData,
   keyCapabilities,
+  journeySteps,
+  agreementHighlights,
+  packageHighlights,
+  playbooks,
 }: VerticalLandingShellProps) => {
   return (
     <div className="space-shell">
@@ -81,6 +95,74 @@ const VerticalLandingShell = ({
             </ResponsiveContainer>
           </ChartCard>
         </div>
+
+        {(journeySteps || agreementHighlights) && (
+          <div className="space-grid two-column">
+            {journeySteps && (
+              <SpaceFrame>
+                <div className="badge">Intake journey</div>
+                <h2>{verticalName} journey steps</h2>
+                <ul className="operator-list">
+                  {journeySteps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              </SpaceFrame>
+            )}
+            {agreementHighlights && (
+              <SpaceFrame>
+                <div className="badge">Agreements</div>
+                <h2>Agreement checkpoints</h2>
+                <ul className="operator-list">
+                  {agreementHighlights.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </SpaceFrame>
+            )}
+          </div>
+        )}
+
+        {packageHighlights && (
+          <SpaceFrame>
+            <div className="badge">Package intelligence</div>
+            <h2>Restored package coverage</h2>
+            <ul className="operator-list">
+              {packageHighlights.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </SpaceFrame>
+        )}
+
+        {playbooks && (
+          <SpaceFrame>
+            <div className="badge">Automation playbooks</div>
+            <h2>Structured automation playbooks</h2>
+            <div className="card-grid" style={{ marginTop: '1rem' }}>
+              {playbooks.map((playbook) => (
+                <div className="card" key={playbook.title}>
+                  <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{playbook.title}</h3>
+                  <p style={{ color: '#c8c0aa' }}>{playbook.purpose}</p>
+                  <p style={{ margin: '0.5rem 0', color: '#c8c0aa' }}>
+                    <strong>Trigger:</strong> {playbook.trigger}
+                  </p>
+                  <ul className="list">
+                    {playbook.actions.map((action) => (
+                      <li key={action}>
+                        <span />
+                        <span>{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p style={{ margin: '0.75rem 0 0', color: '#c8c0aa' }}>
+                    <strong>Handoff:</strong> {playbook.handoff}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </SpaceFrame>
+        )}
 
         <SpaceFrame className="vertical-cta">
           <h2>Ready to explore {verticalName}?</h2>

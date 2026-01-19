@@ -1,6 +1,8 @@
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import { verticalContent } from '../content/systemRestoration';
 
 const HomeSecurity = () => {
+  const content = verticalContent.homeSecurity;
   return (
     <VerticalLandingShell
       verticalName="Home Security"
@@ -20,6 +22,10 @@ const HomeSecurity = () => {
         'Local-first alert routing that keeps core protections working during outages.',
         'Clear installation scopes and maintenance check-ins aligned with property needs.',
       ]}
+      journeySteps={content.journeySteps}
+      agreementHighlights={content.agreements}
+      packageHighlights={content.packageHighlights}
+      playbooks={content.playbooks}
     />
   );
 };

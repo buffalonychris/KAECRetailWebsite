@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { packages } from '../content/packages';
 import TierBadge from '../components/TierBadge';
 import { PackageTierId } from '../data/pricing';
+import { siteConfig } from '../config/site';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -39,9 +40,24 @@ const PackageDetail = () => {
           </div>
         </div>
         <div className="card" style={{ marginTop: '1.5rem' }}>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Package bio</h3>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>{pkg.bio}</p>
+        </div>
+        <div className="card" style={{ marginTop: '1rem' }}>
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Included equipment + setup</h3>
           <ul className="list">
             {pkg.includes.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="card" style={{ marginTop: '1rem' }}>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Bill of materials (BOM)</h3>
+          <ul className="list">
+            {pkg.billOfMaterials.map((item) => (
               <li key={item}>
                 <span />
                 <span>{item}</span>
@@ -58,6 +74,48 @@ const PackageDetail = () => {
                 <span>{item}</span>
               </li>
             ))}
+          </ul>
+        </div>
+        <div className="card" style={{ marginTop: '1rem' }}>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Automation flows</h3>
+          <ul className="list">
+            {pkg.automationFlows.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="card" style={{ marginTop: '1rem' }}>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Intake → delivery journey</h3>
+          <ul className="list">
+            {pkg.journeyFlow.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="card" style={{ marginTop: '1rem' }}>
+          <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Agreement + deposit checkpoints</h3>
+          <ul className="list">
+            {pkg.agreements.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+            <li>
+              <span />
+              <span>
+                Deposit policy:{' '}
+                {siteConfig.depositPolicy.type === 'flat'
+                  ? `Flat $${siteConfig.depositPolicy.value}`
+                  : `${siteConfig.depositPolicy.value * 100}% of the deterministic total`}
+              </span>
+            </li>
           </ul>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
