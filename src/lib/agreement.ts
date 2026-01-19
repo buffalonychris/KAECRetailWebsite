@@ -80,38 +80,45 @@ export type AgreementContent = {
 const packageScope: Record<PackageTierId, string[]> = {
   A1: [
     'Deploy Home Assistant as the single control hub with secure local access.',
-    'Install core safety sensors with caregiver alerts configured for the home layout.',
-    'Provide guided handoff for basic automations tailored to the household.',
+    'Install wireless-first lighting control, smart plugs, and scene access.',
+    'Provide guided handoff for schedule-based automations tailored to the household.',
   ],
   A2: [
-    'Expand lighting, cameras, and alerts to cover common living areas and entries.',
-    'Enable local-first automations that keep notifications flowing when internet is spotty.',
-    'Tune privacy zones and recording schedules aligned to caregiver preferences.',
+    'Expand presence-aware routines and adaptive lighting across common living areas.',
+    'Enable local-first automations that adjust to occupancy and time-of-day.',
+    'Tune climate and energy awareness preferences aligned to homeowner comfort.',
   ],
   A3: [
-    'Deliver whole-property coverage with redundancy and pro-grade storage applied.',
-    'Optimize multi-room lighting, cameras, and sensors for senior safety pathways.',
-    'Set up resilient automations with on-site data retention and backup checks.',
+    'Deliver multi-zone orchestration with layered automation rules.',
+    'Optimize lighting and climate coordination for specialty spaces.',
+    'Set up resilient automations with recovery behaviors for power events.',
   ],
 };
 
 const addOnDeliverables: Record<string, string> = {
-  'extra-lighting': 'Add a dedicated smart lighting circuit for safer nighttime navigation.',
-  'additional-camera': 'Extend visual coverage with an additional indoor or outdoor camera.',
-  'water-leak-sensors': 'Place a leak sensor multipack across kitchens, laundry, and baths.',
-  'cellular-failover': 'Configure cellular notification failover to preserve caregiver alerts.',
-  'onsite-training': 'Deliver an on-site training and handoff session for caregivers.',
+  'smart-switches': 'Upgrade key rooms with additional smart switches and dimming control.',
+  'smart-plugs': 'Add smart plugs for scheduled lamp and device control.',
+  'simple-sensors': 'Extend occupancy sensing for smarter lighting routines.',
+  'scene-buttons': 'Install scene buttons for one-touch routines.',
+  'presence-aware': 'Deploy presence sensors for room-level occupancy routines.',
+  'adaptive-lighting': 'Enable adaptive lighting tied to time and ambient light.',
+  'energy-awareness': 'Add circuit-level energy monitoring for awareness and optimization.',
+  'climate-optimization': 'Configure climate routines with optional weather context.',
+  'multi-zone': 'Coordinate multi-zone lighting and climate scenes.',
+  'advanced-rules': 'Deliver advanced automation logic with layered conditions.',
+  'energy-management': 'Configure load management routines with optional utility-rate context.',
+  'specialty-spaces': 'Implement custom scenes for specialty spaces.',
 };
 
 const assumptions = [
   'Existing Wi-Fi and power are available where equipment is installed.',
-  'Caregivers participate in basic configuration preferences during installation.',
+  'Homeowners participate in basic configuration preferences during installation.',
   'Local-first design keeps automations running when internet is offline but power is available.',
 ];
 
 const exclusions = [
   'No permitting, trenching, or structural work is included in this agreement.',
-  'Cellular data plans are only added when explicitly selected and available in-market.',
+  'Optional third-party subscriptions are only added when explicitly selected by the homeowner.',
   'This agreement does not provide medical advice, monitoring, or emergency response.',
 ];
 
@@ -119,15 +126,15 @@ const installationCommitments = [
   '1-day installation window coordinated with caregivers.',
   '2-person crew for coverage and safety.',
   'On-site setup and configuration of all listed equipment.',
-  'Essential customer and caregiver training with hands-on walkthroughs.',
+  'Essential homeowner training with hands-on walkthroughs.',
   'Post-install test and verification of alerts, automations, and access.',
   '1-year replacement warranty for all included equipment (retail placeholder copy).',
 ];
 
 const validationSteps = [
   'Pre-flight check for Wi-Fi coverage and power at device locations.',
-  'Confirm zoning for cameras and privacy preferences with caregivers.',
-  'Verify notifications and automations continue to run during simulated internet outages.',
+  'Confirm zoning for lighting and automation preferences with homeowners.',
+  'Verify automations continue to run during simulated internet outages.',
 ];
 
 const terms = [
@@ -136,7 +143,7 @@ const terms = [
   'Data handling: Local-first configuration is prioritized; any cloud connections are only enabled for selected services.',
   'Service boundaries: Warranty and service boundaries will be finalized in the KAEC backend signing package.',
   'Change management: Scope changes may adjust pricing and installation time after mutual agreement.',
-  'Scheduling: Installation windows are coordinated with caregivers; exact times depend on site access.',
+  'Scheduling: Installation windows are coordinated with homeowners; exact times depend on site access.',
 ];
 
 const currency = (amount: number) => `$${amount.toLocaleString()}`;
@@ -199,7 +206,7 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
     assumptions,
     exclusions,
     offlineBehavior:
-      'Offline-first behavior: Automations and local control are prioritized to function without internet. Alerts depend on available connectivity.',
+      'Offline Dignity Rule: Automations and local control are prioritized to function without internet; optional external context depends on connectivity.',
     installationWindow:
       'Installation window: Coordinated with caregivers based on site readiness; no exact appointment is promised until scheduling is confirmed.',
     warrantyPlaceholders: [

@@ -12,18 +12,14 @@ export type FeatureGroup = {
 
 const basicFeatures: FeatureCategory[] = [
   {
-    title: 'Safety & Response',
-    items: [
-      'Entry and motion alerts with local siren tones',
-      'Emergency lighting cues near primary entries',
-      'Local arming/disarming from wall and dashboard',
-    ],
+    title: 'Schedules & Scenes',
+    items: ['Time-based lighting and climate schedules', 'One-touch scenes for daily routines'],
   },
   {
-    title: 'Household Visibility',
+    title: 'Local Control',
     items: [
-      'Basic event history in Home Assistant',
-      'Arrival/departure notifications for household members',
+      'Home Assistant as the single dashboard',
+      'Manual overrides from wall controls and scene buttons',
     ],
   },
   {
@@ -34,101 +30,123 @@ const basicFeatures: FeatureCategory[] = [
 
 const plusAdds: FeatureCategory[] = [
   {
-    title: 'Safety & Response',
-    items: [
-      'Coordinated lighting paths on alerts',
-      'Indoor/outdoor camera motion snapshots (local)',
-      'Environmental alerts for leak or smoke/CO triggers',
-    ],
+    title: 'Presence-Aware Comfort',
+    items: ['Room-level occupancy routines', 'Arrival, away, and sleep mode scenes'],
   },
   {
-    title: 'Household Visibility',
-    items: [
-      'Secure remote access to live feeds',
-      'Timeline of key events (doors, motion, water)',
-      'Shared notification routing for family members',
-    ],
+    title: 'Adaptive Lighting',
+    items: ['Brightness and color temperature shifts by time and ambient light'],
   },
   {
-    title: 'Home Monitoring',
-    items: ['Leak notifications with room labels', 'Scene buttons for household use'],
+    title: 'Energy Awareness',
+    items: ['Circuit-level monitoring and usage insights', 'Energy-aware automation suggestions'],
   },
   {
     title: 'Offline Resilience',
     items: [
-      'Local storage for cameras and automations',
-      'Battery-backed hub for graceful recovery after outages',
+      'Local schedules and presence routines stay active without internet',
+      'Graceful recovery after outages with stored scenes',
     ],
   },
 ];
 
 const proAdds: FeatureCategory[] = [
   {
-    title: 'Safety & Response',
-    items: [
-      'Full-property alerting with zoned responses',
-      'Perimeter video verification with local clips',
-      'Redundant siren paths for critical events',
-    ],
+    title: 'Multi-Zone Orchestration',
+    items: ['Room-to-room scene transitions', 'Zone-based lighting and climate coordination'],
   },
   {
-    title: 'Household Visibility',
-    items: [
-      'High-retention local recording for all cameras',
-      'Private dashboards for household roles',
-      'Custom schedules for on-site and remote access',
-    ],
+    title: 'Advanced Automation',
+    items: ['Layered conditions and fallback rules', 'Specialty space routines'],
   },
   {
-    title: 'Home Monitoring',
-    items: [
-      'Comprehensive leak and environment coverage',
-      'Advanced automations for dusk/dawn and occupancy',
-      'Garage/yard coverage for perimeter awareness',
-    ],
+    title: 'Resilience',
+    items: ['Power-return recovery behaviors', 'Local execution health checks'],
   },
   {
     title: 'Offline Resilience',
     items: [
-      'Redundant storage plus battery for controllers and cameras',
-      'LAN-only control paths for safety routines when the internet is down',
+      'Local orchestration stays live with LAN-only control paths',
+      'Redundant controller protection for critical routines',
     ],
   },
   {
-    title: 'Video/Security',
-    items: ['Local NVR with role-based sharing', 'Enhanced privacy zones and masking'],
+    title: 'Ownership & Privacy',
+    items: ['Home Assistant stays the homeowner-controlled platform', 'No cloud dependency for local control'],
   },
 ];
 
 const addOnFeatures: Record<string, FeatureCategory[]> = {
-  'extra-lighting': [
+  'smart-switches': [
     {
-      title: 'Convenience',
-      items: ['Additional guided night lighting scenes'],
+      title: 'Lighting Control',
+      items: ['Expanded dimming and scene coverage'],
     },
   ],
-  'additional-camera': [
+  'smart-plugs': [
     {
-      title: 'Video/Security',
-      items: ['Extended coverage zone with private recording'],
+      title: 'Device Control',
+      items: ['Scheduled control for lamps and plug-in devices'],
     },
   ],
-  'water-leak-sensors': [
+  'simple-sensors': [
     {
-      title: 'Home Monitoring',
-      items: ['Expanded leak coverage for kitchens, laundry, and baths'],
+      title: 'Presence Signals',
+      items: ['Expanded occupancy triggers for routines'],
     },
   ],
-  'cellular-failover': [
+  'scene-buttons': [
     {
-      title: 'Offline Resilience',
-      items: ['Cellular notification path for critical alerts during outages'],
+      title: 'Scene Control',
+      items: ['One-touch scenes for daily routines'],
     },
   ],
-  'onsite-training': [
+  'presence-aware': [
     {
-      title: 'Household Visibility',
-      items: ['Hands-on coaching to use dashboards and automations confidently'],
+      title: 'Presence Accuracy',
+      items: ['Room-level detection for responsive routines'],
+    },
+  ],
+  'adaptive-lighting': [
+    {
+      title: 'Adaptive Lighting',
+      items: ['Automatic brightness and color temperature tuning'],
+    },
+  ],
+  'energy-awareness': [
+    {
+      title: 'Energy Insights',
+      items: ['Circuit-level monitoring with reporting'],
+    },
+  ],
+  'climate-optimization': [
+    {
+      title: 'Climate Optimization',
+      items: ['Zone-aware comfort settings with optional weather context'],
+    },
+  ],
+  'multi-zone': [
+    {
+      title: 'Multi-Zone Control',
+      items: ['Room-grouped scenes and transitions'],
+    },
+  ],
+  'advanced-rules': [
+    {
+      title: 'Automation Depth',
+      items: ['Layered logic and fallback rules'],
+    },
+  ],
+  'energy-management': [
+    {
+      title: 'Energy Management',
+      items: ['Load management with optional utility-rate context'],
+    },
+  ],
+  'specialty-spaces': [
+    {
+      title: 'Specialty Spaces',
+      items: ['Custom automations for outdoor, media, or wellness zones'],
     },
   ],
 };
