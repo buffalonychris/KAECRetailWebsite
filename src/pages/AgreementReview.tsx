@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import { addOns, packagePricing } from '../data/pricing';
@@ -167,15 +167,6 @@ const AgreementReview = () => {
     };
   }, [acceptedRecord, email, quote, token]);
 
-  useEffect(() => {
-    if (!acceptedRecord || !agreementEmailPayload || sending) return;
-    const recipient = email || acceptedRecord.emailTo || quote?.contact || '';
-    if (!isValidEmail(recipient)) return;
-    if (acceptedRecord.emailIssuedAtISO) return;
-    handleSendAgreementEmail(recipient, 'auto');
-  }, [acceptedRecord, agreementEmailPayload, email, quote, sending]);
-
-  const hasQuote = Boolean(quote);
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
   const hardwareGroups = useMemo(
     () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
@@ -280,57 +271,71 @@ const AgreementReview = () => {
     updateRetailFlow({ quote: nextQuote });
   };
 
-  const recordAgreementEmailResult = (
-    recipient: string,
-    result: Awaited<ReturnType<typeof sendAgreementEmail>>,
-  ) => {
-    if (!quote) return;
-    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
-    if (!baseAcceptance) return;
-    const issuedAt = new Date().toISOString();
-    const recipients = [recipient, ...(baseAcceptance.emailRecipients ?? [])].filter(Boolean);
-    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
-    const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
-    const updated: AcceptanceRecord = {
-      ...baseAcceptance,
-      emailIssuedAt: baseAcceptance.emailIssuedAt ?? issuedAt,
-      emailIssuedAtISO: issuedAt,
-      emailTo: recipient,
-      emailProvider: result.provider,
-      emailMessageId: result.id,
-      emailLastStatus: status,
-      emailLastError: result.ok ? undefined : result.error,
-      emailRecipients: uniqueRecipients,
-    };
-    setStoredAcceptance(updated);
-    updateRetailFlow({ agreementAcceptance: updated });
-    const banner =
-      status === 'sent'
-        ? `A copy has been emailed to ${recipient}.`
-        : status === 'mock'
-        ? `Email queued (mock mode) for ${recipient}.`
-        : 'We could not send the email. Please try again.';
-    setEmailBanner(banner);
-    setEmailError(result.ok ? '' : result.error || 'Unable to send email');
-  };
+  const recordAgreementEmailResult = useCallback(
+    (recipient: string, result: Awaited<ReturnType<typeof sendAgreementEmail>>) => {
+      if (!quote) return;
+      const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
+      if (!baseAcceptance) return;
+      const issuedAt = new Date().toISOString();
+      const recipients = [recipient, ...(baseAcceptance.emailRecipients ?? [])].filter(Boolean);
+      const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+      const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
+      const updated: AcceptanceRecord = {
+        ...baseAcceptance,
+        emailIssuedAt: baseAcceptance.emailIssuedAt ?? issuedAt,
+        emailIssuedAtISO: issuedAt,
+        emailTo: recipient,
+        emailProvider: result.provider,
+        emailMessageId: result.id,
+        emailLastStatus: status,
+        emailLastError: result.ok ? undefined : result.error,
+        emailRecipients: uniqueRecipients,
+      };
+      setStoredAcceptance(updated);
+      updateRetailFlow({ agreementAcceptance: updated });
+      const banner =
+        status === 'sent'
+          ? `A copy has been emailed to ${recipient}.`
+          : status === 'mock'
+          ? `Email queued (mock mode) for ${recipient}.`
+          : 'We could not send the email. Please try again.';
+      setEmailBanner(banner);
+      setEmailError(result.ok ? '' : result.error || 'Unable to send email');
+    },
+    [quote, storedAcceptance],
+  );
 
-  const sendAgreementEmailToRecipient = async (recipient: string) => {
-    if (!agreementEmailPayload || !isValidEmail(recipient)) return null;
-    const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
-    if (!baseAcceptance) return null;
-    setSending(true);
-    setEmailError('');
-    const response = await sendAgreementEmail({ ...agreementEmailPayload, to: recipient });
-    recordAgreementEmailResult(recipient, response);
-    setSending(false);
-    return response;
-  };
+  const sendAgreementEmailToRecipient = useCallback(
+    async (recipient: string) => {
+      if (!agreementEmailPayload || !isValidEmail(recipient)) return null;
+      const baseAcceptance = storedAcceptance?.accepted ? storedAcceptance : null;
+      if (!baseAcceptance) return null;
+      setSending(true);
+      setEmailError('');
+      const response = await sendAgreementEmail({ ...agreementEmailPayload, to: recipient });
+      recordAgreementEmailResult(recipient, response);
+      setSending(false);
+      return response;
+    },
+    [agreementEmailPayload, recordAgreementEmailResult, storedAcceptance],
+  );
 
-  const handleSendAgreementEmail = async (recipient: string, source: 'auto' | 'manual') => {
-    const response = await sendAgreementEmailToRecipient(recipient);
-    if (!response) return;
-    if (source === 'manual') setManualRecipient('');
-  };
+  const handleSendAgreementEmail = useCallback(
+    async (recipient: string, source: 'auto' | 'manual') => {
+      const response = await sendAgreementEmailToRecipient(recipient);
+      if (!response) return;
+      if (source === 'manual') setManualRecipient('');
+    },
+    [sendAgreementEmailToRecipient],
+  );
+
+  useEffect(() => {
+    if (!acceptedRecord || !agreementEmailPayload || sending) return;
+    const recipient = email || acceptedRecord.emailTo || quote?.contact || '';
+    if (!isValidEmail(recipient)) return;
+    if (acceptedRecord.emailIssuedAtISO) return;
+    handleSendAgreementEmail(recipient, 'auto');
+  }, [acceptedRecord, agreementEmailPayload, email, quote, sending, handleSendAgreementEmail]);
 
   const persistAcceptance = async (): Promise<AcceptanceRecord> => {
     const hash =

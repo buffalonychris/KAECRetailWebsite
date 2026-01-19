@@ -43,6 +43,7 @@ type TestKey = keyof TestResults;
 type TestItem = {
   key: TestKey;
   label: string;
+  // eslint-disable-next-line no-unused-vars
   visibleWhen: (flags: HaloFlags, addons: AddOnSelections) => boolean;
 };
 
@@ -149,6 +150,11 @@ const HaloSetup = () => {
   );
 
   const visibleTests = useMemo(() => getVisibleTests(testItems, flags, addons), [addons, flags, testItems]);
+  const [summaryGeneratedAt, setSummaryGeneratedAt] = useState(() => new Date().toLocaleString());
+
+  useEffect(() => {
+    setSummaryGeneratedAt(new Date().toLocaleString());
+  }, [testResults, visibleTests.length]);
 
   const sanitizedContacts = useMemo(() => sanitizeContacts(contacts), [contacts]);
   const hasUsableContact = sanitizedContacts.length > 0;
@@ -229,8 +235,6 @@ const HaloSetup = () => {
     }
     return true;
   };
-
-  const summaryGeneratedAt = useMemo(() => new Date().toLocaleString(), [testResults, visibleTests.length]);
 
   const getNotificationSummary = () => {
     if (!anyNotificationMethodEnabled) {

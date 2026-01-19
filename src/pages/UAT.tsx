@@ -73,7 +73,12 @@ const UAT = () => {
     if (!state.agreementAcceptance?.emailSubject || !state.agreementAcceptance.emailBody) return '';
     const emailTo = state.agreementAcceptance.emailTo ?? state.quote?.contact ?? '';
     return `To: ${emailTo}\nSubject: ${state.agreementAcceptance.emailSubject}\n\n${state.agreementAcceptance.emailBody}`;
-  }, [state.agreementAcceptance?.emailBody, state.agreementAcceptance?.emailSubject, state.quote?.contact]);
+  }, [
+    state.agreementAcceptance?.emailBody,
+    state.agreementAcceptance?.emailSubject,
+    state.agreementAcceptance?.emailTo,
+    state.quote?.contact,
+  ]);
 
   const resetFlow = () => {
     localStorage.removeItem(FLOW_STORAGE_KEY);

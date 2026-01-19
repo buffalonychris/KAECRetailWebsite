@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import { DocAuthorityMeta } from '../lib/docAuthority';
 import { copyToClipboard } from '../lib/displayUtils';
 
@@ -16,7 +16,7 @@ const AuthorityBlock = ({ meta, resumeLabel }: AuthorityBlockProps) => {
 
   if (!meta) return null;
 
-  const handleCopy = async (value?: string | null, setter?: (v: boolean) => void) => {
+  const handleCopy = async (value?: string | null, setter?: Dispatch<SetStateAction<boolean>>) => {
     if (!value || !setter) return;
     await copyToClipboard(value);
     setter(true);

@@ -8,7 +8,9 @@ type SaveProgressCardProps = {
   resumeUrl?: string;
   available: boolean;
   sending?: boolean;
+  // eslint-disable-next-line no-unused-vars
   onEmailChange?: (value: string) => void;
+  // eslint-disable-next-line no-unused-vars
   onSend: (recipient: string) => Promise<EmailSendResponse | null>;
 };
 

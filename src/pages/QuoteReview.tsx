@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
@@ -160,13 +160,6 @@ const QuoteReview = () => {
     setShareRecipient(email);
   }, [email]);
 
-  useEffect(() => {
-    if (!quote || !emailPayload || sending) return;
-    if (!quote.contact || !isValidEmail(quote.contact)) return;
-    if (quote.emailIssuedAtISO) return;
-    handleSendEmail(quote.contact, 'auto');
-  }, [emailPayload, quote, sending]);
-
   const handleExplainQuote = async () => {
     if (!quote) return;
     setNarrativeLoading(true);
@@ -201,8 +194,6 @@ const QuoteReview = () => {
   };
 
   const quoteDate = quote ? formatQuoteDate(quote.generatedAt) : formatQuoteDate();
-  const customerName = quote?.customerName?.trim() || 'Customer';
-
   const emailStatus = quote?.emailLastStatus ?? quote?.emailStatus ?? 'not_sent';
 
   const handleUpdateEmail = (value: string) => {
@@ -213,58 +204,71 @@ const QuoteReview = () => {
     updateRetailFlow({ quote: nextQuote });
   };
 
-  const recordEmailResult = (
-    recipient: string,
-    result: Awaited<ReturnType<typeof sendQuoteEmail>>,
-  ) => {
-    if (!quote) return;
-    const issuedAt = new Date().toISOString();
-    const recipients = [recipient, ...(quote.emailRecipients ?? [])].filter(Boolean);
-    const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
-    const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
-    const nextQuote: QuoteContext = {
-      ...quote,
-      contact: quote.contact ?? recipient,
-      issuedAt: quote.issuedAt ?? issuedAt,
-      issuedAtISO: quote.issuedAtISO ?? issuedAt,
-      emailIssuedAt: quote.emailIssuedAt ?? issuedAt,
-      emailIssuedAtISO: issuedAt,
-      emailTo: recipient,
-      emailProvider: result.provider,
-      emailMessageId: result.id,
-      emailLastStatus: status,
-      emailLastError: result.ok ? undefined : result.error,
-      emailRecipients: uniqueRecipients,
-    };
-    setQuote(nextQuote);
-    updateRetailFlow({ quote: nextQuote });
+  const recordEmailResult = useCallback(
+    (recipient: string, result: Awaited<ReturnType<typeof sendQuoteEmail>>) => {
+      if (!quote) return;
+      const issuedAt = new Date().toISOString();
+      const recipients = [recipient, ...(quote.emailRecipients ?? [])].filter(Boolean);
+      const uniqueRecipients = Array.from(new Set(recipients)).slice(0, 3);
+      const status = result.ok ? (result.provider === 'mock' ? 'mock' : 'sent') : 'failed';
+      const nextQuote: QuoteContext = {
+        ...quote,
+        contact: quote.contact ?? recipient,
+        issuedAt: quote.issuedAt ?? issuedAt,
+        issuedAtISO: quote.issuedAtISO ?? issuedAt,
+        emailIssuedAt: quote.emailIssuedAt ?? issuedAt,
+        emailIssuedAtISO: issuedAt,
+        emailTo: recipient,
+        emailProvider: result.provider,
+        emailMessageId: result.id,
+        emailLastStatus: status,
+        emailLastError: result.ok ? undefined : result.error,
+        emailRecipients: uniqueRecipients,
+      };
+      setQuote(nextQuote);
+      updateRetailFlow({ quote: nextQuote });
 
-    const banner =
-      status === 'sent'
-        ? `A copy has been emailed to ${recipient}.`
-        : status === 'mock'
-        ? `Email queued (mock mode) for ${recipient}.`
-        : 'We could not send the email. Please try again.';
-    setEmailBanner(banner);
-    setEmailError(result.ok ? '' : result.error || 'Unable to send email');
-  };
+      const banner =
+        status === 'sent'
+          ? `A copy has been emailed to ${recipient}.`
+          : status === 'mock'
+          ? `Email queued (mock mode) for ${recipient}.`
+          : 'We could not send the email. Please try again.';
+      setEmailBanner(banner);
+      setEmailError(result.ok ? '' : result.error || 'Unable to send email');
+    },
+    [quote],
+  );
 
-  const sendQuoteEmailToRecipient = async (recipient: string) => {
-    if (!quote || !emailPayload || !isValidEmail(recipient)) return null;
-    setSending(true);
-    setEmailError('');
-    const response = await sendQuoteEmail({ ...emailPayload, to: recipient });
-    recordEmailResult(recipient, response);
-    setSending(false);
-    return response;
-  };
+  const sendQuoteEmailToRecipient = useCallback(
+    async (recipient: string) => {
+      if (!quote || !emailPayload || !isValidEmail(recipient)) return null;
+      setSending(true);
+      setEmailError('');
+      const response = await sendQuoteEmail({ ...emailPayload, to: recipient });
+      recordEmailResult(recipient, response);
+      setSending(false);
+      return response;
+    },
+    [emailPayload, quote, recordEmailResult],
+  );
 
-  const handleSendEmail = async (recipient: string, source: 'auto' | 'manual') => {
-    await sendQuoteEmailToRecipient(recipient);
-    if (source === 'manual') {
-      setEmailBanner((prev) => prev || `Sent to ${recipient}.`);
-    }
-  };
+  const handleSendEmail = useCallback(
+    async (recipient: string, source: 'auto' | 'manual') => {
+      await sendQuoteEmailToRecipient(recipient);
+      if (source === 'manual') {
+        setEmailBanner((prev) => prev || `Sent to ${recipient}.`);
+      }
+    },
+    [sendQuoteEmailToRecipient],
+  );
+
+  useEffect(() => {
+    if (!quote || !emailPayload || sending) return;
+    if (!quote.contact || !isValidEmail(quote.contact)) return;
+    if (quote.emailIssuedAtISO) return;
+    handleSendEmail(quote.contact, 'auto');
+  }, [emailPayload, quote, sending, handleSendEmail]);
 
   const handleCopyResumeLink = async () => {
     if (!resumeUrl) return;

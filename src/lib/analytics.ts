@@ -16,8 +16,10 @@ type GaEventPayload = {
 };
 
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
-    gtag?: (...args: unknown[]) => void;
+    // eslint-disable-next-line no-unused-vars
+    gtag?: (..._args: unknown[]) => void;
   }
 }
 
@@ -26,7 +28,6 @@ const inMemoryLoggedViews = new Set<string>();
 
 const emitEvent = (eventName: GaEventName, payload: GaEventPayload) => {
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.info(`[${eventName}]`, payload);
   }
 
