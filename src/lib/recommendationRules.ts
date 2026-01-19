@@ -30,9 +30,9 @@ const clampTierByBudget = (tier: RecommendationResult['tier'], budget: BudgetRan
 };
 
 const baseRationale: Record<RecommendationResult['tier'], string> = {
-  A1: 'Security Basic keeps essentials covered with a single Home Assistant hub and a straightforward install.',
-  A2: 'Security Plus expands lighting, cameras, and hazard alerts so households see issues sooner without more apps.',
-  A3: 'Security Pro hardens the property with pro-grade recording, redundancy, and system health assurance.',
+  A1: 'Elder Tech Basic covers night pathway safety, hazard awareness, and gentle check-ins with a single Home Assistant hub.',
+  A2: 'Elder Tech Plus adds routine deviation detection and privacy-first caregiver summaries without relying on surveillance.',
+  A3: 'Elder Tech Pro introduces multi-signal correlation and adaptive escalation for complex caregiving needs.',
 };
 
 const offlineBaseline: Record<RecommendationResult['tier'], number> = {
@@ -79,19 +79,19 @@ export const buildRecommendation = (input: RecommendationInput): RecommendationR
   const suggestedAddOns: string[] = [];
 
   if (input.internetReliability !== 'good') {
-    suggestedAddOns.push('Cellular notification failover for alerts during outages');
+    suggestedAddOns.push('Backup power resilience kit for the hub and network');
   }
 
   if (input.homeSize === 'large') {
-    suggestedAddOns.push('Extra smart lighting circuits to cover wide entry points');
+    suggestedAddOns.push('Night pathway lighting kit for wider coverage');
   }
 
   if (input.fallRisk !== 'low') {
-    suggestedAddOns.push('Water leak sensors for early warning in kitchens and baths');
+    suggestedAddOns.push('Hazard sensor bundle (leak + temperature) for early warnings');
   }
 
   if (input.caregiverSituation === 'solo') {
-    suggestedAddOns.push('Additional camera coverage for shared oversight');
+    suggestedAddOns.push('Gentle check-in buttons for simpler caregiver confirmation');
   }
 
   const installComplexity = Math.min(
@@ -111,11 +111,11 @@ export const buildRecommendation = (input: RecommendationInput): RecommendationR
   }
 
   if (input.fallRisk !== 'low') {
-    rationaleParts.push('Adds environmental alerts to reduce damage and safety risks.');
+    rationaleParts.push('Adds environmental alerts to reduce safety risks.');
   }
 
   if (input.caregiverSituation === 'professional') {
-    rationaleParts.push('Supports team access controls and local recording for accountability.');
+    rationaleParts.push('Supports team access controls and privacy-first caregiver summaries.');
   }
 
   return {

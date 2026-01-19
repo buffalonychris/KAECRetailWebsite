@@ -7,12 +7,22 @@ export const faqs: FAQ[] = [
   {
     question: 'Do you sell subscriptions or monitoring plans?',
     answer:
-      'No. Packages are one-time purchases. Optional third-party services can be added directly by the customer.',
+      'No. Packages are one-time purchases. Optional third-party services (monitoring or nursing programs) can be contracted directly by the customer.',
+  },
+  {
+    question: 'Is Elder Tech medical monitoring or a diagnosis?',
+    answer:
+      'No. Elder Tech is non-medical, support-focused home technology. It does not provide diagnosis, medical monitoring, or collect PHI.',
+  },
+  {
+    question: 'Are cameras required?',
+    answer:
+      'No. Cameras are optional and off by default. Sensor-first signals (motion, door, hazard) are the standard, and any camera use requires explicit consent.',
   },
   {
     question: 'What happens if the internet goes out?',
     answer:
-      'Offline Dignity Rule: lighting, scenes, and climate automations continue locally as long as equipment has power. Remote access may pause, but on-site control remains.',
+      'Offline Dignity Rule: lighting cues, sensor triggers, and local alerts continue on-site as long as equipment has power. Remote access may pause, but local safety behaviors remain.',
   },
   {
     question: 'Which app do I use?',
@@ -25,14 +35,14 @@ export const faqs: FAQ[] = [
       'You do. The hardware, automations, and local data belong to the customer, and access is controlled by the homeowner.',
   },
   {
-    question: 'Can I edit my automations later?',
+    question: 'How is consent and dignity handled?',
     answer:
-      'Yes. You own the system outright and can modify automations directly inside Home Assistant or ask us to tune them.',
+      'We document resident consent and configure role-based access so caregivers only see what is necessary. Alerts and summaries are privacy-first.',
   },
   {
     question: 'Can I add on to a package later?',
     answer:
-      'Yes. You can extend lighting, cameras, sensors, and automations over time while keeping Home Assistant as the hub.',
+      'Yes. You can extend sensors, lighting cues, and caregiver summaries over time while keeping Home Assistant as the hub.',
   },
   {
     question: 'How do you keep the system privacy-first?',
@@ -42,7 +52,7 @@ export const faqs: FAQ[] = [
   {
     question: 'Do you support wireless-first devices?',
     answer:
-      'Yes. Our automation tiers prioritize wireless-first switches, sensors, and controllers that stay local and integrate with Home Assistant.',
+      'Yes. Our Elder Tech tiers prioritize wireless-first sensors and controllers that stay local and integrate with Home Assistant.',
   },
   {
     question: 'How do you secure remote access?',

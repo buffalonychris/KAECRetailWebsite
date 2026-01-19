@@ -18,11 +18,11 @@ const tierOrder: PackageTierId[] = ['A1', 'A2', 'A3'];
 
 const ComparisonLadder = () => {
   return (
-    <div className="comparison-ladder" aria-label="Security comparison ladder">
+    <div className="comparison-ladder" aria-label="Elder Tech comparison ladder">
       <div className="ladder-header">
         <div>
           <p className="badge">Basic → Plus → Pro</p>
-          <h2 style={{ margin: '0.25rem 0' }}>Compare security tiers</h2>
+          <h2 style={{ margin: '0.25rem 0' }}>Compare Elder Tech tiers</h2>
           <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
             See exactly what you gain as you move up. Pricing, package contents, and checkout flows remain
             unchanged.

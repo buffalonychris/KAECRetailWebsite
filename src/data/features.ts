@@ -12,141 +12,142 @@ export type FeatureGroup = {
 
 const basicFeatures: FeatureCategory[] = [
   {
-    title: 'Schedules & Scenes',
-    items: ['Time-based lighting and climate schedules', 'One-touch scenes for daily routines'],
+    title: 'Night Pathway Safety',
+    items: ['Low-glare pathway lighting on motion', 'Bed-to-bath routing cues'],
   },
   {
-    title: 'Local Control',
-    items: [
-      'Home Assistant as the single dashboard',
-      'Manual overrides from wall controls and scene buttons',
-    ],
+    title: 'Hazard Awareness',
+    items: ['Leak and temperature alerts for kitchens and baths', 'Smoke/CO listener alerts'],
   },
   {
-    title: 'Offline Resilience',
-    items: ['Local-first automations continue during internet outages when power is present'],
+    title: 'Gentle Check-ins',
+    items: ['Missed-activity nudges', 'Local chime or voice prompt cues'],
+  },
+  {
+    title: 'Offline Dignity Rule',
+    items: ['Local lighting and sensor triggers run without internet', 'Home Assistant logs stay on-site'],
+  },
+  {
+    title: 'Privacy & Ownership',
+    items: ['Home Assistant as the single dashboard', 'Customer owns the system, automations, and data'],
   },
 ];
 
 const plusAdds: FeatureCategory[] = [
   {
-    title: 'Presence-Aware Comfort',
-    items: ['Room-level occupancy routines', 'Arrival, away, and sleep mode scenes'],
+    title: 'Routine Awareness',
+    items: ['Routine deviation detection', 'Daily caregiver summary views (privacy-first)'],
   },
   {
-    title: 'Adaptive Lighting',
-    items: ['Brightness and color temperature shifts by time and ambient light'],
+    title: 'Door Usage Awareness',
+    items: ['Entry/exit alerts with quiet chimes', 'Optional caregiver notifications for unusual activity'],
   },
   {
-    title: 'Energy Awareness',
-    items: ['Circuit-level monitoring and usage insights', 'Energy-aware automation suggestions'],
+    title: 'Role-Based Access',
+    items: ['Shared caregiver dashboards', 'Resident-first permissions and visibility controls'],
   },
   {
     title: 'Offline Resilience',
     items: [
-      'Local schedules and presence routines stay active without internet',
-      'Graceful recovery after outages with stored scenes',
+      'Routine alerts stay local without cloud dependence',
+      'Caregiver summaries sync once connectivity returns',
     ],
+  },
+  {
+    title: 'Cameras Optional',
+    items: ['Cameras are optional and off by default', 'Sensor-first signals are the standard'],
   },
 ];
 
 const proAdds: FeatureCategory[] = [
   {
-    title: 'Multi-Zone Orchestration',
-    items: ['Room-to-room scene transitions', 'Zone-based lighting and climate coordination'],
+    title: 'Multi-Signal Correlation',
+    items: ['Combine motion, door, and hazard signals', 'Reduce false alarms with local rules'],
   },
   {
-    title: 'Advanced Automation',
-    items: ['Layered conditions and fallback rules', 'Specialty space routines'],
+    title: 'Adaptive Escalation',
+    items: ['Tiered caregiver escalation ladders', 'Time-based escalation logic'],
   },
   {
-    title: 'Resilience',
-    items: ['Power-return recovery behaviors', 'Local execution health checks'],
+    title: 'Additional Guardrails',
+    items: ['Overnight safety guardrails', 'Proactive system health checks'],
   },
   {
-    title: 'Offline Resilience',
+    title: 'Offline Dignity Rule',
     items: [
-      'Local orchestration stays live with LAN-only control paths',
-      'Redundant controller protection for critical routines',
+      'Escalation ladders run locally without cloud services',
+      'Backup power keeps critical signals active',
     ],
   },
   {
+    title: 'Cameras Optional',
+    items: ['Camera check-ins require explicit consent', 'Cameras remain off by default'],
+  },
+  {
     title: 'Ownership & Privacy',
-    items: ['Home Assistant stays the homeowner-controlled platform', 'No cloud dependency for local control'],
+    items: ['Home Assistant stays the resident-controlled platform', 'No cloud dependency for local safety'],
   },
 ];
 
 const addOnFeatures: Record<string, FeatureCategory[]> = {
-  'smart-switches': [
+  'night-pathway-lighting': [
     {
-      title: 'Lighting Control',
-      items: ['Expanded dimming and scene coverage'],
+      title: 'Night Pathway Safety',
+      items: ['Expanded low-glare lighting coverage'],
     },
   ],
-  'smart-plugs': [
+  'hazard-sensors': [
     {
-      title: 'Device Control',
-      items: ['Scheduled control for lamps and plug-in devices'],
+      title: 'Hazard Awareness',
+      items: ['Leak and temperature alerts in more rooms'],
     },
   ],
-  'simple-sensors': [
+  'gentle-checkin': [
     {
-      title: 'Presence Signals',
-      items: ['Expanded occupancy triggers for routines'],
+      title: 'Gentle Check-ins',
+      items: ['One-touch check-in confirmations'],
     },
   ],
-  'scene-buttons': [
+  'door-awareness': [
     {
-      title: 'Scene Control',
-      items: ['One-touch scenes for daily routines'],
+      title: 'Door Usage Awareness',
+      items: ['Expanded entry/exit awareness'],
     },
   ],
-  'presence-aware': [
+  'routine-summary': [
     {
-      title: 'Presence Accuracy',
-      items: ['Room-level detection for responsive routines'],
+      title: 'Caregiver Summaries',
+      items: ['Expanded daily summary views'],
     },
   ],
-  'adaptive-lighting': [
+  'air-quality': [
     {
-      title: 'Adaptive Lighting',
-      items: ['Automatic brightness and color temperature tuning'],
+      title: 'Health & Comfort',
+      items: ['Air quality and CO alert coverage'],
     },
   ],
-  'energy-awareness': [
+  'adaptive-escalation': [
     {
-      title: 'Energy Insights',
-      items: ['Circuit-level monitoring with reporting'],
+      title: 'Escalation Logic',
+      items: ['Tiered escalation ladders'],
     },
   ],
-  'climate-optimization': [
+  'multi-signal-correlation': [
     {
-      title: 'Climate Optimization',
-      items: ['Zone-aware comfort settings with optional weather context'],
+      title: 'Signal Confidence',
+      items: ['Combined motion, door, and hazard cues'],
     },
   ],
-  'multi-zone': [
+  'backup-power': [
     {
-      title: 'Multi-Zone Control',
-      items: ['Room-grouped scenes and transitions'],
+      title: 'Resilience',
+      items: ['Backup power for critical devices'],
     },
   ],
-  'advanced-rules': [
+  'optional-video-checkin': [
     {
-      title: 'Automation Depth',
-      items: ['Layered logic and fallback rules'],
-    },
-  ],
-  'energy-management': [
-    {
-      title: 'Energy Management',
-      items: ['Load management with optional utility-rate context'],
-    },
-  ],
-  'specialty-spaces': [
-    {
-      title: 'Specialty Spaces',
-      items: ['Custom automations for outdoor, media, or wellness zones'],
+      title: 'Optional Video Check-ins',
+      items: ['Off by default with consent-based enablement'],
     },
   ],
 };
