@@ -15,6 +15,7 @@ import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlo
 import { getTierLabel } from '../data/pricing';
 import TierBadge from '../components/TierBadge';
 import ComparisonLadder from '../components/ComparisonLadder';
+import { brandSite } from '../lib/brand';
 
 const optionStyles: CSSProperties = {
   display: 'grid',
@@ -216,7 +217,7 @@ const Recommendation = () => {
         <div className="badge">Build my package</div>
         <h1 style={{ margin: 0, color: '#fff7e6' }}>Package recommender wizard</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
-          Answer a few non-sensitive questions to see which KickAss package tier fits best. This tool
+          Answer a few non-sensitive questions to see which {brandSite} package tier fits best. This tool
           is informational only and does not provide medical advice. If this is urgent, call 911.
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>

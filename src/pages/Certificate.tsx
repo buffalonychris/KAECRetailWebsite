@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import { buildSicarAuthorityMeta, DocAuthorityMeta, parseSicarToken } from '../lib/docAuthority';
+import { brandLegal, brandShort } from '../lib/brand';
 import {
   AcceptanceSnapshot,
   addDevice,
@@ -701,7 +702,8 @@ const Certificate = () => {
             )}
           </ul>
           <small style={{ color: '#c8c0aa' }}>
-            © 2025 KickAss Inc. All Rights Reserved. Unauthorized use is prohibited. May all of your journeys be KickAss!
+            © 2025 {brandLegal} All Rights Reserved. Unauthorized use is prohibited. May all of your journeys be
+            supported by {brandShort}.
           </small>
         </div>
       </div>

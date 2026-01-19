@@ -9,6 +9,7 @@ import { buildAgreementEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendAgreementEmail } from '../lib/emailSend';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { buildQuoteReference } from '../lib/quoteUtils';
+import { brandShort } from '../lib/brand';
 
 const calculateDepositDue = (total: number) => {
   const { depositPolicy } = siteConfig;
@@ -200,7 +201,7 @@ const Payment = () => {
               No monthly subscriptions required. This UI does not process payments; it shows how the deposit and balance would be captured after agreement.
             </p>
             <small style={{ color: '#c8c0aa' }}>
-              Card data is never stored by KickAss; secure provider fields will be used once enabled.
+              Card data is never stored by {brandShort}; secure provider fields will be used once enabled.
             </small>
           </div>
           <button type="button" className="btn btn-primary" onClick={handlePrint}>

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { trackLandingCtaClick, trackLandingView } from '../lib/analytics';
+import { brandSite } from '../lib/brand';
 
 const AgencyLanding = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const AgencyLanding = () => {
         <p className="badge">Health Homes / Agencies</p>
         <h1 style={{ margin: 0 }}>Deterministic safety coverage your teams can rely on</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
-          Western New York partners use KickAss Elder Care to reduce avoidable EMS calls without clinical
+          Western New York partners use {brandSite} to reduce avoidable EMS calls without clinical
           monitoring risk. Offline-first components and clear boundaries mean your coordinators stay in
           control even when internet or power is shaky.
         </p>

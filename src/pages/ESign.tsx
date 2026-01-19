@@ -1,9 +1,12 @@
 import { useLocation } from 'react-router-dom';
 import { QuoteContext } from '../lib/agreement';
+import { brandShort } from '../lib/brand';
 
 const ESign = () => {
   const location = useLocation();
   const state = location.state as { quoteContext?: QuoteContext; fullName?: string; acceptanceDate?: string } | undefined;
+
+  const mailSubject = encodeURIComponent(`${brandShort} E-Signature Request`);
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
@@ -25,7 +28,7 @@ const ESign = () => {
         <p style={{ margin: 0, color: '#c8c0aa' }}>
           Agreement is not fully executed until e-signature is completed.
         </p>
-        <a className="btn btn-primary" href="mailto:care@kickassfamily.com?subject=KickAss%20E-Signature%20Request">
+        <a className="btn btn-primary" href={`mailto:care@kickassfamily.com?subject=${mailSubject}`}>
           Contact us to complete signing
         </a>
         {state?.quoteContext && (

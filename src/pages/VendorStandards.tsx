@@ -1,12 +1,13 @@
 import Seo from '../components/Seo';
 import VendorJourneyNav from '../components/VendorJourneyNav';
+import { brandSite } from '../lib/brand';
 
 const VendorStandards = () => {
   return (
     <div className="container section">
       <Seo
-        title="Standards & Alignment | KickAss Elder Care"
-        description="Platform alignment standards for vendors considering the KickAss Elder Care evaluation path."
+        title={`Standards & Alignment | ${brandSite}`}
+        description={`Platform alignment standards for vendors considering the ${brandSite} evaluation path.`}
       />
       <div style={{ display: 'grid', gap: '1.5rem' }}>
         <section style={{ textAlign: 'center' }}>
@@ -69,7 +70,7 @@ const VendorStandards = () => {
         <section className="card">
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>5) Brand authority &amp; packaging/software rules</h3>
           <p>
-            KickAss Elder Care retains brand authority in customer UX and packaging. Vendor apps, dashboards,
+            {brandSite} retains brand authority in customer UX and packaging. Vendor apps, dashboards,
             or logos are not exposed to end users.
           </p>
         </section>

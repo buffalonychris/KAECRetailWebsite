@@ -1,3 +1,5 @@
+import { brandShort } from '../lib/brand';
+
 const PaymentProcessing = () => {
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
@@ -17,7 +19,7 @@ const PaymentProcessing = () => {
           </li>
           <li>
             <span />
-            <span>Once live, fields will come from the processor and will not be stored by KickAss.</span>
+            <span>Once live, fields will come from the processor and will not be stored by {brandShort}.</span>
           </li>
           <li>
             <span />

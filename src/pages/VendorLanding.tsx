@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
 import VendorJourneyNav from '../components/VendorJourneyNav';
 import VendorSelfQualificationChecklist from '../components/VendorSelfQualificationChecklist';
+import { brandSite } from '../lib/brand';
 
 const VendorLanding = () => {
   return (
     <div className="container section">
       <Seo
-        title="Vendor Alignment | KickAss Elder Care"
-        description="A calm, selective alignment gateway for hardware and technology vendors who can meet KickAss Elder Care standards."
+        title={`Vendor Alignment | ${brandSite}`}
+        description={`A calm, selective alignment gateway for hardware and technology vendors who can meet ${brandSite} standards.`}
       />
       {/* Internal note: Keep this page informational only. Route next steps through contact without forms or uploads. */}
       <div style={{ display: 'grid', gap: '1.5rem' }}>
@@ -18,7 +19,7 @@ const VendorLanding = () => {
           </p>
           <h2 style={{ margin: 0 }}>Vendor landing page</h2>
           <p style={{ maxWidth: 760, margin: '0.75rem auto 0' }}>
-            KickAss Elder Care works with a limited number of aligned hardware and technology vendors.
+            {brandSite} works with a limited number of aligned hardware and technology vendors.
             This is a selective alignment path, not a sales funnel.
           </p>
           <p style={{ maxWidth: 760, margin: '0.75rem auto 0' }}>
@@ -95,7 +96,7 @@ const VendorLanding = () => {
               exist as optional enhancements but can never be required for core operation.
             </p>
             <p>
-              KickAss Elder Care retains brand and firmware authority. We do not expose vendor apps,
+              {brandSite} retains brand and firmware authority. We do not expose vendor apps,
               dashboards, or cloud accounts to end users.
             </p>
             <p>
@@ -256,7 +257,7 @@ const VendorLanding = () => {
             If you meet every standard above, request the evaluation toolkit through a simple introduction.
           </p>
           <Link className="btn btn-primary" to="/contact">
-            Contact KickAss Elder Care
+            Contact {brandSite}
           </Link>
         </section>
 

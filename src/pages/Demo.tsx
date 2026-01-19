@@ -31,14 +31,6 @@ const missedCallFactor: Record<string, number> = {
   '31+': 0.3,
 };
 
-const demoTrend = [
-  { week: 'W1', captured: 8 },
-  { week: 'W2', captured: 12 },
-  { week: 'W3', captured: 11 },
-  { week: 'W4', captured: 15 },
-  { week: 'W5', captured: 14 },
-];
-
 const Demo = () => {
   const [quiz, setQuiz] = useState<QuizState>({
     trade: '',
@@ -50,6 +42,15 @@ const Demo = () => {
   });
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [step, setStep] = useState<'quiz' | 'dashboard'>('quiz');
+
+  const isQuizComplete = Boolean(
+    quiz.trade &&
+      quiz.calendar &&
+      quiz.missedCalls &&
+      quiz.estimatesPerMonth &&
+      quiz.averageJobValue,
+  );
 
   const estimateMetrics = useMemo(() => {
     const estimates = Number(quiz.estimatesPerMonth || 0);
@@ -71,10 +72,41 @@ const Demo = () => {
     };
   }, [quiz]);
 
+  const demoTrend = useMemo(() => {
+    const baseTrend = [8, 12, 11, 15, 14];
+    const factor = missedCallFactor[quiz.missedCalls] ?? 0.1;
+    const estimates = Number(quiz.estimatesPerMonth || 0);
+    const scale = estimates > 0 ? Math.max(1, Math.round((estimates * factor) / 10)) : 1;
+    return baseTrend.map((value, index) => ({
+      week: `W${index + 1}`,
+      captured: Math.max(1, Math.round(value * scale)),
+    }));
+  }, [quiz.estimatesPerMonth, quiz.missedCalls]);
+
+  const tradeLabel = quiz.trade ? quiz.trade.charAt(0).toUpperCase() + quiz.trade.slice(1) : 'General contractor';
+  const calendarLabel =
+    quiz.calendar === 'google'
+      ? 'Google Calendar'
+      : quiz.calendar === 'apple'
+        ? 'Apple Calendar'
+        : quiz.calendar === 'outlook'
+          ? 'Outlook / Office 365'
+          : quiz.calendar || 'Calendar pending';
+  const crmLabel =
+    quiz.crm === 'jobber'
+      ? 'Jobber'
+      : quiz.crm === 'servicetitan'
+        ? 'ServiceTitan'
+        : quiz.crm === 'salesforce'
+          ? 'Salesforce'
+          : quiz.crm === 'hubspot'
+            ? 'HubSpot'
+            : quiz.crm || 'None selected';
+
   const profile = {
-    trade: quiz.trade || 'General contractor',
-    calendar: quiz.calendar || 'Calendar pending',
-    crm: quiz.crm || 'None selected',
+    trade: tradeLabel,
+    calendar: calendarLabel,
+    crm: crmLabel,
     missedCalls: quiz.missedCalls || 'Range not selected',
     estimatesPerMonth: quiz.estimatesPerMonth || '—',
     averageJobValue: quiz.averageJobValue || '—',
@@ -92,6 +124,13 @@ const Demo = () => {
     if (email.trim()) {
       setSubmitted(true);
     }
+  };
+
+  const handleViewDemo = () => {
+    setStep('dashboard');
+    requestAnimationFrame(() => {
+      document.getElementById('demo-dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   return (
@@ -203,27 +242,78 @@ const Demo = () => {
         </div>
 
         <SpaceFrame>
-          <h2>Personalized Owner Dashboard Preview</h2>
-          <div className="space-grid three-column" style={{ marginTop: '1rem' }}>
-            <KpiTile label="Estimates booked (today)" value={estimateMetrics.bookedToday} footer="Example / demo data" />
-            <KpiTile
-              label="Estimates booked (yesterday)"
-              value={estimateMetrics.bookedYesterday}
-              footer="Example / demo data"
-            />
-            <KpiTile
-              label="After-hours calls captured"
-              value={estimateMetrics.afterHoursCaptured}
-              footer="Example / demo data"
-            />
-            <KpiTile label="Escalations" value={estimateMetrics.escalations} footer="Example / demo data" />
-            <KpiTile
-              label="Estimated ROI range (example)"
-              value={estimateMetrics.roiRange}
-              footer="Example / demo data"
-            />
+          <h2>Ready to reveal your demo dashboard?</h2>
+          <p>
+            Complete the required fields to unlock a personalized preview. This dashboard is illustrative and
+            uses example data only.
+          </p>
+          <div className="space-section-actions">
+            {isQuizComplete ? (
+              <button className="btn btn-primary" type="button" onClick={handleViewDemo}>
+                View Demo
+              </button>
+            ) : (
+              <span className="chart-helper">Finish the required questions to unlock the demo dashboard.</span>
+            )}
           </div>
         </SpaceFrame>
+
+        {step === 'dashboard' && (
+          <SpaceFrame id="demo-dashboard">
+            <h2>Personalized Owner Dashboard Preview</h2>
+            <p className="chart-helper" style={{ marginTop: '0.35rem' }}>
+              Example / demo data based on your inputs. No guarantees or promises implied.
+            </p>
+            <div className="space-grid three-column" style={{ marginTop: '1rem' }}>
+              <KpiTile label="Estimates booked (today)" value={estimateMetrics.bookedToday} footer="Example / demo data" />
+              <KpiTile
+                label="Estimates booked (yesterday)"
+                value={estimateMetrics.bookedYesterday}
+                footer="Example / demo data"
+              />
+              <KpiTile
+                label="After-hours calls captured"
+                value={estimateMetrics.afterHoursCaptured}
+                footer="Example / demo data"
+              />
+              <KpiTile label="Escalations" value={estimateMetrics.escalations} footer="Example / demo data" />
+              <KpiTile
+                label="Estimated ROI range (example)"
+                value={estimateMetrics.roiRange}
+                footer="Example / demo data"
+              />
+            </div>
+            <div className="space-grid two-column" style={{ marginTop: '1.5rem' }}>
+              <SpaceFrame>
+                <h3>Profile inputs applied</h3>
+                <ul className="operator-list">
+                  <li>Trade focus: {profile.trade}</li>
+                  <li>Calendar sync: {profile.calendar}</li>
+                  <li>CRM: {profile.crm}</li>
+                </ul>
+                <small className="chart-helper">Example / demo data for illustration only.</small>
+              </SpaceFrame>
+              <ChartCard title="Captured request trend" subtitle={`${profile.trade} example volume`}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={demoTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
+                    <XAxis dataKey="week" stroke="#94a3b8" />
+                    <YAxis stroke="#94a3b8" />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'rgba(15, 23, 42, 0.95)',
+                        borderColor: 'rgba(125, 211, 252, 0.35)',
+                        color: '#e2e8f0',
+                      }}
+                    />
+                    <Area type="monotone" dataKey="captured" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <small className="chart-helper">Example / demo data</small>
+              </ChartCard>
+            </div>
+          </SpaceFrame>
+        )}
 
         <SpaceFrame>
           <h2>Next steps</h2>

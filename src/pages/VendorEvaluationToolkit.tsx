@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
 import VendorJourneyNav from '../components/VendorJourneyNav';
+import { brandSite } from '../lib/brand';
 
 const VendorEvaluationToolkit = () => {
   return (
     <div className="container section">
       <Seo
-        title="Evaluation Toolkit | KickAss Elder Care"
+        title={`Evaluation Toolkit | ${brandSite}`}
         description="A calm overview of the vendor evaluation toolkit, scope, and acceptance discipline."
       />
       <div style={{ display: 'grid', gap: '1.5rem' }}>

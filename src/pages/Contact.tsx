@@ -1,7 +1,9 @@
+import { brandSite } from '../lib/brand';
+
 const Contact = () => {
   return (
     <div className="container section">
-      <h2 style={{ marginTop: 0 }}>Talk with KickAss Elder Care</h2>
+      <h2 style={{ marginTop: 0 }}>Talk with {brandSite}</h2>
       <p style={{ maxWidth: 640 }}>
         Share how many rooms or units you need covered, and which package tiers you want to discuss.
         We respond with a simple, one-time quote—no subscriptions.

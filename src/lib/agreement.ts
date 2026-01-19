@@ -3,6 +3,7 @@ import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { siteConfig } from '../config/site';
 import { buildQuoteReference } from './quoteUtils';
+import { brandSite } from './brand';
 
 export type QuoteContext = {
   customerName?: string;
@@ -130,7 +131,7 @@ const validationSteps = [
 ];
 
 const terms = [
-  'Non-medical and informational: KickAss Elder Care provides configuration and training only; we do not provide medical care or monitoring.',
+  `Non-medical and informational: ${brandSite} provides configuration and training only; we do not provide medical care or monitoring.`,
   'Safety first: If there is an urgent safety issue, call 911 or local emergency services.',
   'Data handling: Local-first configuration is prioritized; any cloud connections are only enabled for selected services.',
   'Service boundaries: Warranty and service boundaries will be finalized in the KAEC backend signing package.',
@@ -178,7 +179,7 @@ export const generateAgreement = (input?: QuoteContext): AgreementContent => {
 
   return {
     header: {
-      title: 'KickAss Elder Care — Combined Agreement',
+      title: `${brandSite} — Combined Agreement`,
       version: agreementVersion,
       generatedDate: new Date().toISOString().slice(0, 10),
     },

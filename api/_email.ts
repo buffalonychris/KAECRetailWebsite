@@ -89,7 +89,7 @@ const renderButton = (href: string, label: string) =>
 
 const buildContent = (payload: EmailPayload, docLabel: 'Quote' | 'Agreement') => {
   const reference = (payload.meta.reference as string) || docLabel;
-  const subject = `KickAss Elder Care — ${docLabel} ${reference}`;
+  const subject = `Reliable Elder Care — ${docLabel} ${reference}`;
   const hash = (payload.meta.hashShort as string) || '';
   const issuedAt = (payload.meta.issuedAtISO as string) || '';
   const header = '<p style="margin:0 0 12px 0;font-size:16px;font-weight:700">Your official copy is ready.</p>';

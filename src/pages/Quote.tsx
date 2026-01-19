@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { brandSite } from '../lib/brand';
 import TierBadge from '../components/TierBadge';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
@@ -142,7 +143,7 @@ const Quote = () => {
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Deterministic quote</div>
-        <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a KickAss quote</h1>
+        <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a {brandSite} quote</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
           Capture the basics, pick a package, and see an upfront one-time estimate. Pricing uses a
           fixed table—no AI, no monthly subscriptions required.

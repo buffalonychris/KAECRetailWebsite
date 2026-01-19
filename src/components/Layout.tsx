@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
+import Pill from './operator/Pill';
+import { brandLegal } from '../lib/brand';
 
 type NavItem = {
   path: string;
@@ -11,6 +13,14 @@ type NavItem = {
 const solutionLinks: NavItem[] = [
   { path: '/operator', label: 'Operator' },
   { path: '/never-miss-another-estimate', label: 'Never Miss Another Estimate' },
+];
+
+const productLinks: NavItem[] = [
+  { path: '/', label: 'Home' },
+  { path: '/home-security', label: 'Home Security' },
+  { path: '/home-automation', label: 'Home Automation' },
+  { path: '/elder-care', label: 'Elderly Care' },
+  { path: '/halo', label: 'HALO' },
 ];
 
 const navLinks: NavItem[] = [
@@ -82,6 +92,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <span />
             </button>
             <nav className="nav-links" aria-label="Main navigation">
+              {productLinks.map((item) => (
+                <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
+                  {item.label}
+                </NavLink>
+              ))}
+              <NavLink to="/operator" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+                Operator <Pill className="pill-inline">SaaS</Pill>
+              </NavLink>
               <details className="dropdown">
                 <summary className={`dropdown-trigger${solutionsActive ? ' active' : ''}`}>
                   Solutions
@@ -114,6 +132,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="mobile-menu-inner">
               <div className="mobile-links" role="menu">
+                {productLinks.map((item) => (
+                  <NavLink key={item.path} to={item.path} role="menuitem">
+                    {item.label}
+                  </NavLink>
+                ))}
+                <NavLink to="/operator" role="menuitem">
+                  Operator <Pill className="pill-inline">SaaS</Pill>
+                </NavLink>
                 <details>
                   <summary>Solutions</summary>
                   <div className="mobile-dropdown">
@@ -175,7 +201,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         <div className="container footer-meta">
-          <small>© 2025 KickAss Inc. All Rights Reserved.</small>
+          <small>© 2025 {brandLegal} All Rights Reserved.</small>
         </div>
       </footer>
     </div>

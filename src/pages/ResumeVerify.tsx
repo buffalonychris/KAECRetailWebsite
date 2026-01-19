@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { brandSite } from '../lib/brand';
 
 const ResumeVerify = () => {
   return (
@@ -7,7 +8,7 @@ const ResumeVerify = () => {
         <p className="badge">Resume or verify documents</p>
         <h1 style={{ margin: '0.5rem 0 0.75rem' }}>Resume / Verify</h1>
         <p style={{ color: 'var(--kaec-muted)', maxWidth: '720px' }}>
-          Links to resume an agreement or verify documents come from KickAss Elder Care emails
+          Links to resume an agreement or verify documents come from {brandSite} emails
           or printed paperwork. If you have one of those links, you can jump back in here.
         </p>
       </div>
