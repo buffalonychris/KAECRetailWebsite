@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Area,
@@ -112,14 +112,14 @@ const Demo = () => {
     averageJobValue: quiz.averageJobValue || '—',
   };
 
-  const handleChange = (field: keyof QuizState) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (field: keyof QuizState) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setQuiz((prev) => ({
       ...prev,
       [field]: event.target.value,
     }));
   };
 
-  const handleMailingListSubmit = (event: React.FormEvent) => {
+  const handleMailingListSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (email.trim()) {
       setSubmitted(true);
