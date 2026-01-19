@@ -18,28 +18,28 @@ export type AddOn = {
 export const packagePricing: PackagePricing[] = [
   {
     id: 'A1',
-    name: 'Automation Basic',
+    name: 'Elder Tech Basic',
     basePrice: 2850,
-    summary: 'Foundational schedules and scenes with local-first control and offline continuity.',
+    summary: 'Night pathway safety, hazard alerts, and gentle check-ins with local-first control.',
   },
   {
     id: 'A2',
-    name: 'Automation Plus',
+    name: 'Elder Tech Plus',
     basePrice: 4950,
-    summary: 'Presence-aware routines, adaptive lighting, and energy awareness without cloud dependence.',
+    summary: 'Routine-aware support, door usage awareness, and privacy-first caregiver summaries.',
   },
   {
     id: 'A3',
-    name: 'Automation Pro',
+    name: 'Elder Tech Pro',
     basePrice: 7750,
-    summary: 'Multi-zone orchestration, resilience, and advanced rule depth for complex homes.',
+    summary: 'Multi-signal correlation, adaptive escalation, and advanced guardrails.',
   },
 ];
 
 const tierLabels: Record<PackageTierId, string> = {
-  A1: 'Automation Basic',
-  A2: 'Automation Plus',
-  A3: 'Automation Pro',
+  A1: 'Elder Tech Basic',
+  A2: 'Elder Tech Plus',
+  A3: 'Elder Tech Pro',
 };
 
 const tierBadgeClass: Record<PackageTierId, string> = {
@@ -54,89 +54,83 @@ export const getTierBadgeClass = (tier: PackageTierId): string => tierBadgeClass
 
 export const addOns: AddOn[] = [
   {
-    id: 'smart-switches',
-    label: 'Smart switches & dimmers upgrade',
+    id: 'night-pathway-lighting',
+    label: 'Night pathway lighting kit',
     tier: 'Low',
     price: 320,
-    description: 'Upgrades key rooms with tactile lighting control and reliable scenes. Install complexity: Light.',
+    description:
+      'Adds low-glare pathway lighting that triggers on motion for safer overnight trips. Install complexity: Light.',
   },
   {
-    id: 'smart-plugs',
-    label: 'Smart plugs for lamps & devices',
-    tier: 'Low',
-    price: 180,
-    description: 'Adds scheduled control for lamps and plug-in appliances with quick pairing. Install complexity: Light.',
-  },
-  {
-    id: 'simple-sensors',
-    label: 'Simple occupancy sensor kit',
+    id: 'hazard-sensors',
+    label: 'Hazard sensor bundle (leak + temperature)',
     tier: 'Low',
     price: 260,
-    description: 'Enables motion-based lighting and room awareness for core spaces. Install complexity: Light.',
+    description:
+      'Adds leak and temperature alerts with local notifications for kitchens and baths. Install complexity: Light.',
   },
   {
-    id: 'scene-buttons',
-    label: 'Scene button kit',
+    id: 'gentle-checkin',
+    label: 'Gentle check-in buttons',
     tier: 'Low',
     price: 220,
-    description: 'Adds one-touch scene control for entries, bedrooms, and shared spaces. Install complexity: Light.',
+    description:
+      'Adds one-touch check-ins for resident reassurance and caregiver acknowledgment. Install complexity: Light.',
   },
   {
-    id: 'presence-aware',
-    label: 'Presence-aware room detection',
+    id: 'door-awareness',
+    label: 'Door usage awareness pack',
     tier: 'Mid',
     price: 420,
-    description: 'Improves room-level occupancy accuracy for routines that follow you. Install complexity: Medium.',
+    description:
+      'Adds entry/exit awareness with quiet chimes and caregiver alerts for unusual activity. Install complexity: Medium.',
   },
   {
-    id: 'adaptive-lighting',
-    label: 'Adaptive lighting kit',
+    id: 'routine-summary',
+    label: 'Routine summary dashboard',
     tier: 'Mid',
     price: 390,
-    description: 'Auto-adjusts brightness and color temperature based on time and ambient light. Install complexity: Medium.',
+    description:
+      'Delivers privacy-first activity summaries inside Home Assistant (no audio/video). Install complexity: Medium.',
   },
   {
-    id: 'energy-awareness',
-    label: 'Energy awareness monitor',
+    id: 'air-quality',
+    label: 'Air quality + CO listener kit',
     tier: 'Mid',
     price: 480,
-    description: 'Highlights top circuits and usage patterns for smarter routines. Install complexity: Medium.',
+    description:
+      'Adds air quality and CO alerts with local notifications for healthier indoor environments. Install complexity: Medium.',
   },
   {
-    id: 'climate-optimization',
-    label: 'Climate optimization pack',
+    id: 'adaptive-escalation',
+    label: 'Adaptive escalation ladder',
     tier: 'Mid',
     price: 520,
     description:
-      'Balances comfort with schedules and zone sensors; optional external context only (weather). Install complexity: Medium.',
+      'Adds tiered caregiver escalation with time-based logic that runs locally. Install complexity: Medium.',
   },
   {
-    id: 'multi-zone',
-    label: 'Multi-zone orchestration',
+    id: 'multi-signal-correlation',
+    label: 'Multi-signal correlation engine',
     tier: 'High',
     price: 760,
-    description: 'Coordinates lighting and climate across floors or wings with shared scenes. Install complexity: Heavy.',
+    description:
+      'Combines motion, door, and hazard signals to reduce false alarms and improve confidence. Install complexity: Heavy.',
   },
   {
-    id: 'advanced-rules',
-    label: 'Advanced rule engine setup',
+    id: 'backup-power',
+    label: 'Backup power resilience kit',
     tier: 'High',
     price: 880,
-    description: 'Adds layered logic, fallbacks, and safety checks for complex automations. Install complexity: Heavy.',
+    description:
+      'Adds UPS coverage for the hub and network so local safety behaviors persist during outages. Install complexity: Heavy.',
   },
   {
-    id: 'energy-management',
-    label: 'Whole-home energy management',
+    id: 'optional-video-checkin',
+    label: 'Optional video check-in kit (off by default)',
     tier: 'High',
     price: 950,
     description:
-      'Load balancing and peak management with optional external context only (utility rates). Install complexity: Heavy.',
-  },
-  {
-    id: 'specialty-spaces',
-    label: 'Specialty space automation',
-    tier: 'High',
-    price: 820,
-    description: 'Custom scenes for outdoor, media, wellness, or workshop zones. Install complexity: Heavy.',
+      'Surveillance-adjacent: cameras remain off by default and require explicit consent; privacy-first alternatives include sensor-only check-ins and door/motion cues. Install complexity: Heavy.',
   },
 ];

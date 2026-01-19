@@ -80,70 +80,73 @@ export type AgreementContent = {
 const packageScope: Record<PackageTierId, string[]> = {
   A1: [
     'Deploy Home Assistant as the single control hub with secure local access.',
-    'Install wireless-first lighting control, smart plugs, and scene access.',
-    'Provide guided handoff for schedule-based automations tailored to the household.',
+    'Install night pathway lighting, motion sensing, and hazard alerts for key rooms.',
+    'Configure gentle check-in prompts and caregiver notification preferences.',
   ],
   A2: [
-    'Expand presence-aware routines and adaptive lighting across common living areas.',
-    'Enable local-first automations that adjust to occupancy and time-of-day.',
-    'Tune climate and energy awareness preferences aligned to homeowner comfort.',
+    'Expand routine awareness and door usage alerts across common areas.',
+    'Enable privacy-first caregiver summaries with role-based access.',
+    'Tune notification thresholds and quiet hours with resident consent.',
   ],
   A3: [
-    'Deliver multi-zone orchestration with layered automation rules.',
-    'Optimize lighting and climate coordination for specialty spaces.',
-    'Set up resilient automations with recovery behaviors for power events.',
+    'Deliver multi-signal correlation across motion, door, and hazard cues.',
+    'Implement adaptive escalation ladders with caregiver tiers.',
+    'Set up resilience tuning and system health checks for critical coverage.',
   ],
 };
 
 const addOnDeliverables: Record<string, string> = {
-  'smart-switches': 'Upgrade key rooms with additional smart switches and dimming control.',
-  'smart-plugs': 'Add smart plugs for scheduled lamp and device control.',
-  'simple-sensors': 'Extend occupancy sensing for smarter lighting routines.',
-  'scene-buttons': 'Install scene buttons for one-touch routines.',
-  'presence-aware': 'Deploy presence sensors for room-level occupancy routines.',
-  'adaptive-lighting': 'Enable adaptive lighting tied to time and ambient light.',
-  'energy-awareness': 'Add circuit-level energy monitoring for awareness and optimization.',
-  'climate-optimization': 'Configure climate routines with optional weather context.',
-  'multi-zone': 'Coordinate multi-zone lighting and climate scenes.',
-  'advanced-rules': 'Deliver advanced automation logic with layered conditions.',
-  'energy-management': 'Configure load management routines with optional utility-rate context.',
-  'specialty-spaces': 'Implement custom scenes for specialty spaces.',
+  'night-pathway-lighting': 'Expand low-glare pathway lighting coverage for safer overnight movement.',
+  'hazard-sensors': 'Add leak and temperature sensors for additional rooms.',
+  'gentle-checkin': 'Install additional check-in buttons for resident reassurance.',
+  'door-awareness': 'Extend door usage awareness with additional entry sensors.',
+  'routine-summary': 'Deliver caregiver summary dashboards inside Home Assistant.',
+  'air-quality': 'Install air quality and CO listening sensors.',
+  'adaptive-escalation': 'Configure tiered caregiver escalation ladders.',
+  'multi-signal-correlation': 'Tune multi-signal correlation to reduce false alarms.',
+  'backup-power': 'Add backup power protection for hub and network.',
+  'optional-video-checkin':
+    'Install optional video check-in equipment (off by default; enabled only with explicit consent).',
 };
 
 const assumptions = [
   'Existing Wi-Fi and power are available where equipment is installed.',
-  'Homeowners participate in basic configuration preferences during installation.',
-  'Local-first design keeps automations running when internet is offline but power is available.',
+  'Residents and caregivers participate in configuration preferences during installation.',
+  'Local-first design keeps safety behaviors running when internet is offline but power is available.',
+  'Caregiver contact lists and consent preferences are provided before installation.',
 ];
 
 const exclusions = [
   'No permitting, trenching, or structural work is included in this agreement.',
-  'Optional third-party subscriptions are only added when explicitly selected by the homeowner.',
-  'This agreement does not provide medical advice, monitoring, or emergency response.',
+  'Optional third-party subscriptions are only added when explicitly selected by the customer.',
+  'This agreement does not provide medical advice, diagnosis, monitoring, or emergency response.',
+  'No services are sold as surveillance; cameras remain optional and off by default.',
 ];
 
 const installationCommitments = [
   '1-day installation window coordinated with caregivers.',
   '2-person crew for coverage and safety.',
   'On-site setup and configuration of all listed equipment.',
-  'Essential homeowner training with hands-on walkthroughs.',
+  'Essential resident and caregiver training with hands-on walkthroughs.',
   'Post-install test and verification of alerts, automations, and access.',
   '1-year replacement warranty for all included equipment (retail placeholder copy).',
 ];
 
 const validationSteps = [
   'Pre-flight check for Wi-Fi coverage and power at device locations.',
-  'Confirm zoning for lighting and automation preferences with homeowners.',
+  'Confirm safety zones and routine preferences with residents and caregivers.',
   'Verify automations continue to run during simulated internet outages.',
 ];
 
 const terms = [
   `Non-medical and informational: ${brandSite} provides configuration and training only; we do not provide medical care or monitoring.`,
   'Safety first: If there is an urgent safety issue, call 911 or local emergency services.',
+  'Consent and dignity: resident consent and caregiver roles govern access to dashboards and alerts.',
+  'Privacy design: cameras are optional and off by default; sensor-first signals are the standard.',
   'Data handling: Local-first configuration is prioritized; any cloud connections are only enabled for selected services.',
   'Service boundaries: Warranty and service boundaries will be finalized in the KAEC backend signing package.',
   'Change management: Scope changes may adjust pricing and installation time after mutual agreement.',
-  'Scheduling: Installation windows are coordinated with homeowners; exact times depend on site access.',
+  'Scheduling: Installation windows are coordinated with customers; exact times depend on site access.',
 ];
 
 const currency = (amount: number) => `$${amount.toLocaleString()}`;

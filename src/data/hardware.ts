@@ -26,16 +26,24 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       ],
     },
     {
-      title: 'Lighting and scenes',
+      title: 'Night pathway safety',
       items: [
-        { name: 'Smart switches or dimmers', quantity: 4 },
-        { name: 'Scene buttons', quantity: 2 },
-        { name: 'Smart plugs', quantity: 3 },
+        { name: 'Low-glare pathway lights', quantity: 3 },
+        { name: 'Wireless motion sensors', quantity: 3 },
       ],
     },
     {
-      title: 'Room sensing',
-      items: [{ name: 'Occupancy sensors', quantity: 3 }],
+      title: 'Safety sensors',
+      items: [
+        { name: 'Door contact sensor', quantity: 1 },
+        { name: 'Leak sensors', quantity: 2 },
+        { name: 'Temperature sensor', quantity: 1 },
+        { name: 'Smoke/CO listener', quantity: 1 },
+      ],
+    },
+    {
+      title: 'Gentle check-ins',
+      items: [{ name: 'Local check-in prompt device', quantity: 1 }],
     },
   ],
   A2: [
@@ -48,26 +56,26 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       ],
     },
     {
-      title: 'Lighting and scenes',
+      title: 'Night pathway safety',
       items: [
-        { name: 'Smart switches or dimmers', quantity: 6 },
-        { name: 'Scene buttons', quantity: 3 },
-        { name: 'Smart plugs', quantity: 4 },
+        { name: 'Low-glare pathway lights', quantity: 5 },
+        { name: 'Wireless motion sensors', quantity: 5 },
       ],
     },
     {
-      title: 'Room sensing',
+      title: 'Safety sensors',
       items: [
-        { name: 'Occupancy sensors', quantity: 5 },
+        { name: 'Door contact sensors', quantity: 3 },
+        { name: 'Leak sensors', quantity: 3 },
+        { name: 'Temperature sensors', quantity: 2 },
+        { name: 'Smoke/CO listeners', quantity: 2 },
+      ],
+    },
+    {
+      title: 'Routine awareness',
+      items: [
         { name: 'Presence sensors', quantity: 2 },
-        { name: 'Ambient light sensors', quantity: 2 },
-      ],
-    },
-    {
-      title: 'Climate and energy',
-      items: [
-        { name: 'Smart thermostat or HVAC bridge', quantity: 1 },
-        { name: 'Energy monitoring module', quantity: 1 },
+        { name: 'Caregiver summary dashboard setup', quantity: 1 },
       ],
     },
   ],
@@ -81,103 +89,103 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       ],
     },
     {
-      title: 'Lighting and scenes',
+      title: 'Night pathway safety',
       items: [
-        { name: 'Smart switches or dimmers', quantity: 10 },
-        { name: 'Scene buttons', quantity: 4 },
-        { name: 'Smart plugs', quantity: 6 },
+        { name: 'Low-glare pathway lights', quantity: 7 },
+        { name: 'Wireless motion sensors', quantity: 7 },
       ],
     },
     {
-      title: 'Room sensing',
+      title: 'Safety sensors',
       items: [
-        { name: 'Occupancy sensors', quantity: 7 },
-        { name: 'Presence sensors', quantity: 4 },
-        { name: 'Ambient light sensors', quantity: 4 },
+        { name: 'Door contact sensors', quantity: 4 },
+        { name: 'Leak sensors', quantity: 4 },
+        { name: 'Temperature sensors', quantity: 3 },
+        { name: 'Smoke/CO listeners', quantity: 3 },
       ],
     },
     {
-      title: 'Climate and energy',
+      title: 'Advanced guardrails',
       items: [
-        { name: 'Smart thermostat or HVAC bridge', quantity: 2 },
-        { name: 'Energy monitoring module', quantity: 2 },
-        { name: 'Multi-zone controllers', quantity: 2 },
+        { name: 'Presence sensors', quantity: 3 },
+        { name: 'Escalation ladder configuration', quantity: 1 },
+        { name: 'System health monitoring setup', quantity: 1 },
       ],
     },
   ],
 };
 
 const addOnHardware: Record<string, HardwareCategory[]> = {
-  'smart-switches': [
+  'night-pathway-lighting': [
     {
-      title: 'Lighting and scenes',
-      items: [{ name: 'Additional smart switches or dimmers', quantity: 2 }],
+      title: 'Night pathway safety',
+      items: [
+        { name: 'Low-glare pathway lights', quantity: 2 },
+        { name: 'Wireless motion sensors', quantity: 1 },
+      ],
     },
   ],
-  'smart-plugs': [
+  'hazard-sensors': [
     {
-      title: 'Lighting and scenes',
-      items: [{ name: 'Smart plugs', quantity: 2 }],
+      title: 'Safety sensors',
+      items: [
+        { name: 'Leak sensors', quantity: 2 },
+        { name: 'Temperature sensor', quantity: 1 },
+      ],
     },
   ],
-  'simple-sensors': [
+  'gentle-checkin': [
     {
-      title: 'Room sensing',
-      items: [{ name: 'Occupancy sensors', quantity: 2 }],
+      title: 'Gentle check-ins',
+      items: [{ name: 'Check-in buttons', quantity: 2 }],
     },
   ],
-  'scene-buttons': [
+  'door-awareness': [
     {
-      title: 'Lighting and scenes',
-      items: [{ name: 'Scene buttons', quantity: 2 }],
+      title: 'Safety sensors',
+      items: [{ name: 'Door contact sensors', quantity: 2 }],
     },
   ],
-  'presence-aware': [
+  'routine-summary': [
     {
-      title: 'Room sensing',
-      items: [{ name: 'Presence sensors', quantity: 2 }],
+      title: 'Routine awareness',
+      items: [{ name: 'Caregiver summary dashboard setup', quantity: 1 }],
     },
   ],
-  'adaptive-lighting': [
+  'air-quality': [
     {
-      title: 'Room sensing',
-      items: [{ name: 'Ambient light sensors', quantity: 2 }],
+      title: 'Safety sensors',
+      items: [
+        { name: 'Air quality sensor', quantity: 1 },
+        { name: 'CO listener', quantity: 1 },
+      ],
     },
   ],
-  'energy-awareness': [
+  'adaptive-escalation': [
     {
-      title: 'Climate and energy',
-      items: [{ name: 'Energy monitoring module', quantity: 1 }],
+      title: 'Advanced guardrails',
+      items: [{ name: 'Escalation ladder configuration', quantity: 1 }],
     },
   ],
-  'climate-optimization': [
+  'multi-signal-correlation': [
     {
-      title: 'Climate and energy',
-      items: [{ name: 'Thermostat sensor kit', quantity: 1 }],
+      title: 'Advanced guardrails',
+      items: [
+        { name: 'Multi-signal correlation tuning session', quantity: 1 },
+        { name: 'Wireless motion sensors', quantity: 2 },
+      ],
     },
   ],
-  'multi-zone': [
-    {
-      title: 'Climate and energy',
-      items: [{ name: 'Multi-zone controllers', quantity: 1 }],
-    },
-  ],
-  'advanced-rules': [
+  'backup-power': [
     {
       title: 'Core controllers',
-      items: [{ name: 'Advanced automation configuration session', quantity: 1 }],
+      items: [{ name: 'UPS battery backup', quantity: 1 }],
     },
   ],
-  'energy-management': [
+  'optional-video-checkin': [
     {
-      title: 'Climate and energy',
-      items: [{ name: 'Energy management controller', quantity: 1 }],
-    },
-  ],
-  'specialty-spaces': [
-    {
-      title: 'Lighting and scenes',
-      items: [{ name: 'Specialty space automation kit', quantity: 1 }],
+      title: 'Optional video check-ins',
+      items: [{ name: 'Privacy-shutter indoor camera (off by default)', quantity: 1 }],
     },
   ],
 };
