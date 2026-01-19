@@ -2,31 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
+import { brandLegal, brandSite } from '../lib/brand';
+import BusinessMenu from './nav/BusinessMenu';
 import Pill from './operator/Pill';
-import { brandLegal } from '../lib/brand';
 
 type NavItem = {
   path: string;
   label: string;
 };
 
-const solutionLinks: NavItem[] = [
-  { path: '/operator', label: 'Operator' },
-  { path: '/never-miss-another-estimate', label: 'Never Miss Another Estimate' },
-];
-
-const productLinks: NavItem[] = [
-  { path: '/', label: 'Home' },
+const businessLinks = [
   { path: '/home-security', label: 'Home Security' },
   { path: '/home-automation', label: 'Home Automation' },
   { path: '/elder-care-tech', label: 'Elder Care Tech' },
-  { path: '/halo', label: 'HALO' },
+  { path: '/halo', label: 'HALO PERS' },
+  { path: '/operator', label: 'Operator', badge: 'SaaS' },
 ];
 
-const navLinks: NavItem[] = [
-  { path: '/demo', label: 'Live Demo' },
+const secondaryLinks: NavItem[] = [
   { path: '/pricing', label: 'Pricing' },
-  { path: '/5-day-demo', label: '5-Day Demo' },
   { path: '/partners', label: 'Partners' },
   { path: '/support', label: 'Support' },
 ];
@@ -64,22 +58,33 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     captureUtmParams({ search: location.search, pathname: location.pathname });
   }, [location.pathname, location.search]);
 
-  const solutionsActive = solutionLinks.some((item) => location.pathname.startsWith(item.path));
+  const businessesActive = businessLinks.some((item) => location.pathname.startsWith(item.path));
 
   return (
     <div>
       <Seo />
       <header className="hide-when-print">
         <div className="container nav">
-          <NavLink to="/" className="brand" aria-label="Never Miss Another Estimate home">
+          <NavLink to="/" className="brand" aria-label={`${brandSite} home`}>
             <div className="brand-mark" aria-hidden="true">
-              NM
+              RE
             </div>
             <div>
-              <div className="brand-name">Never Miss Another Estimate</div>
-              <small className="brand-tagline">24/7 Estimate Scheduling Assistant</small>
+              <div className="brand-name">{brandSite}</div>
+              <small className="brand-tagline">Business portals for connected care</small>
             </div>
           </NavLink>
+          <div className="nav-center">
+            <details className="dropdown">
+              <summary className={`dropdown-trigger${businessesActive ? ' active' : ''}`}>
+                Businesses
+                <Pill className="pill-inline">5</Pill>
+              </summary>
+              <div className="dropdown-menu dropdown-menu-wide">
+                <BusinessMenu items={businessLinks} />
+              </div>
+            </details>
+          </div>
           <div className="nav-actions">
             <button
               className="nav-toggle"
@@ -91,28 +96,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <span />
               <span />
             </button>
-            <nav className="nav-links" aria-label="Main navigation">
-              {productLinks.map((item) => (
-                <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
-                  {item.label}
-                </NavLink>
-              ))}
-              <NavLink to="/operator" className={({ isActive }) => (isActive ? 'active' : undefined)}>
-                Operator <Pill className="pill-inline">SaaS</Pill>
-              </NavLink>
-              <details className="dropdown">
-                <summary className={`dropdown-trigger${solutionsActive ? ' active' : ''}`}>
-                  Solutions
-                </summary>
-                <div className="dropdown-menu">
-                  {solutionLinks.map((item) => (
-                    <NavLink key={item.path} to={item.path}>
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </div>
-              </details>
-              {navLinks.map((item) => (
+            <nav className="nav-links" aria-label="Secondary navigation">
+              {secondaryLinks.map((item) => (
                 <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
                   {item.label}
                 </NavLink>
@@ -132,25 +117,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="mobile-menu-inner">
               <div className="mobile-links" role="menu">
-                {productLinks.map((item) => (
-                  <NavLink key={item.path} to={item.path} role="menuitem">
-                    {item.label}
-                  </NavLink>
-                ))}
-                <NavLink to="/operator" role="menuitem">
-                  Operator <Pill className="pill-inline">SaaS</Pill>
-                </NavLink>
                 <details>
-                  <summary>Solutions</summary>
+                  <summary>Businesses</summary>
                   <div className="mobile-dropdown">
-                    {solutionLinks.map((item) => (
-                      <NavLink key={item.path} to={item.path} role="menuitem">
-                        {item.label}
-                      </NavLink>
-                    ))}
+                    <BusinessMenu items={businessLinks} />
                   </div>
                 </details>
-                {navLinks.map((item) => (
+                {secondaryLinks.map((item) => (
                   <NavLink key={item.path} to={item.path} role="menuitem">
                     {item.label}
                   </NavLink>
@@ -201,7 +174,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         <div className="container footer-meta">
-          <small>© 2025 {brandLegal} All Rights Reserved.</small>
+          <small>© 2025 {brandSite} · {brandLegal}. All Rights Reserved.</small>
         </div>
       </footer>
     </div>
