@@ -8,8 +8,12 @@ type NavItem = {
   label: string;
 };
 
+const solutionLinks: NavItem[] = [
+  { path: '/operator', label: 'Operator' },
+  { path: '/never-miss-another-estimate', label: 'Never Miss Another Estimate' },
+];
+
 const navLinks: NavItem[] = [
-  { path: '/never-miss-another-estimate', label: 'Product' },
   { path: '/demo', label: 'Live Demo' },
   { path: '/pricing', label: 'Pricing' },
   { path: '/5-day-demo', label: '5-Day Demo' },
@@ -50,6 +54,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     captureUtmParams({ search: location.search, pathname: location.pathname });
   }, [location.pathname, location.search]);
 
+  const solutionsActive = solutionLinks.some((item) => location.pathname.startsWith(item.path));
+
   return (
     <div>
       <Seo />
@@ -76,6 +82,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <span />
             </button>
             <nav className="nav-links" aria-label="Main navigation">
+              <details className="dropdown">
+                <summary className={`dropdown-trigger${solutionsActive ? ' active' : ''}`}>
+                  Solutions
+                </summary>
+                <div className="dropdown-menu">
+                  {solutionLinks.map((item) => (
+                    <NavLink key={item.path} to={item.path}>
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </details>
               {navLinks.map((item) => (
                 <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
                   {item.label}
@@ -96,6 +114,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="mobile-menu-inner">
               <div className="mobile-links" role="menu">
+                <details>
+                  <summary>Solutions</summary>
+                  <div className="mobile-dropdown">
+                    {solutionLinks.map((item) => (
+                      <NavLink key={item.path} to={item.path} role="menuitem">
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                </details>
                 {navLinks.map((item) => (
                   <NavLink key={item.path} to={item.path} role="menuitem">
                     {item.label}
@@ -118,6 +146,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <div>
             <div className="footer-heading">Product</div>
             <div className="footer-links">
+              <NavLink to="/operator">Operator</NavLink>
               <NavLink to="/never-miss-another-estimate">Never Miss Another Estimate</NavLink>
               <NavLink to="/demo">Request Demo</NavLink>
               <NavLink to="/pricing">View Pricing</NavLink>
