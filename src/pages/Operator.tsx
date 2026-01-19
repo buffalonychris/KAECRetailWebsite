@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   Area,
   AreaChart,
@@ -41,6 +42,11 @@ const Operator = () => {
           kicker="Solution"
           title="Operator Console"
           subtitle="A space-tablet command center that tracks every estimate request, follow-up, and booking across your team."
+          actions={
+            <Link className="btn btn-primary" to="/demo">
+              See a Live Demo
+            </Link>
+          }
         />
 
         <div className="space-grid three-column">

@@ -656,6 +656,52 @@ header.hide-when-print {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.portal-grid {
+  align-items: stretch;
+}
+
+.portal-card {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 100%;
+}
+
+.portal-card h3 {
+  margin: 0.35rem 0 0;
+  color: var(--kaec-text-strong);
+}
+
+.portal-card p {
+  margin: 0;
+  color: var(--kaec-text-muted);
+}
+
+.portal-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.portal-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--kaec-text-subtle);
+  margin: 0;
+}
+
+.portal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.portal-card-emphasis {
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25), 0 12px 40px rgba(15, 23, 42, 0.55);
+}
+
 .kpi-tile {
   display: grid;
   gap: 0.35rem;
