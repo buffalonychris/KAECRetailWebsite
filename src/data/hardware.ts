@@ -26,19 +26,16 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       ],
     },
     {
-      title: 'Safety sensors',
+      title: 'Lighting and scenes',
       items: [
-        { name: 'Door/entry contact sensors', quantity: 3 },
-        { name: 'Motion detectors', quantity: 2 },
-        { name: 'Smoke/CO listener', quantity: 1 },
+        { name: 'Smart switches or dimmers', quantity: 4 },
+        { name: 'Scene buttons', quantity: 2 },
+        { name: 'Smart plugs', quantity: 3 },
       ],
     },
     {
-      title: 'Voice and alerts',
-      items: [
-        { name: 'Voice assistant speakers', quantity: 2 },
-        { name: 'Local-first alert tones', quantity: 1 },
-      ],
+      title: 'Room sensing',
+      items: [{ name: 'Occupancy sensors', quantity: 3 }],
     },
   ],
   A2: [
@@ -51,26 +48,26 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       ],
     },
     {
-      title: 'Safety sensors',
+      title: 'Lighting and scenes',
       items: [
-        { name: 'Door/entry contact sensors', quantity: 5 },
-        { name: 'Motion detectors', quantity: 3 },
-        { name: 'Smoke/CO listener', quantity: 1 },
-        { name: 'Water leak sensors', quantity: 2 },
+        { name: 'Smart switches or dimmers', quantity: 6 },
+        { name: 'Scene buttons', quantity: 3 },
+        { name: 'Smart plugs', quantity: 4 },
       ],
     },
     {
-      title: 'Lighting and audio',
+      title: 'Room sensing',
       items: [
-        { name: 'Smart lighting circuits', quantity: 2 },
-        { name: 'Voice assistant speakers', quantity: 3 },
+        { name: 'Occupancy sensors', quantity: 5 },
+        { name: 'Presence sensors', quantity: 2 },
+        { name: 'Ambient light sensors', quantity: 2 },
       ],
     },
     {
-      title: 'Video and perimeter',
+      title: 'Climate and energy',
       items: [
-        { name: 'Indoor cameras (local recording)', quantity: 2 },
-        { name: 'Outdoor cameras (local recording)', quantity: 1 },
+        { name: 'Smart thermostat or HVAC bridge', quantity: 1 },
+        { name: 'Energy monitoring module', quantity: 1 },
       ],
     },
   ],
@@ -80,68 +77,107 @@ const baseHardware: Record<PackageTierId, HardwareCategory[]> = {
       items: [
         { name: 'Home Assistant hub with redundant storage', quantity: 1 },
         { name: 'Managed PoE switch', quantity: 1 },
-        { name: 'Battery backup for hub and cameras', quantity: 2 },
+        { name: 'Battery backup for automation controllers', quantity: 2 },
       ],
     },
     {
-      title: 'Safety sensors',
+      title: 'Lighting and scenes',
       items: [
-        { name: 'Door/entry contact sensors', quantity: 8 },
-        { name: 'Motion detectors', quantity: 4 },
-        { name: 'Smoke/CO listener', quantity: 2 },
-        { name: 'Water leak sensors', quantity: 4 },
+        { name: 'Smart switches or dimmers', quantity: 10 },
+        { name: 'Scene buttons', quantity: 4 },
+        { name: 'Smart plugs', quantity: 6 },
       ],
     },
     {
-      title: 'Lighting and audio',
+      title: 'Room sensing',
       items: [
-        { name: 'Smart lighting circuits', quantity: 3 },
-        { name: 'Voice assistant speakers', quantity: 4 },
+        { name: 'Occupancy sensors', quantity: 7 },
+        { name: 'Presence sensors', quantity: 4 },
+        { name: 'Ambient light sensors', quantity: 4 },
       ],
     },
     {
-      title: 'Video and perimeter',
+      title: 'Climate and energy',
       items: [
-        { name: 'Indoor cameras (local recording)', quantity: 3 },
-        { name: 'Outdoor cameras (local recording)', quantity: 2 },
-        { name: 'Local NVR storage', quantity: 1 },
+        { name: 'Smart thermostat or HVAC bridge', quantity: 2 },
+        { name: 'Energy monitoring module', quantity: 2 },
+        { name: 'Multi-zone controllers', quantity: 2 },
       ],
     },
   ],
 };
 
 const addOnHardware: Record<string, HardwareCategory[]> = {
-  'extra-lighting': [
+  'smart-switches': [
     {
-      title: 'Lighting and audio',
-      items: [{ name: 'Additional smart lighting circuit', quantity: 1 }],
+      title: 'Lighting and scenes',
+      items: [{ name: 'Additional smart switches or dimmers', quantity: 2 }],
     },
   ],
-  'additional-camera': [
+  'smart-plugs': [
     {
-      title: 'Video and perimeter',
-      items: [{ name: 'Additional camera (indoor/outdoor)', quantity: 1 }],
+      title: 'Lighting and scenes',
+      items: [{ name: 'Smart plugs', quantity: 2 }],
     },
   ],
-  'water-leak-sensors': [
+  'simple-sensors': [
     {
-      title: 'Safety sensors',
-      items: [{ name: 'Extra water leak sensors', quantity: 3 }],
+      title: 'Room sensing',
+      items: [{ name: 'Occupancy sensors', quantity: 2 }],
     },
   ],
-  'cellular-failover': [
+  'scene-buttons': [
     {
-      title: 'Connectivity resilience',
-      items: [
-        { name: 'Cellular notification modem', quantity: 1 },
-        { name: 'Failover antenna kit', quantity: 1 },
-      ],
+      title: 'Lighting and scenes',
+      items: [{ name: 'Scene buttons', quantity: 2 }],
     },
   ],
-  'onsite-training': [
+  'presence-aware': [
     {
-      title: 'Training and handoff',
-      items: [{ name: 'On-site caregiver training session', quantity: 1 }],
+      title: 'Room sensing',
+      items: [{ name: 'Presence sensors', quantity: 2 }],
+    },
+  ],
+  'adaptive-lighting': [
+    {
+      title: 'Room sensing',
+      items: [{ name: 'Ambient light sensors', quantity: 2 }],
+    },
+  ],
+  'energy-awareness': [
+    {
+      title: 'Climate and energy',
+      items: [{ name: 'Energy monitoring module', quantity: 1 }],
+    },
+  ],
+  'climate-optimization': [
+    {
+      title: 'Climate and energy',
+      items: [{ name: 'Thermostat sensor kit', quantity: 1 }],
+    },
+  ],
+  'multi-zone': [
+    {
+      title: 'Climate and energy',
+      items: [{ name: 'Multi-zone controllers', quantity: 1 }],
+    },
+  ],
+  'advanced-rules': [
+    {
+      title: 'Core controllers',
+      items: [{ name: 'Advanced automation configuration session', quantity: 1 }],
+    },
+  ],
+  'energy-management': [
+    {
+      title: 'Climate and energy',
+      items: [{ name: 'Energy management controller', quantity: 1 }],
+    },
+  ],
+  'specialty-spaces': [
+    {
+      title: 'Lighting and scenes',
+      items: [{ name: 'Specialty space automation kit', quantity: 1 }],
     },
   ],
 };
