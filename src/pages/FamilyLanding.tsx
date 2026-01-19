@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { trackLandingCtaClick, trackLandingView } from '../lib/analytics';
+import { brandSite } from '../lib/brand';
 
 const FamilyLanding = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const FamilyLanding = () => {
         <p className="badge">Family Members &amp; Caregivers</p>
         <h1 style={{ margin: 0 }}>Stay ahead of emergencies without hovering</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
-          You want mom or dad safe in Buffalo without feeling watched. KickAss Elder Care delivers clear,
+          You want mom or dad safe in Buffalo without feeling watched. {brandSite} delivers clear,
           privacy-first alerts that keep working when the internet is shaky, so you know when to step in and
           when they are fine.
         </p>

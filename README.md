@@ -1,6 +1,6 @@
-# KickAss Elder Care – Retail Website
+# Reliable Elder Care – Retail Website
 
-Public-facing retail website for KickAss Elder Care. Built with Vite, React, and TypeScript.
+Public-facing retail website for Reliable Elder Care. Built with Vite, React, and TypeScript.
 
 ## Getting started
 
@@ -37,7 +37,7 @@ Set the following environment variables in Vercel (Project Settings → Environm
 delivery:
 
 - `RESEND_API_KEY`
-- `MAIL_FROM` (for example, `KickAss Elder Care <no-reply@yourdomain.com>`)
+- `MAIL_FROM` (for example, `Reliable Elder Care <no-reply@yourdomain.com>`)
 
 Optional SMTP fallback (used when Resend is unavailable):
 

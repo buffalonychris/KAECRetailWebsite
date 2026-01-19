@@ -1,4 +1,5 @@
 import { packages } from '../content/packages';
+import { brandSite } from '../lib/brand';
 
 const featureRows = [
   'Home Assistant as sole control app',
@@ -47,7 +48,7 @@ const comparisonValues: Record<string, Record<string, string>> = {
 const Comparison = () => {
   return (
     <div className="container section">
-      <h2 style={{ marginTop: 0 }}>Compare KickAss packages</h2>
+      <h2 style={{ marginTop: 0 }}>Compare {brandSite} packages</h2>
       <p>
         All tiers keep Home Assistant as the single control surface and prioritize local operation
         when power is available. Pricing is one-time and upfront across the board.

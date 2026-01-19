@@ -1,11 +1,12 @@
 import { faqs } from '../content/faq';
+import { brandSite } from '../lib/brand';
 
 const FAQ = () => {
   return (
     <div className="container section">
       <h2 style={{ marginTop: 0 }}>Frequently asked</h2>
       <p style={{ maxWidth: 680 }}>
-        Straight answers about how KickAss Elder Care packages work. If you need more detail, reach
+        Straight answers about how {brandSite} packages work. If you need more detail, reach
         out through the contact form.
       </p>
       <div className="card-grid">

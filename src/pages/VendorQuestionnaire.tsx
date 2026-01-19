@@ -1,11 +1,12 @@
 import Seo from '../components/Seo';
 import VendorJourneyNav from '../components/VendorJourneyNav';
+import { brandSite } from '../lib/brand';
 
 const VendorQuestionnaire = () => {
   return (
     <div className="container section">
       <Seo
-        title="Technical Questionnaire | KickAss Elder Care"
+        title={`Technical Questionnaire | ${brandSite}`}
         description="Binary vendor technical questionnaire for offline-first hardware evaluation readiness."
       />
       <div style={{ display: 'grid', gap: '1.5rem' }}>

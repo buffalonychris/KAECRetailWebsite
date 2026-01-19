@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PackageCard from '../components/PackageCard';
 import ComparisonLadder from '../components/ComparisonLadder';
 import { packages } from '../content/packages';
+import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 
 const Packages = () => {
@@ -52,7 +53,7 @@ const Packages = () => {
           <p className="badge" style={{ marginBottom: '0.5rem' }}>
             One-time pricing only
           </p>
-          <h2 style={{ margin: 0 }}>Choose the KickAss package that fits</h2>
+      <h2 style={{ margin: 0 }}>Choose the {brandSite} package that fits</h2>
           <p style={{ maxWidth: 640 }}>
             Every tier is delivered with Home Assistant as the single control surface. Pricing is
             upfront—no subscriptions required for included capabilities.

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { brandLegal } from '../lib/brand';
 import AccordionSection from '../components/AccordionSection';
 import TierBadge from '../components/TierBadge';
 import { PackageTierId } from '../data/pricing';
@@ -189,7 +190,7 @@ const HealthHomesPacket = () => {
           </AccordionSection>
 
           <footer className="print-footer">
-            © 2025 KickAss Inc. All Rights Reserved. Unauthorized use is prohibited.
+            © 2025 {brandLegal} All Rights Reserved. Unauthorized use is prohibited.
           </footer>
         </div>
       </div>

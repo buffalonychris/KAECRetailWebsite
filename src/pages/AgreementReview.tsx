@@ -15,6 +15,7 @@ import { sendAgreementEmail } from '../lib/emailSend';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
+import { brandSite } from '../lib/brand';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -568,7 +569,7 @@ const AgreementReview = () => {
             onChange={(e) => setAcceptChecked(e.target.checked)}
             style={{ width: '18px', height: '18px' }}
           />
-          <span>I have reviewed and agree to the KickAss Elder Care agreement</span>
+          <span>I have reviewed and agree to the {brandSite} agreement</span>
         </label>
         <small style={{ color: '#c8c0aa' }}>This is required so we can take your deposit and schedule your install.</small>
         <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>

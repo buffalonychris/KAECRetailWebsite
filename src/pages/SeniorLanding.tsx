@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { trackLandingCtaClick, trackLandingView } from '../lib/analytics';
+import { brandSite } from '../lib/brand';
 
 const SeniorLanding = () => {
   const location = useLocation();
@@ -19,7 +20,7 @@ const SeniorLanding = () => {
         <p className="badge">Seniors / Aging in Place</p>
         <h1 style={{ margin: 0 }}>Live independently with reliable, local-first coverage</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
-          Western New York homes see storms, spotty internet, and power blips. KickAss Elder Care keeps
+          Western New York homes see storms, spotty internet, and power blips. {brandSite} keeps
           safety coverage running even when the Wi‑Fi or cloud is down, so you can stay in control at home.
         </p>
         <div className="grid grid-2" style={{ gap: '0.75rem' }}>

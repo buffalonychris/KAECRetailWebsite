@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { buildCanonicalUrl, getSeoPolicy } from '../lib/seoPolicy';
+import { brandSite } from '../lib/brand';
 
 type SeoProps = {
   title?: string;
@@ -34,7 +35,7 @@ const Seo = ({ title, description }: SeoProps) => {
     });
     canonicalLink.setAttribute('href', buildCanonicalUrl(policy.canonicalPath));
 
-    const finalTitle = title ?? document.title ?? 'KickAss Elder Care';
+    const finalTitle = title ?? document.title ?? brandSite;
     if (finalTitle) {
       document.title = finalTitle;
     }

@@ -13,6 +13,7 @@ import { siteConfig } from '../config/site';
 import { formatQuoteDate } from '../lib/quoteUtils';
 import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
+import { brandSite } from '../lib/brand';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -209,7 +210,7 @@ const AgreementPrint = () => {
       <div className="print-document kaec-doc" role="document">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.4rem' }}>KickAss Elder Care (KAEC)</div>
+            <div style={{ fontWeight: 800, fontSize: '1.4rem' }}>{brandSite} (KAEC)</div>
             <div style={{ fontSize: '0.95rem', color: '#333' }}>Local-first safety, security, and monitoring.</div>
             <div style={{ marginTop: '0.4rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
               <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>
