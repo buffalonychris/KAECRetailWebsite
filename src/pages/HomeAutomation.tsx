@@ -10,6 +10,12 @@ const HomeAutomation = () => {
       heroHeadline="Home Automation that keeps routines running even offline"
       heroSubhead="Wireless-first automation designed around Home Assistant, local execution, and homeowner ownership—no subscriptions required."
       primaryCTA={{ label: 'Explore Automations', to: '/support' }}
+      journeyLinks={[
+        { label: 'Packages', to: '/home-automation/packages' },
+        { label: 'Add-ons', to: '/home-automation/add-ons' },
+        { label: 'How it Works', to: '/home-automation/how-it-works' },
+        { label: 'FAQ & Support', to: '/support' },
+      ]}
       chartData={[
         { label: 'Mon', value: 14 },
         { label: 'Tue', value: 20 },

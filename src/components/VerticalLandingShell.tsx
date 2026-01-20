@@ -22,6 +22,10 @@ export type VerticalLandingShellProps = {
     label: string;
     to: string;
   };
+  journeyLinks?: Array<{
+    label: string;
+    to: string;
+  }>;
   chartData: Array<{ label: string; value: number }>;
   keyCapabilities: string[];
   journeySteps?: string[];
@@ -42,6 +46,7 @@ const VerticalLandingShell = ({
   heroHeadline,
   heroSubhead,
   primaryCTA,
+  journeyLinks,
   chartData,
   keyCapabilities,
   journeySteps,
@@ -62,6 +67,23 @@ const VerticalLandingShell = ({
             </Link>
           }
         />
+
+        {journeyLinks && journeyLinks.length > 0 && (
+          <SpaceFrame>
+            <div className="badge">Navigate this vertical</div>
+            <h2>{verticalName} quick links</h2>
+            <p>
+              Jump between packages, add-ons, and support resources without leaving this portal.
+            </p>
+            <div className="space-section-actions">
+              {journeyLinks.map((link) => (
+                <Link key={link.label} className="btn btn-secondary" to={link.to}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </SpaceFrame>
+        )}
 
         <div className="space-grid two-column">
           <SpaceFrame>
