@@ -289,7 +289,7 @@ const Quote = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
+        <div id="addons" style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="badge">Optional add-ons</div>
           {(['Low', 'Mid', 'High'] as const).map((tier) => (
             <div key={tier} style={{ display: 'grid', gap: '0.75rem' }}>

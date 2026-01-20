@@ -10,6 +10,12 @@ const ElderCare = () => {
       heroHeadline="Elder Care Tech that protects dignity while supporting independence"
       heroSubhead="Resident-centered safety behaviors with caregiver-friendly visibility, all delivered through Home Assistant as a single, privacy-first dashboard."
       primaryCTA={{ label: 'Talk to a Care Specialist', to: '/support' }}
+      journeyLinks={[
+        { label: 'Packages', to: '/elder-care-tech/packages' },
+        { label: 'Add-ons', to: '/elder-care-tech/add-ons' },
+        { label: 'How it Works', to: '/elder-care-tech/how-it-works' },
+        { label: 'FAQ & Support', to: '/support' },
+      ]}
       chartData={[
         { label: 'Mon', value: 9 },
         { label: 'Tue', value: 12 },

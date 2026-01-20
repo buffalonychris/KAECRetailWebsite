@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -118,8 +118,17 @@ const App = () => {
           <Route path="/lp/agency" element={<AgencyLanding />} />
           <Route path="/halo" element={<HaloLanding />} />
           <Route path="/home-security" element={<HomeSecurity />} />
+          <Route path="/home-security/packages" element={<Navigate to="/packages" replace />} />
+          <Route path="/home-security/add-ons" element={<Navigate to="/quote#addons" replace />} />
+          <Route path="/home-security/how-it-works" element={<Navigate to="/reliability" replace />} />
           <Route path="/home-automation" element={<HomeAutomation />} />
+          <Route path="/home-automation/packages" element={<Navigate to="/packages" replace />} />
+          <Route path="/home-automation/add-ons" element={<Navigate to="/quote#addons" replace />} />
+          <Route path="/home-automation/how-it-works" element={<Navigate to="/reliability" replace />} />
           <Route path="/elder-care-tech" element={<ElderCareTech />} />
+          <Route path="/elder-care-tech/packages" element={<Navigate to="/packages" replace />} />
+          <Route path="/elder-care-tech/add-ons" element={<Navigate to="/quote#addons" replace />} />
+          <Route path="/elder-care-tech/how-it-works" element={<Navigate to="/reliability" replace />} />
           <Route path="/halo/setup" element={<HaloSetup />} />
           <Route path="/halo/support" element={<HaloSupport />} />
           <Route path="/halo/privacy" element={<HaloPrivacy />} />

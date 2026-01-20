@@ -10,6 +10,12 @@ const HomeSecurity = () => {
       heroHeadline="Residential security that stays local, private, and always usable"
       heroSubhead="Built for homeowners who want deterrence, awareness, and safety outcomes with Home Assistant as the single dashboard—no subscriptions sold and no cloud required for local control."
       primaryCTA={{ label: 'Request a Security Consult', to: '/support' }}
+      journeyLinks={[
+        { label: 'Packages', to: '/home-security/packages' },
+        { label: 'Add-ons', to: '/home-security/add-ons' },
+        { label: 'How it Works', to: '/home-security/how-it-works' },
+        { label: 'FAQ & Support', to: '/support' },
+      ]}
       chartData={[
         { label: 'Mon', value: 18 },
         { label: 'Tue', value: 22 },
