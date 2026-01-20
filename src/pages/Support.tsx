@@ -11,6 +11,7 @@ import {
 import ChartCard from '../components/operator/ChartCard';
 import SectionHeader from '../components/operator/SectionHeader';
 import SpaceFrame from '../components/operator/SpaceFrame';
+import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 
 const ticketData = [
   { type: 'Routing', count: 18 },
@@ -24,8 +25,13 @@ const Support = () => (
     <div className="container section space-grid">
       <SectionHeader
         kicker="Support"
-        title="How to reach support"
-        subtitle="We respond to scheduling assistant questions and demo requests in the order received."
+        title="FAQ & Support"
+        subtitle="Answers to common questions plus direct access to the team."
+      />
+
+      <OwnershipOfflineGuarantee
+        variant="frame"
+        intro="Trust details that apply across Security, Home Automation, and Elder Care Tech."
       />
 
       <ChartCard title="Example ticket categories" subtitle="Routing + onboarding mix">

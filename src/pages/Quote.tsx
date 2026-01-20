@@ -8,6 +8,7 @@ import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
+import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -291,6 +292,7 @@ const Quote = () => {
 
         <div id="addons" style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="badge">Optional add-ons</div>
+          <h2 style={{ margin: 0, color: '#fff7e6' }}>Add-ons</h2>
           {(['Low', 'Mid', 'High'] as const).map((tier) => (
             <div key={tier} style={{ display: 'grid', gap: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -338,6 +340,11 @@ const Quote = () => {
           ))}
         </div>
       </div>
+
+      <OwnershipOfflineGuarantee
+        intro="Every add-on follows the same ownership, offline-first, and no-subscription standards."
+        className="section"
+      />
 
       <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>

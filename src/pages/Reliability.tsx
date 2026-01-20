@@ -1,11 +1,15 @@
+import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
+
 const Reliability = () => {
   return (
     <div className="container section">
-      <h2 style={{ marginTop: 0 }}>Offline reliability</h2>
+      <h1 style={{ marginTop: 0 }}>How it Works</h1>
+      <h2>Offline reliability</h2>
       <p>
         We prioritize local control so that critical automations continue during internet outages as
         long as the equipment has power.
       </p>
+      <OwnershipOfflineGuarantee intro="Home Assistant orchestrates every workflow while keeping privacy and ownership intact." />
       <div className="card-grid">
         <div className="card">
           <h3 style={{ marginTop: 0, color: '#fff7e6' }}>Home Assistant at the core</h3>

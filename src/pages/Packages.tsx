@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import PackageCard from '../components/PackageCard';
 import ComparisonLadder from '../components/ComparisonLadder';
+import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import { packages } from '../content/packages';
 import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
@@ -48,12 +49,13 @@ const Packages = () => {
           </button>
         </div>
       )}
+      <h1 style={{ marginTop: 0 }}>Packages</h1>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <p className="badge" style={{ marginBottom: '0.5rem' }}>
             One-time pricing only
           </p>
-      <h2 style={{ margin: 0 }}>Choose the {brandSite} package that fits</h2>
+          <h2 style={{ margin: 0 }}>Choose the {brandSite} package that fits</h2>
           <p style={{ maxWidth: 640 }}>
             Every tier is delivered with Home Assistant as the single control surface. Pricing is
             upfront—no subscriptions required for included capabilities.
@@ -66,6 +68,10 @@ const Packages = () => {
           <small style={{ color: '#c8c0aa' }}>Pro install, offline-first setup, transparent pricing.</small>
         </div>
       </div>
+      <OwnershipOfflineGuarantee
+        intro="Every package honors the Offline Dignity Rule and keeps ownership with the household."
+        className="section"
+      />
       <div className="card-grid">
         {packages.map((pkg) => (
           <PackageCard key={pkg.id} pkg={pkg} />
