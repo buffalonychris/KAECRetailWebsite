@@ -1,66 +1,64 @@
 import { Link } from 'react-router-dom';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
-import ChartCard from '../components/operator/ChartCard';
 import Pill from '../components/operator/Pill';
 import SectionHeader from '../components/operator/SectionHeader';
 import SpaceFrame from '../components/operator/SpaceFrame';
-import DeviceFrame from '../components/ui/DeviceFrame';
-import { brandSite } from '../lib/brand';
-import { legacyMappings, systemInventory } from '../content/systemRestoration';
 
-const signalTrend = [
-  { week: 'W1', requests: 28 },
-  { week: 'W2', requests: 36 },
-  { week: 'W3', requests: 31 },
-  { week: 'W4', requests: 39 },
-  { week: 'W5', requests: 35 },
-];
-
-const portalCards = [
+const activePortals = [
   {
     title: 'Home Security',
-    badge: 'Local-first',
-    description: 'Protection workflows with sensors, deterrence, and local-first resilience.',
+    badge: 'Active',
+    description: 'Local-first protection workflows with sensors, deterrence, and resilience.',
     primaryLabel: 'Enter Home Security',
     to: '/home-security',
   },
   {
     title: 'Home Automation',
-    badge: 'Automation',
-    description: 'Daily routines and deterministic scenes built for comfort and efficiency.',
+    badge: 'Active',
+    description: 'Deterministic routines and scenes for comfort, efficiency, and reliability.',
     primaryLabel: 'Enter Home Automation',
     to: '/home-automation',
   },
   {
-    title: 'Elder Care Tech',
-    badge: 'Caregiver-grade',
-    description: 'Caregiver visibility and supportive monitoring for aging-in-place.',
-    primaryLabel: 'Enter Elder Care Tech',
+    title: 'Home Elder Tech Systems',
+    badge: 'Active',
+    description: 'Dignity-first in-home safety and awareness for aging-in-place.',
+    primaryLabel: 'Enter Home Elder Tech Systems',
     to: '/elder-care-tech',
   },
   {
     title: 'HALO PERS',
-    badge: 'PERS',
+    badge: 'Active',
     description: 'Personal safety signaling with clear response pathways.',
     primaryLabel: 'Enter HALO',
     to: '/halo',
   },
   {
-    title: 'Operator (SaaS)',
-    badge: 'SaaS',
+    title: 'SaaS Operator Platform',
+    badge: 'Never Miss an Estimate',
     description: 'Operator-grade scheduling, follow-up, and escalation workflows.',
-    primaryLabel: 'Enter Operator',
+    primaryLabel: 'Enter SaaS Operator Platform',
     to: '/operator',
     emphasis: true,
+  },
+];
+
+const futurePortals = [
+  {
+    title: 'ManCave Systems',
+    description: 'Specialized entertainment and environment control workflows.',
+  },
+  {
+    title: 'Business Security',
+    description: 'Commercial-grade protection and incident response workflows.',
+  },
+  {
+    title: 'Business Automation',
+    description: 'Operational routines and deterministic facility orchestration.',
+  },
+  {
+    title: 'Property Management',
+    description: 'Portfolio oversight, access coordination, and service workflows.',
   },
 ];
 
@@ -69,13 +67,13 @@ const RetailLanding = () => {
     <div className="space-shell">
       <div className="container section space-grid">
         <SectionHeader
-          kicker="Holding Company Hub"
-          title={`${brandSite} business portals`}
-          subtitle="Choose a vertical business below. Each portal leads to a dedicated subsite with its own capabilities, intake, and demo data."
+          kicker="Platform hub"
+          title="KickAss Connected Systems Platform"
+          subtitle="Choose your portal. Each tile opens a dedicated workspace with its own workflows, controls, and operating context."
         />
 
-        <div className="space-grid three-column portal-grid" aria-label="Business portals">
-          {portalCards.map((card) => (
+        <div className="space-grid three-column portal-grid" aria-label="Active portals">
+          {activePortals.map((card) => (
             <SpaceFrame
               key={card.title}
               className={`portal-card${card.emphasis ? ' portal-card-emphasis' : ''}`}
@@ -83,7 +81,7 @@ const RetailLanding = () => {
             >
               <div className="portal-card-header">
                 <div>
-                  <p className="portal-label">Business Portal</p>
+                  <p className="portal-label">Active portal</p>
                   <h3>{card.title}</h3>
                 </div>
                 <Pill>{card.badge}</Pill>
@@ -101,74 +99,25 @@ const RetailLanding = () => {
           ))}
         </div>
 
-        <DeviceFrame>
-          <ChartCard
-            title="Inbound signal trend"
-            subtitle="Platform-level signal activity"
-            helperText="Example / demo data for illustration only."
-          >
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={signalTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
-                <XAxis dataKey="week" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(15, 23, 42, 0.95)',
-                    borderColor: 'rgba(125, 211, 252, 0.35)',
-                    color: '#e2e8f0',
-                  }}
-                />
-                <Area type="monotone" dataKey="requests" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </DeviceFrame>
-
-        <div className="space-grid two-column">
-          <SpaceFrame>
-            <div className="badge">System inventory</div>
-            <h2>Restored pages, agreements, and logic</h2>
-            <ul className="operator-list">
-              {systemInventory.pages.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <ul className="operator-list" style={{ marginTop: '1rem' }}>
-              {systemInventory.agreements.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <ul className="operator-list" style={{ marginTop: '1rem' }}>
-              {systemInventory.systemLogic.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </SpaceFrame>
-          <SpaceFrame>
-            <div className="badge">Legacy mapping</div>
-            <h2>Legacy content mapped to current architecture</h2>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {legacyMappings.map((mapping) => (
-                <div className="card" key={mapping.legacyItem}>
-                  <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{mapping.legacyItem}</h3>
-                  <p style={{ margin: '0.35rem 0', color: '#c8c0aa' }}>{mapping.currentLocation}</p>
-                  <small style={{ color: '#c8c0aa' }}>{mapping.notes}</small>
+        <div className="space-grid three-column portal-grid" aria-label="Future portals">
+          {futurePortals.map((card) => (
+            <SpaceFrame key={card.title} className="portal-card portal-card-disabled" as="article">
+              <div className="portal-card-header">
+                <div>
+                  <p className="portal-label">Future portal</p>
+                  <h3>{card.title}</h3>
                 </div>
-              ))}
-            </div>
-          </SpaceFrame>
+                <Pill>Coming Soon</Pill>
+              </div>
+              <p>{card.description}</p>
+              <div className="portal-actions">
+                <span className="btn btn-secondary disabled" aria-disabled="true">
+                  Coming Soon
+                </span>
+              </div>
+            </SpaceFrame>
+          ))}
         </div>
-
-        <SpaceFrame>
-          <div className="badge">Intake journeys</div>
-          <h2>End-to-end journeys restored</h2>
-          <ul className="operator-list">
-            {systemInventory.intakeJourneys.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </SpaceFrame>
       </div>
     </div>
   );
