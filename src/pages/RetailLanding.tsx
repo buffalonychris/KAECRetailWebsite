@@ -77,8 +77,8 @@ const futurePortals = [
 
 const RetailLanding = () => {
   return (
-    <div className="space-shell">
-      <div className="container section space-grid hub-shell">
+    <div className="space-shell hub-shell-bg">
+      <div className="container section space-grid hub-shell hub-container">
         <div className="hub-hero">
           <SectionHeader
             kicker="PLATFORM HUB"
@@ -89,10 +89,12 @@ const RetailLanding = () => {
 
         <section className="space-grid" aria-label="Active portals">
           <div className="portal-section-header">
+            <span className="portal-section-kicker">Live Systems</span>
             <h2>Active Portals</h2>
             <p>Launch live workspaces with dedicated workflows and controls.</p>
+            <span className="portal-section-divider" aria-hidden="true" />
           </div>
-          <div className="space-grid portal-grid">
+          <div className="space-grid portal-grid portal-grid-active">
             {activePortals.map((card) => (
               <PortalTile key={card.title} {...card} />
             ))}
@@ -101,10 +103,12 @@ const RetailLanding = () => {
 
         <section className="space-grid" aria-label="Future portals">
           <div className="portal-section-header">
+            <span className="portal-section-kicker">Roadmap Queue</span>
             <h2>Future Portals</h2>
             <p>Roadmapped workspaces staged for upcoming launches.</p>
+            <span className="portal-section-divider" aria-hidden="true" />
           </div>
-          <div className="space-grid portal-grid">
+          <div className="space-grid portal-grid portal-grid-future">
             {futurePortals.map((card) => (
               <PortalTile key={card.title} {...card} />
             ))}

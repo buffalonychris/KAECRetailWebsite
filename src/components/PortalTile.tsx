@@ -29,11 +29,11 @@ const PortalTile = ({ title, status, category, description, ctaLabel, to }: Port
       </div>
       <div className="portal-actions">
         {isDisabled ? (
-          <span className="btn btn-secondary disabled" aria-disabled="true">
+          <span className="btn btn-secondary disabled portal-cta portal-cta-disabled" aria-disabled="true">
             Coming Soon
           </span>
         ) : (
-          <Link className="btn btn-primary" to={to}>
+          <Link className="btn btn-primary portal-cta" to={to}>
             {ctaLabel}
           </Link>
         )}
