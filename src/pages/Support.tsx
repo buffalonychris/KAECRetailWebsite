@@ -1,24 +1,6 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-
-import ChartCard from '../components/operator/ChartCard';
 import SectionHeader from '../components/operator/SectionHeader';
 import SpaceFrame from '../components/operator/SpaceFrame';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
-
-const ticketData = [
-  { type: 'Routing', count: 18 },
-  { type: 'Calendar', count: 12 },
-  { type: 'Escalations', count: 6 },
-  { type: 'Billing', count: 4 },
-];
 
 const Support = () => (
   <div className="space-shell">
@@ -26,45 +8,35 @@ const Support = () => (
       <SectionHeader
         kicker="Support"
         title="FAQ & Support"
-        subtitle="Answers to common questions plus direct access to the team."
+        subtitle="Quick answers, plus a direct way to reach the team."
       />
 
       <OwnershipOfflineGuarantee
         variant="frame"
-        intro="Trust details that apply across Security, Home Automation, and Elder Care Tech: ownership, offline-first control, and no subscriptions sold by us."
+        title="Ownership & Offline Guarantee"
+        intro="These rules apply across Home Security, Home Automation, and Elder Tech — you stay in control, and the system keeps working locally."
+        items={[
+          'You own the equipment, automations, and your data.',
+          'We don’t sell monthly subscriptions. Optional third-party services are between you and them.',
+          'Key features keep working on your home network even if the internet goes out.',
+          'Remote access is optional and requires internet.',
+          'Home Assistant is the main dashboard across our installs.',
+        ]}
       />
-
-      <ChartCard title="Example ticket categories" subtitle="Routing + onboarding mix">
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={ticketData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-            <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
-            <XAxis dataKey="type" stroke="#94a3b8" />
-            <YAxis stroke="#94a3b8" />
-            <Tooltip
-              contentStyle={{
-                background: 'rgba(15, 23, 42, 0.95)',
-                borderColor: 'rgba(125, 211, 252, 0.35)',
-                color: '#e2e8f0',
-              }}
-            />
-            <Bar dataKey="count" fill="#38bdf8" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartCard>
 
       <SpaceFrame>
         <h2>Email</h2>
-        <p>Use the placeholder email below until your team provides a dedicated inbox.</p>
+        <p>Send us a message and include your name, address, and the best number to reach you.</p>
         <p>
-          <strong>support@example.com</strong>
+          <strong>support@reliableeldercare.com</strong>
         </p>
       </SpaceFrame>
 
       <SpaceFrame>
         <h2>Response expectations</h2>
         <p>
-          We aim to respond within 1-2 business days. If your request is urgent, note that in the subject line so
-          we can prioritize scheduling-related questions.
+          We reply within 1–2 business days. If it’s urgent, put URGENT in the subject line and tell us your best
+          callback window.
         </p>
       </SpaceFrame>
     </div>
