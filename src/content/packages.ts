@@ -186,19 +186,19 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$1,699 one-time',
     tagline: 'Starter Security & Awareness',
     oneLiner:
-      'Entry awareness, local siren response, and leak alerts that stay usable even when the internet drops.',
+      'Know when doors/windows open, detect motion, and get leak alerts — with local alerts that still work when the internet drops.',
     bio:
       'Bronze is a wireless-first, privacy-first starter package designed for homeowners who want local control and a clear deterrence response without subscriptions.',
     idealFor:
       'Smaller homes or households that want ownership, clear entry awareness, and dependable local response cues.',
     typicalCoverage: '2–3 entry points, key interior zones, and kitchen/bath leak coverage.',
     includes: [
-      'Home Assistant hub configured as the primary security dashboard',
-      'Wireless entry sensors for primary doors/windows',
-      'Motion sensors for main circulation zones',
-      'Leak sensors for kitchen and bath awareness',
-      'Local siren + lighting deterrence scenes',
-      'Arming modes, alerts, and homeowner training',
+      'Home Assistant hub set up as your main security dashboard',
+      'Wireless door/window sensors for your main entry points',
+      'Motion sensors for the most-used areas of the home',
+      'Leak sensors for kitchen + bathrooms',
+      'Local siren + “lights on” deterrence scenes',
+      'Arming modes, alerts, and homeowner walk-through/training',
     ],
     billOfMaterials: [],
     automationFlows: [
@@ -234,7 +234,7 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$2,599 one-time',
     tagline: 'Whole-Home Coverage + Outdoor Camera Reliability',
     oneLiner:
-      'Adds doorbell awareness and outdoor PoE camera reliability with expanded sensors across the home.',
+      'Adds a doorbell camera and reliable outdoor PoE cameras, plus more sensors across the home.',
     bio:
       'Silver expands coverage to include doorbell visibility and reliable outdoor camera angles while keeping Home Assistant as the single control plane.',
     idealFor:
@@ -242,10 +242,10 @@ export const homeSecurityPackages: PackageTier[] = [
     typicalCoverage: 'All primary entries, main-floor motion zones, doorbell, and 1–2 outdoor camera angles.',
     includes: [
       'Everything in Bronze',
-      'Doorbell camera coverage surfaced in Home Assistant',
-      'Outdoor PoE camera coverage for key entry angles (local LAN streaming)',
-      'Indoor camera for entry verification (privacy-first placement)',
-      'Expanded entry and motion sensor coverage',
+      'Doorbell camera view available inside Home Assistant',
+      'Outdoor PoE cameras for key angles (streams locally on your network)',
+      'Indoor camera for “check what happened” verification (privacy-first placement)',
+      'More door/window + motion sensor coverage',
     ],
     billOfMaterials: [],
     automationFlows: [
@@ -281,7 +281,7 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$3,499 one-time',
     tagline: 'Local Recording + Highest Coverage',
     oneLiner:
-      'Adds dedicated local recording and the widest camera + sensor coverage for the most resilient footprint.',
+      'Adds dedicated local recording plus the most complete camera + sensor coverage for the strongest setup.',
     bio:
       'Gold delivers the highest coverage with dedicated local recording, multiple outdoor angles, and expanded interior awareness—without giving up local control.',
     idealFor:
@@ -291,9 +291,9 @@ export const homeSecurityPackages: PackageTier[] = [
     includes: [
       'Everything in Silver',
       'Dedicated local recording (UniFi Protect NVR) with on-site storage',
-      'Additional outdoor camera angles for full perimeter visibility',
-      'Expanded interior camera coverage for verification',
-      'Expanded entry, motion, and leak sensor coverage',
+      'More outdoor camera angles for full perimeter visibility',
+      'More indoor camera coverage for verification',
+      'More door/window, motion, and leak sensors',
     ],
     billOfMaterials: [],
     automationFlows: [

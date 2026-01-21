@@ -32,7 +32,7 @@ const HomeSecurityComparisonTable = () => {
         </tbody>
       </table>
       <p style={{ margin: '0.75rem 0 0', color: 'var(--kaec-muted)' }}>
-        Legend: ✅ included • ✅✅ most comprehensive • — not included.
+        Legend: ✅ included • ✅✅ best coverage • — not included.
       </p>
     </div>
   );
