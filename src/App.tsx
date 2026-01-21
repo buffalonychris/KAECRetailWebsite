@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import DefaultLayout from './layouts/DefaultLayout';
+import OperatorLayout from './layouts/OperatorLayout';
 
 const Home = lazy(() => import('./pages/Home'));
 const RetailLanding = lazy(() => import('./pages/RetailLanding'));
@@ -67,90 +69,97 @@ const Support = lazy(() => import('./pages/Support'));
 
 const App = () => {
   return (
-    <Layout>
-      <Suspense
-        fallback={
-          <div className="container section">
-            <p>Loading…</p>
-          </div>
-        }
-      >
-        <Routes>
-          <Route path="/" element={<RetailLanding />} />
-          <Route path="/halo-splash" element={<Home />} />
-          <Route path="/packages" element={<Packages />} />
-          <Route path="/packages/:id" element={<PackageDetail />} />
-          <Route path="/comparison" element={<Comparison />} />
-          <Route path="/funding" element={<Funding />} />
-          <Route path="/reliability" element={<Reliability />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/recommend" element={<Recommendation />} />
-          <Route path="/quote" element={<Quote />} />
-          <Route path="/quoteReview" element={<QuoteReview />} />
-          <Route path="/quotePrint" element={<QuotePrint />} />
-          <Route path="/agreement" element={<Agreement />} />
-          <Route path="/agreementReview" element={<AgreementReview />} />
-          <Route path="/agreementPrint" element={<AgreementPrint />} />
-          <Route path="/esign" element={<ESign />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/payment-processing" element={<PaymentProcessing />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/resume" element={<Resume />} />
-          <Route path="/resume-verify" element={<ResumeVerify />} />
-          <Route path="/uat" element={<UAT />} />
-          <Route path="/launchUat" element={<LaunchUAT />} />
-          <Route path="/sicar" element={<Certificate />} />
-          <Route path="/certificate" element={<Certificate />} />
-          <Route path="/verify" element={<Verify />} />
-          <Route path="/health-homes" element={<HealthHomes />} />
-          <Route path="/health-homes/outcomes" element={<HealthHomesOutcomes />} />
-          <Route path="/health-homes/funding" element={<HealthHomesFunding />} />
-          <Route path="/health-homes/packages" element={<HealthHomesPackages />} />
-          <Route path="/health-homes/pilot" element={<HealthHomesPilot />} />
-          <Route path="/health-homes/operations" element={<HealthHomesOperations />} />
-          <Route path="/health-homes/intake" element={<HealthHomesIntake />} />
-          <Route path="/health-homes/packet" element={<HealthHomesPacket />} />
-          <Route path="/lp/senior" element={<SeniorLanding />} />
-          <Route path="/lp/family" element={<FamilyLanding />} />
-          <Route path="/lp/agency" element={<AgencyLanding />} />
-          <Route path="/halo" element={<HaloLanding />} />
-          <Route path="/home-security" element={<HomeSecurity />} />
-          <Route path="/home-security/packages" element={<Navigate to="/packages?vertical=home-security" replace />} />
-          <Route path="/home-security/add-ons" element={<Navigate to="/quote?vertical=home-security#addons" replace />} />
-          <Route path="/home-security/how-it-works" element={<Navigate to="/reliability?vertical=home-security" replace />} />
-          <Route path="/home-automation" element={<HomeAutomation />} />
-          <Route path="/home-automation/packages" element={<Navigate to="/packages" replace />} />
-          <Route path="/home-automation/add-ons" element={<Navigate to="/quote#addons" replace />} />
-          <Route path="/home-automation/how-it-works" element={<Navigate to="/reliability" replace />} />
-          <Route path="/elder-care-tech" element={<ElderCareTech />} />
-          <Route path="/elder-care-tech/packages" element={<Navigate to="/packages" replace />} />
-          <Route path="/elder-care-tech/add-ons" element={<Navigate to="/quote#addons" replace />} />
-          <Route path="/elder-care-tech/how-it-works" element={<Navigate to="/reliability" replace />} />
-          <Route path="/halo/setup" element={<HaloSetup />} />
-          <Route path="/halo/support" element={<HaloSupport />} />
-          <Route path="/halo/privacy" element={<HaloPrivacy />} />
-          <Route path="/halo/terms" element={<HaloTerms />} />
-          <Route path="/halo/checkout" element={<HaloCheckout />} />
-          <Route path="/halo-pushbutton" element={<HaloPushbutton />} />
-          <Route path="/halo-package" element={<HaloPackage />} />
-          <Route path="/vendors" element={<VendorLanding />} />
-          <Route path="/vendors/standards" element={<VendorStandards />} />
-          <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
-          <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
-          <Route path="/vendors/apply" element={<VendorApply />} />
-          <Route path="/never-miss-another-estimate" element={<NeverMissAnotherEstimate />} />
-          <Route path="/operator" element={<Operator />} />
-          <Route path="/demo" element={<Demo />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/5-day-demo" element={<FiveDayDemo />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="/support" element={<Support />} />
-        </Routes>
-      </Suspense>
-    </Layout>
+    <Suspense
+      fallback={
+        <div className="container section">
+          <p>Loading…</p>
+        </div>
+      }
+    >
+      <Routes>
+        <Route element={<Layout />}>
+          <Route element={<DefaultLayout />}>
+            <Route path="/" element={<RetailLanding />} />
+            <Route path="/halo-splash" element={<Home />} />
+            <Route path="/packages" element={<Packages />} />
+            <Route path="/packages/:id" element={<PackageDetail />} />
+            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/funding" element={<Funding />} />
+            <Route path="/reliability" element={<Reliability />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/recommend" element={<Recommendation />} />
+            <Route path="/quote" element={<Quote />} />
+            <Route path="/quoteReview" element={<QuoteReview />} />
+            <Route path="/quotePrint" element={<QuotePrint />} />
+            <Route path="/agreement" element={<Agreement />} />
+            <Route path="/agreementReview" element={<AgreementReview />} />
+            <Route path="/agreementPrint" element={<AgreementPrint />} />
+            <Route path="/esign" element={<ESign />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/payment-processing" element={<PaymentProcessing />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/resume" element={<Resume />} />
+            <Route path="/resume-verify" element={<ResumeVerify />} />
+            <Route path="/uat" element={<UAT />} />
+            <Route path="/launchUat" element={<LaunchUAT />} />
+            <Route path="/sicar" element={<Certificate />} />
+            <Route path="/certificate" element={<Certificate />} />
+            <Route path="/verify" element={<Verify />} />
+            <Route path="/health-homes" element={<HealthHomes />} />
+            <Route path="/health-homes/outcomes" element={<HealthHomesOutcomes />} />
+            <Route path="/health-homes/funding" element={<HealthHomesFunding />} />
+            <Route path="/health-homes/packages" element={<HealthHomesPackages />} />
+            <Route path="/health-homes/pilot" element={<HealthHomesPilot />} />
+            <Route path="/health-homes/operations" element={<HealthHomesOperations />} />
+            <Route path="/health-homes/intake" element={<HealthHomesIntake />} />
+            <Route path="/health-homes/packet" element={<HealthHomesPacket />} />
+            <Route path="/lp/senior" element={<SeniorLanding />} />
+            <Route path="/lp/family" element={<FamilyLanding />} />
+            <Route path="/lp/agency" element={<AgencyLanding />} />
+            <Route path="/halo" element={<HaloLanding />} />
+            <Route path="/home-security" element={<HomeSecurity />} />
+            <Route path="/home-security/packages" element={<Navigate to="/packages?vertical=home-security" replace />} />
+            <Route path="/home-security/add-ons" element={<Navigate to="/quote?vertical=home-security#addons" replace />} />
+            <Route
+              path="/home-security/how-it-works"
+              element={<Navigate to="/reliability?vertical=home-security" replace />}
+            />
+            <Route path="/home-automation" element={<HomeAutomation />} />
+            <Route path="/home-automation/packages" element={<Navigate to="/packages" replace />} />
+            <Route path="/home-automation/add-ons" element={<Navigate to="/quote#addons" replace />} />
+            <Route path="/home-automation/how-it-works" element={<Navigate to="/reliability" replace />} />
+            <Route path="/elder-care-tech" element={<ElderCareTech />} />
+            <Route path="/elder-care-tech/packages" element={<Navigate to="/packages" replace />} />
+            <Route path="/elder-care-tech/add-ons" element={<Navigate to="/quote#addons" replace />} />
+            <Route path="/elder-care-tech/how-it-works" element={<Navigate to="/reliability" replace />} />
+            <Route path="/halo/setup" element={<HaloSetup />} />
+            <Route path="/halo/support" element={<HaloSupport />} />
+            <Route path="/halo/privacy" element={<HaloPrivacy />} />
+            <Route path="/halo/terms" element={<HaloTerms />} />
+            <Route path="/halo/checkout" element={<HaloCheckout />} />
+            <Route path="/halo-pushbutton" element={<HaloPushbutton />} />
+            <Route path="/halo-package" element={<HaloPackage />} />
+            <Route path="/vendors" element={<VendorLanding />} />
+            <Route path="/vendors/standards" element={<VendorStandards />} />
+            <Route path="/vendors/evaluation-toolkit" element={<VendorEvaluationToolkit />} />
+            <Route path="/vendors/questionnaire" element={<VendorQuestionnaire />} />
+            <Route path="/vendors/apply" element={<VendorApply />} />
+            <Route path="/never-miss-another-estimate" element={<NeverMissAnotherEstimate />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/5-day-demo" element={<FiveDayDemo />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/support" element={<Support />} />
+          </Route>
+          <Route element={<OperatorLayout />}>
+            <Route path="/operator" element={<Operator />} />
+          </Route>
+        </Route>
+      </Routes>
+    </Suspense>
   );
 };
 
