@@ -1,123 +1,115 @@
-import { Link } from 'react-router-dom';
-
-import Pill from '../components/operator/Pill';
+import PortalTile from '../components/PortalTile';
 import SectionHeader from '../components/operator/SectionHeader';
-import SpaceFrame from '../components/operator/SpaceFrame';
 
 const activePortals = [
   {
     title: 'Home Security',
-    badge: 'Active',
+    status: 'ACTIVE' as const,
+    category: 'SECURITY',
     description: 'Local-first protection workflows with sensors, deterrence, and resilience.',
-    primaryLabel: 'Enter Home Security',
+    ctaLabel: 'Enter Home Security',
     to: '/home-security',
   },
   {
     title: 'Home Automation',
-    badge: 'Active',
+    status: 'ACTIVE' as const,
+    category: 'AUTOMATION',
     description: 'Deterministic routines and scenes for comfort, efficiency, and reliability.',
-    primaryLabel: 'Enter Home Automation',
+    ctaLabel: 'Enter Home Automation',
     to: '/home-automation',
   },
   {
     title: 'Home Elder Tech Systems',
-    badge: 'Active',
+    status: 'ACTIVE' as const,
+    category: 'ELDER TECH',
     description: 'Dignity-first in-home safety and awareness for aging-in-place.',
-    primaryLabel: 'Enter Home Elder Tech Systems',
+    ctaLabel: 'Enter Elder Tech Systems',
     to: '/elder-care-tech',
   },
   {
     title: 'HALO PERS',
-    badge: 'Active',
+    status: 'ACTIVE' as const,
+    category: 'PERS',
     description: 'Personal safety signaling with clear response pathways.',
-    primaryLabel: 'Enter HALO',
+    ctaLabel: 'Enter HALO PERS',
     to: '/halo',
   },
   {
     title: 'SaaS Operator Platform',
-    badge: 'Never Miss an Estimate',
+    status: 'ACTIVE' as const,
+    category: 'SAAS',
     description: 'Operator-grade scheduling, follow-up, and escalation workflows.',
-    primaryLabel: 'Enter SaaS Operator Platform',
+    ctaLabel: 'Enter Operator Platform',
     to: '/operator',
-    emphasis: true,
   },
 ];
 
 const futurePortals = [
   {
     title: 'ManCave Systems',
+    status: 'COMING SOON' as const,
+    category: 'LIFESTYLE',
     description: 'Specialized entertainment and environment control workflows.',
+    ctaLabel: 'Coming Soon',
   },
   {
     title: 'Business Security',
+    status: 'COMING SOON' as const,
+    category: 'SECURITY',
     description: 'Commercial-grade protection and incident response workflows.',
+    ctaLabel: 'Coming Soon',
   },
   {
     title: 'Business Automation',
+    status: 'COMING SOON' as const,
+    category: 'AUTOMATION',
     description: 'Operational routines and deterministic facility orchestration.',
+    ctaLabel: 'Coming Soon',
   },
   {
     title: 'Property Management',
+    status: 'COMING SOON' as const,
+    category: 'OPS',
     description: 'Portfolio oversight, access coordination, and service workflows.',
+    ctaLabel: 'Coming Soon',
   },
 ];
 
 const RetailLanding = () => {
   return (
     <div className="space-shell">
-      <div className="container section space-grid">
-        <SectionHeader
-          kicker="Platform hub"
-          title="KickAss Connected Systems Platform"
-          subtitle="Choose your portal. Each tile opens a dedicated workspace with its own workflows, controls, and operating context."
-        />
-
-        <div className="space-grid three-column portal-grid" aria-label="Active portals">
-          {activePortals.map((card) => (
-            <SpaceFrame
-              key={card.title}
-              className={`portal-card${card.emphasis ? ' portal-card-emphasis' : ''}`}
-              as="article"
-            >
-              <div className="portal-card-header">
-                <div>
-                  <p className="portal-label">Active portal</p>
-                  <h3>{card.title}</h3>
-                </div>
-                <Pill>{card.badge}</Pill>
-              </div>
-              <p>{card.description}</p>
-              <div className="portal-actions">
-                <Link className="btn btn-primary" to={card.to}>
-                  {card.primaryLabel}
-                </Link>
-                <Link className="btn btn-secondary" to={card.to}>
-                  Explore solutions
-                </Link>
-              </div>
-            </SpaceFrame>
-          ))}
+      <div className="container section space-grid hub-shell">
+        <div className="hub-hero">
+          <SectionHeader
+            kicker="PLATFORM HUB"
+            title="KickAss Connected Systems Platform"
+            subtitle="Choose your portal. Each tile opens a dedicated workspace with its own workflows, controls, and operating context."
+          />
         </div>
 
-        <div className="space-grid three-column portal-grid" aria-label="Future portals">
-          {futurePortals.map((card) => (
-            <SpaceFrame key={card.title} className="portal-card portal-card-disabled" as="article">
-              <div className="portal-card-header">
-                <div>
-                  <p className="portal-label">Future portal</p>
-                  <h3>{card.title}</h3>
-                </div>
-                <Pill>Coming Soon</Pill>
-              </div>
-              <p>{card.description}</p>
-              <div className="portal-actions">
-                <span className="btn btn-secondary disabled" aria-disabled="true">
-                  Coming Soon
-                </span>
-              </div>
-            </SpaceFrame>
-          ))}
-        </div>
+        <section className="space-grid" aria-label="Active portals">
+          <div className="portal-section-header">
+            <h2>Active Portals</h2>
+            <p>Launch live workspaces with dedicated workflows and controls.</p>
+          </div>
+          <div className="space-grid portal-grid">
+            {activePortals.map((card) => (
+              <PortalTile key={card.title} {...card} />
+            ))}
+          </div>
+        </section>
+
+        <section className="space-grid" aria-label="Future portals">
+          <div className="portal-section-header">
+            <h2>Future Portals</h2>
+            <p>Roadmapped workspaces staged for upcoming launches.</p>
+          </div>
+          <div className="space-grid portal-grid">
+            {futurePortals.map((card) => (
+              <PortalTile key={card.title} {...card} />
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
