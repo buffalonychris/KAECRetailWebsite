@@ -16,8 +16,8 @@ const HomeSecurity = () => {
     <VerticalLandingShell
       verticalName="Home Security"
       badgeLabel="Local-first"
-      heroHeadline="Residential security that stays local, private, and always usable"
-      heroSubhead="Wireless-first Home Security built on Home Assistant as the single dashboard—no subscriptions sold, no cloud required for local control, and optional remote access when internet is available. The Offline Dignity Rule ensures core security actions stay available locally."
+      heroHeadline="Home security that works even when the internet doesn’t"
+      heroSubhead="A wireless home security system you control from one simple dashboard. No required subscriptions. No “cloud-only” lock-in. Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available."
       primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support' }}
       secondaryCTA={{ label: 'Explore Packages', to: '/home-security/packages?vertical=home-security' }}
       layoutVariant="explainer"
@@ -32,30 +32,34 @@ const HomeSecurity = () => {
       keyCapabilities={keyCapabilities}
       valueBlocks={[
         {
-          title: 'Perimeter awareness without cloud dependency',
-          description: 'Entry sensors and localized alerts keep you aware even when the internet drops.',
+          title: 'Know when doors or windows open — even during outages',
+          description: 'Door and window sensors give you instant alerts and keep working on your home network if the internet drops.',
         },
         {
-          title: 'Deterministic responses you can count on',
-          description: 'Lighting cues, siren triggers, and deterrence routines fire on-site with no cloud lag.',
+          title: 'Fast, reliable actions (no waiting on the cloud)',
+          description:
+            'When something happens, your system can turn on lights, sound a siren, or run deterrent routines right away — from inside your home.',
         },
         {
-          title: 'Privacy-preserving monitoring',
-          description: 'Local data ownership and optional remote access protect household privacy without sacrificing awareness.',
+          title: 'Privacy-first by default',
+          description:
+            'Your data stays yours. You can enable remote access if you want, but nothing requires a third-party monitoring plan.',
         },
         {
-          title: 'Installer-grade reliability without subscriptions',
-          description: 'Hardware, automations, and handoff are owned by the homeowner—no recurring monitoring plan required.',
+          title: 'Pro-level reliability without monthly fees',
+          description: 'You own the hardware and the setup. No required monthly monitoring just to make the system function.',
         },
       ]}
       accordionSections={[
         {
           title: 'How Home Security Works',
-          description: 'A clear intake-to-handoff journey built for local-first execution.',
+          description:
+            'A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and hand you a system you understand and control.',
           content: (
             <>
               <p>
-                From consult to handoff, the journey is designed to stay predictable and easy to audit at every step.
+                A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and
+                hand you a system you understand and control.
               </p>
               <ul className="operator-list">
                 {content.journeySteps.map((step) => (
@@ -66,11 +70,15 @@ const HomeSecurity = () => {
           ),
         },
         {
-          title: "What's Included",
-          description: 'Package coverage and scope summaries by tier.',
+          title: 'What’s Included',
+          description:
+            'A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one solves.',
           content: (
             <>
-              <p>Each package scales coverage without changing the local-first ownership model.</p>
+              <p>
+                A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one
+                solves.
+              </p>
               <ul className="operator-list">
                 {content.packageHighlights.map((item) => (
                   <li key={item}>{item}</li>
@@ -81,7 +89,8 @@ const HomeSecurity = () => {
         },
         {
           title: 'Automation & Response Playbooks',
-          description: 'Entry, perimeter, and environmental response playbooks.',
+          description:
+            'Smart “if-this-then-that” actions: lights-on deterrence, siren triggers, entry alerts, leak alerts, and more.',
           content: (
             <div className="card-grid" style={{ marginTop: '1rem' }}>
               {content.playbooks.map((playbook) => (
@@ -109,11 +118,13 @@ const HomeSecurity = () => {
         },
         {
           title: 'Privacy, Ownership & Reliability',
-          description: 'Local execution guarantees, ownership, and subscription-free reliability.',
+          description:
+            'What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription traps.',
           content: (
             <>
               <p>
-                Home Security is designed for local execution first, with clear ownership and privacy guardrails.
+                What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription
+                traps.
               </p>
               <ul className="operator-list">
                 {keyCapabilities.map((item) => (
@@ -125,10 +136,14 @@ const HomeSecurity = () => {
         },
         {
           title: 'Agreements & What to Expect',
-          description: 'Agreement checkpoints and install expectations.',
+          description:
+            'What happens before, during, and after install — timeline, what we need from you, and how support works.',
           content: (
             <>
-              <p>Clear checkpoints keep expectations aligned before, during, and after install.</p>
+              <p>
+                What happens before, during, and after install — timeline, what we need from you, and how support
+                works.
+              </p>
               <ul className="operator-list">
                 {content.agreements.map((item) => (
                   <li key={item}>{item}</li>
@@ -139,13 +154,14 @@ const HomeSecurity = () => {
         },
       ]}
       reliabilityLink={{
-        summary: 'See how system reliability and health are maintained.',
+        summary:
+          'We build your system to be dependable and easy to maintain. We also include simple health signals so you can tell if anything needs attention.',
         label: 'Explore reliability details →',
         to: '/reliability?vertical=home-security',
       }}
       bottomCTA={{
         heading: 'Ready to explore Home Security?',
-        body: 'Start a guided intake and we will route you to the right team for the next step.',
+        body: 'Start a quick guided intake and we’ll route you to the right next step.',
       }}
       journeySteps={content.journeySteps}
       agreementHighlights={content.agreements}
