@@ -1128,12 +1128,6 @@ header.hide-when-print {
   width: 100%;
 }
 
-.portal-card-active:hover .portal-cta,
-.portal-card-active:focus-within .portal-cta {
-  filter: brightness(1.06);
-  box-shadow: 0 22px 55px rgba(19, 134, 206, 0.5);
-}
-
 .portal-cta:focus-visible {
   outline: 2px solid rgba(56, 189, 248, 0.75);
   outline-offset: 2px;
