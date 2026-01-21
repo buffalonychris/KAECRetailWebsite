@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Area,
@@ -12,6 +13,7 @@ import {
 import ChartCard from './operator/ChartCard';
 import SectionHeader from './operator/SectionHeader';
 import SpaceFrame from './operator/SpaceFrame';
+import AccordionSection from './AccordionSection';
 
 export type VerticalLandingShellProps = {
   verticalName: string;
@@ -22,12 +24,36 @@ export type VerticalLandingShellProps = {
     label: string;
     to: string;
   };
+  secondaryCTA?: {
+    label: string;
+    to: string;
+  };
+  layoutVariant?: 'default' | 'explainer';
+  containerClassName?: string;
   journeyLinks?: Array<{
     label: string;
     to: string;
   }>;
   chartData: Array<{ label: string; value: number }>;
   keyCapabilities: string[];
+  valueBlocks?: Array<{
+    title: string;
+    description: string;
+  }>;
+  accordionSections?: Array<{
+    title: string;
+    description?: string;
+    content: ReactNode;
+  }>;
+  reliabilityLink?: {
+    summary: string;
+    label: string;
+    to: string;
+  };
+  bottomCTA?: {
+    heading: string;
+    body: string;
+  };
   journeySteps?: string[];
   agreementHighlights?: string[];
   packageHighlights?: string[];
@@ -46,29 +72,46 @@ const VerticalLandingShell = ({
   heroHeadline,
   heroSubhead,
   primaryCTA,
+  secondaryCTA,
+  layoutVariant = 'default',
+  containerClassName,
   journeyLinks,
   chartData,
   keyCapabilities,
+  valueBlocks,
+  accordionSections,
+  reliabilityLink,
+  bottomCTA,
   journeySteps,
   agreementHighlights,
   packageHighlights,
   playbooks,
 }: VerticalLandingShellProps) => {
+  const containerClasses = ['container', 'section', 'space-grid', containerClassName].filter(Boolean).join(' ');
+  const isExplainer = layoutVariant === 'explainer';
+
   return (
     <div className="space-shell">
-      <div className="container section space-grid">
+      <div className={containerClasses}>
         <SectionHeader
           kicker={badgeLabel}
           title={heroHeadline}
           subtitle={heroSubhead}
           actions={
-            <Link className="btn btn-primary" to={primaryCTA.to}>
-              {primaryCTA.label}
-            </Link>
+            <>
+              <Link className="btn btn-primary" to={primaryCTA.to}>
+                {primaryCTA.label}
+              </Link>
+              {secondaryCTA ? (
+                <Link className="btn btn-secondary" to={secondaryCTA.to}>
+                  {secondaryCTA.label}
+                </Link>
+              ) : null}
+            </>
           }
         />
 
-        {journeyLinks && journeyLinks.length > 0 && (
+        {!isExplainer && journeyLinks && journeyLinks.length > 0 && (
           <SpaceFrame>
             <div className="badge">Navigate this vertical</div>
             <h2>{verticalName} quick links</h2>
@@ -85,40 +128,74 @@ const VerticalLandingShell = ({
           </SpaceFrame>
         )}
 
-        <div className="space-grid two-column">
-          <SpaceFrame>
-            <h2>{verticalName} key capabilities</h2>
-            <p>
-              A focused business line built to deliver predictable operations, reliable integrations, and
-              clear visibility for teams.
-            </p>
-            <ul className="operator-list">
-              {keyCapabilities.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </SpaceFrame>
+        {isExplainer ? (
+          <>
+            {valueBlocks && valueBlocks.length > 0 && (
+              <div className="space-grid three-column">
+                {valueBlocks.map((block) => (
+                  <SpaceFrame key={block.title}>
+                    <h3 style={{ marginTop: 0 }}>{block.title}</h3>
+                    <p>{block.description}</p>
+                  </SpaceFrame>
+                ))}
+              </div>
+            )}
+            {accordionSections && accordionSections.length > 0 && (
+              <div className="space-grid two-column" style={{ alignItems: 'stretch' }}>
+                {accordionSections.map((section) => (
+                  <AccordionSection key={section.title} title={section.title} description={section.description}>
+                    {section.content}
+                  </AccordionSection>
+                ))}
+              </div>
+            )}
+            {reliabilityLink ? (
+              <SpaceFrame>
+                <div className="badge">System reliability</div>
+                <h2>Reliability and health signals</h2>
+                <p>
+                  {reliabilityLink.summary}{' '}
+                  <Link to={reliabilityLink.to}>{reliabilityLink.label}</Link>
+                </p>
+              </SpaceFrame>
+            ) : null}
+          </>
+        ) : (
+          <div className="space-grid two-column">
+            <SpaceFrame>
+              <h2>{verticalName} key capabilities</h2>
+              <p>
+                A focused business line built to deliver predictable operations, reliable integrations, and
+                clear visibility for teams.
+              </p>
+              <ul className="operator-list">
+                {keyCapabilities.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </SpaceFrame>
 
-          <ChartCard title={`${verticalName} activity`} subtitle="Example / demo data">
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
-                <XAxis dataKey="label" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(15, 23, 42, 0.95)',
-                    borderColor: 'rgba(125, 211, 252, 0.35)',
-                    color: '#e2e8f0',
-                  }}
-                />
-                <Area type="monotone" dataKey="value" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </div>
+            <ChartCard title={`${verticalName} activity`} subtitle="Example / demo data">
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(148, 163, 184, 0.15)" strokeDasharray="3 3" />
+                  <XAxis dataKey="label" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'rgba(15, 23, 42, 0.95)',
+                      borderColor: 'rgba(125, 211, 252, 0.35)',
+                      color: '#e2e8f0',
+                    }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
+        )}
 
-        {(journeySteps || agreementHighlights) && (
+        {!isExplainer && (journeySteps || agreementHighlights) && (
           <div className="space-grid two-column">
             {journeySteps && (
               <SpaceFrame>
@@ -145,7 +222,7 @@ const VerticalLandingShell = ({
           </div>
         )}
 
-        {packageHighlights && (
+        {!isExplainer && packageHighlights && (
           <SpaceFrame>
             <div className="badge">Package intelligence</div>
             <h2>Restored package coverage</h2>
@@ -157,7 +234,7 @@ const VerticalLandingShell = ({
           </SpaceFrame>
         )}
 
-        {playbooks && (
+        {!isExplainer && playbooks && (
           <SpaceFrame>
             <div className="badge">Automation playbooks</div>
             <h2>Structured automation playbooks</h2>
@@ -187,15 +264,17 @@ const VerticalLandingShell = ({
         )}
 
         <SpaceFrame className="vertical-cta">
-          <h2>Ready to explore {verticalName}?</h2>
-          <p>Start a guided intake and we will route you to the right team for the next step.</p>
+          <h2>{bottomCTA?.heading ?? `Ready to explore ${verticalName}?`}</h2>
+          <p>{bottomCTA?.body ?? 'Start a guided intake and we will route you to the right team for the next step.'}</p>
           <div className="space-section-actions">
             <Link className="btn btn-primary" to={primaryCTA.to}>
               {primaryCTA.label}
             </Link>
-            <Link className="btn btn-secondary" to="/support">
-              Explore solutions
-            </Link>
+            {!isExplainer && (
+              <Link className="btn btn-secondary" to="/support">
+                Explore solutions
+              </Link>
+            )}
           </div>
         </SpaceFrame>
       </div>
