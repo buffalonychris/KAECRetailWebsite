@@ -171,7 +171,7 @@ export const homeSecurityAddOns: AddOn[] = [
     tier: 'Low',
     price: 0,
     priceLabel: 'Quoted separately',
-    description: 'Dedicated in-home dashboard for arming, camera views, and status tiles.',
+    description: 'A dedicated in-home screen for arming, cameras, and status.',
   },
   {
     id: 'additional-sensors',
@@ -179,7 +179,7 @@ export const homeSecurityAddOns: AddOn[] = [
     tier: 'Low',
     price: 0,
     priceLabel: 'Quoted separately',
-    description: 'Extend coverage to more doors, rooms, and water-risk zones.',
+    description: 'Add coverage for more doors, rooms, and water-risk areas.',
   },
   {
     id: 'additional-cameras',
@@ -187,7 +187,7 @@ export const homeSecurityAddOns: AddOn[] = [
     tier: 'Mid',
     price: 0,
     priceLabel: 'Quoted separately',
-    description: 'Add indoor or outdoor views per coverage angle.',
+    description: 'Add indoor or outdoor views by location/angle.',
   },
   {
     id: 'ups-backup',
@@ -195,7 +195,7 @@ export const homeSecurityAddOns: AddOn[] = [
     tier: 'Mid',
     price: 0,
     priceLabel: 'Quoted separately',
-    description: 'Keeps the hub, network, and local recording online during power interruptions.',
+    description: 'Keeps the hub, network, and local recording running during power outages.',
   },
   {
     id: 'water-shutoff',
@@ -203,7 +203,7 @@ export const homeSecurityAddOns: AddOn[] = [
     tier: 'High',
     price: 0,
     priceLabel: 'Quoted separately',
-    description: 'Adds preferred local control for automatic water shutoff; requires plumbing coordination.',
+    description: 'Enables automatic shutoff and local control; requires plumbing coordination.',
   },
 ];
 

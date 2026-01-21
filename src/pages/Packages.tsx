@@ -66,7 +66,7 @@ const Packages = () => {
           </h2>
           <p style={{ maxWidth: 640 }}>
             {vertical === 'home-security'
-              ? 'Home Security packages are local-first and wireless-first with Home Assistant as the primary dashboard. We do not sell subscriptions; optional third-party monitoring is contracted directly by the homeowner.'
+              ? 'Home Security packages are built to work locally first, using Home Assistant as the main control screen. We don’t sell monthly subscriptions. If you want professional monitoring, you can add it separately with a provider you choose.'
               : 'Every tier is delivered with Home Assistant as the single control surface. Pricing is upfront—no subscriptions required for included capabilities.'}
           </p>
         </div>
@@ -77,11 +77,28 @@ const Packages = () => {
           >
             Build my quote
           </Link>
-          <small style={{ color: '#c8c0aa' }}>Pro install, offline-first setup, transparent pricing.</small>
+          <small style={{ color: '#c8c0aa' }}>
+            Pro install, set up to work even during internet outages, with clear pricing.
+          </small>
         </div>
       </div>
       <OwnershipOfflineGuarantee
-        intro="Every package honors the Offline Dignity Rule and keeps ownership with the household."
+        intro={
+          vertical === 'home-security'
+            ? 'Every package follows our “works-without-internet” rule and keeps control with your household.'
+            : 'Every package honors the Offline Dignity Rule and keeps ownership with the household.'
+        }
+        items={
+          vertical === 'home-security'
+            ? [
+                'You own the equipment, the automations, and your data.',
+                'No monthly fees sold by us. Optional third-party services are between you and them.',
+                'Key features still work on your home network even if the internet is down.',
+                'Cloud features are optional (mainly for remote access and sharing).',
+                'Home Assistant is the single dashboard across our products.',
+              ]
+            : undefined
+        }
         className="section"
       />
       <div className="card-grid">
@@ -95,7 +112,7 @@ const Packages = () => {
           <div className="card" style={{ marginBottom: '1rem' }}>
             <h2 style={{ marginTop: 0 }}>Compare Home Security tiers</h2>
             <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-              Local-first coverage tiers with a single dashboard. Remote access requires internet; local control stays available on LAN.
+              One dashboard for everything. Remote access needs internet, but local control still works on your home network.
             </p>
           </div>
           <HomeSecurityComparisonTable />
@@ -107,10 +124,11 @@ const Packages = () => {
       {vertical === 'home-security' && (
         <div className="section">
           <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-            <div className="badge">Optional Add-Ons (Quoted Separately)</div>
+            <div className="badge">Optional add-ons</div>
             <h2 style={{ margin: 0 }}>Optional add-ons</h2>
             <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-              Add-ons extend coverage and are quoted separately based on layout and wiring. Local control remains available without internet.
+              Add-ons expand coverage and are quoted separately based on your layout and wiring. Core local control still works without
+              internet.
             </p>
             <ul className="list">
               {addOns.map((addOn) => (
