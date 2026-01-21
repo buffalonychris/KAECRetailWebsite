@@ -152,7 +152,7 @@ const VerticalLandingShell = ({
             {reliabilityLink ? (
               <SpaceFrame>
                 <div className="badge">System reliability</div>
-                <h2>Reliability and health signals</h2>
+                <h2>Reliability and health checks</h2>
                 <p>
                   {reliabilityLink.summary}{' '}
                   <Link to={reliabilityLink.to}>{reliabilityLink.label}</Link>
