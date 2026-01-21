@@ -118,9 +118,9 @@ const App = () => {
           <Route path="/lp/agency" element={<AgencyLanding />} />
           <Route path="/halo" element={<HaloLanding />} />
           <Route path="/home-security" element={<HomeSecurity />} />
-          <Route path="/home-security/packages" element={<Navigate to="/packages" replace />} />
-          <Route path="/home-security/add-ons" element={<Navigate to="/quote#addons" replace />} />
-          <Route path="/home-security/how-it-works" element={<Navigate to="/reliability" replace />} />
+          <Route path="/home-security/packages" element={<Navigate to="/packages?vertical=home-security" replace />} />
+          <Route path="/home-security/add-ons" element={<Navigate to="/quote?vertical=home-security#addons" replace />} />
+          <Route path="/home-security/how-it-works" element={<Navigate to="/reliability?vertical=home-security" replace />} />
           <Route path="/home-automation" element={<HomeAutomation />} />
           <Route path="/home-automation/packages" element={<Navigate to="/packages" replace />} />
           <Route path="/home-automation/add-ons" element={<Navigate to="/quote#addons" replace />} />

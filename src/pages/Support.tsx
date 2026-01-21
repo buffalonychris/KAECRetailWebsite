@@ -31,7 +31,7 @@ const Support = () => (
 
       <OwnershipOfflineGuarantee
         variant="frame"
-        intro="Trust details that apply across Security, Home Automation, and Elder Care Tech."
+        intro="Trust details that apply across Security, Home Automation, and Elder Care Tech: ownership, offline-first control, and no subscriptions sold by us."
       />
 
       <ChartCard title="Example ticket categories" subtitle="Routing + onboarding mix">

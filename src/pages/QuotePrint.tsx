@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow } from '../lib/retailFlow';
@@ -45,21 +45,28 @@ const QuotePrint = () => {
     }
   }, [token]);
 
+  const vertical = quote?.vertical ?? 'elder-tech';
   const selectedPackage = useMemo(
-    () => (quote ? packagePricing.find((pkg) => pkg.id === quote.packageId) ?? packagePricing[0] : packagePricing[0]),
-    [quote]
+    () =>
+      quote
+        ? getPackagePricing(vertical).find((pkg) => pkg.id === quote.packageId) ?? getPackagePricing(vertical)[0]
+        : getPackagePricing(vertical)[0],
+    [quote, vertical]
   );
 
-  const selectedAddOns = useMemo(() => addOns.filter((addOn) => quote?.selectedAddOns.includes(addOn.id)), [quote]);
+  const selectedAddOns = useMemo(
+    () => getAddOns(vertical).filter((addOn) => quote?.selectedAddOns.includes(addOn.id)),
+    [quote, vertical]
+  );
 
   const hardwareGroups = useMemo(
-    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
 
   const featureGroups = useMemo(
-    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
 
   useEffect(() => {
@@ -84,6 +91,7 @@ const QuotePrint = () => {
     const fetchNarrative = async () => {
       const result = await generateNarrative({
         source: 'quote',
+        vertical,
         quoteContext: {
           packageId: quote.packageId,
           selectedAddOnIds: quote.selectedAddOns,
@@ -100,7 +108,7 @@ const QuotePrint = () => {
     };
 
     fetchNarrative();
-  }, [quote]);
+  }, [quote, vertical]);
 
   useEffect(() => {
     if (!quote) return;
@@ -111,7 +119,8 @@ const QuotePrint = () => {
     if (!shouldAutoPrint) return undefined;
 
     const timer = setTimeout(() => {
-      document.title = `ElderCare Quote From KAEC ${date} for ${name}`;
+      const quoteLabel = vertical === 'home-security' ? 'Home Security' : 'ElderCare';
+      document.title = `${quoteLabel} Quote From KAEC ${date} for ${name}`;
       window.print();
       document.title = originalTitle;
     }, 600);
@@ -120,7 +129,7 @@ const QuotePrint = () => {
       clearTimeout(timer);
       document.title = originalTitle;
     };
-  }, [location.state, quote]);
+  }, [location.state, quote, vertical]);
 
   if (!quote) {
     return (
@@ -261,7 +270,7 @@ const QuotePrint = () => {
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <TierBadge tierId={selectedPackage.id} />
+                <TierBadge tierId={selectedPackage.id} vertical={vertical} />
                 <div style={{ fontWeight: 700 }}>{selectedPackage.name}</div>
               </div>
               <div style={{ color: '#444' }}>{selectedPackage.summary}</div>
@@ -272,13 +281,19 @@ const QuotePrint = () => {
                 <strong>Add-ons:</strong>{' '}
                 {selectedAddOns.length === 0
                   ? 'None'
-                  : selectedAddOns.map((addOn) => `${addOn.label} (${formatCurrency(addOn.price)})`).join(', ')}
+                  : selectedAddOns
+                      .map((addOn) => `${addOn.label} (${addOn.priceLabel ?? formatCurrency(addOn.price)})`)
+                      .join(', ')}
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ color: '#444' }}>One-time total</div>
               <div style={{ fontSize: '2rem', fontWeight: 800 }}>{formatCurrency(quote.pricing.total)}</div>
-              <div style={{ color: '#444' }}>No monthly subscriptions required.</div>
+              <div style={{ color: '#444' }}>
+                {vertical === 'home-security'
+                  ? 'Add-ons are quoted separately; no subscriptions sold.'
+                  : 'No monthly subscriptions required.'}
+              </div>
             </div>
           </div>
         </section>
@@ -292,54 +307,58 @@ const QuotePrint = () => {
           </ul>
         </section>
 
-        <section className="print-section" style={{ marginTop: '1.25rem' }}>
-          <h2>Hardware (deterministic)</h2>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {hardwareGroups.map((group) => (
-              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
-                <strong>{group.heading}</strong>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item.name}>
-                            {item.name} — qty {item.quantity}
-                            {item.note ? ` (${item.note})` : ''}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <section className="print-section" style={{ marginTop: '1.25rem' }}>
+            <h2>Hardware (deterministic)</h2>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {hardwareGroups.map((group) => (
+                <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                  <strong>{group.heading}</strong>
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item.name}>
+                              {item.name} — qty {item.quantity}
+                              {item.note ? ` (${item.note})` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <section className="print-section" style={{ marginTop: '1.25rem' }}>
-          <h2>Feature coverage</h2>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {featureGroups.map((group) => (
-              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
-                <strong>{group.heading}</strong>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <section className="print-section" style={{ marginTop: '1.25rem' }}>
+            <h2>Feature coverage</h2>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {featureGroups.map((group) => (
+                <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                  <strong>{group.heading}</strong>
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Assumptions & exclusions</h2>

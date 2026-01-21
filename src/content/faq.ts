@@ -22,7 +22,7 @@ export const faqs: FAQ[] = [
   {
     question: 'What happens if the internet goes out?',
     answer:
-      'Offline Dignity Rule: lighting cues, sensor triggers, and local alerts continue on-site as long as equipment has power. Remote access may pause, but local safety behaviors remain.',
+      'Offline Dignity Rule: lighting cues, sensor triggers, and local alerts continue on-site as long as equipment has power. Remote access may pause, but local safety behaviors remain on the LAN.',
   },
   {
     question: 'Which app do I use?',
@@ -52,11 +52,11 @@ export const faqs: FAQ[] = [
   {
     question: 'Do you support wireless-first devices?',
     answer:
-      'Yes. Our Elder Tech tiers prioritize wireless-first sensors and controllers that stay local and integrate with Home Assistant.',
+      'Yes. Home Security and Elder Tech tiers prioritize wireless-first sensors and controllers that stay local and integrate with Home Assistant.',
   },
   {
     question: 'How do you secure remote access?',
     answer:
-      'We enable secure remote access options that keep Home Assistant as the control plane. Details depend on property networking and caregiver needs.',
+      'Remote access is optional and requires internet. We configure secure options that keep Home Assistant as the control plane, while local control stays available on the LAN.',
   },
 ];

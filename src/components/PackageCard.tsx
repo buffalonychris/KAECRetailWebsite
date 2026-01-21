@@ -2,18 +2,21 @@ import { Link } from 'react-router-dom';
 import type { PackageTier } from '../content/packages';
 import TierBadge from './TierBadge';
 import { PackageTierId } from '../data/pricing';
+import { VerticalKey } from '../lib/verticals';
 
 type Props = {
   pkg: PackageTier;
+  vertical?: VerticalKey;
 };
 
-const PackageCard = ({ pkg }: Props) => {
+const PackageCard = ({ pkg, vertical }: Props) => {
   const tierId = pkg.id.toUpperCase() as PackageTierId;
+  const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   return (
     <div className="card" aria-label={`${pkg.name} package`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} />
+          <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} vertical={vertical} />
           <h3 style={{ margin: 0, color: '#fff7e6' }}>{pkg.name}</h3>
           <div style={{ color: 'var(--kaec-muted)' }}>{pkg.tagline}</div>
         </div>
@@ -34,7 +37,11 @@ const PackageCard = ({ pkg }: Props) => {
         ))}
       </ul>
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-        <Link className="btn btn-primary" to={`/packages/${pkg.id}`} aria-label={`View ${pkg.name} details`}>
+        <Link
+          className="btn btn-primary"
+          to={`/packages/${pkg.id}${verticalQuery}`}
+          aria-label={`View ${pkg.name} details`}
+        >
           View details
         </Link>
         <Link className="btn btn-secondary" to="/contact" aria-label="Talk to us about this package">

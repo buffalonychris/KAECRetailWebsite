@@ -1,9 +1,10 @@
-import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import {
   RecommendationInput,
   RecommendationResult,
 } from './recommendationRules';
 import { siteConfig } from '../config/site';
+import { VerticalKey } from './verticals';
 
 type QuoteContext = {
   packageId: PackageTierId;
@@ -26,6 +27,7 @@ export type NarrativeInput = {
   recommendation?: RecommendationResult;
   responses?: RecommendationInput;
   quoteContext?: QuoteContext;
+  vertical?: VerticalKey;
 };
 
 export type NarrativeSection = {
@@ -38,7 +40,8 @@ export type NarrativeResponse = {
   disclaimer: string[];
 };
 
-const buildAddOnNotes = (selectedAddOnIds: string[]) => {
+const buildAddOnNotes = (selectedAddOnIds: string[], vertical: VerticalKey) => {
+  const addOns = getAddOns(vertical);
   if (selectedAddOnIds.length === 0) {
     return 'No add-ons selected; the base package covers the essentials and can be expanded later without penalties.';
   }
@@ -55,19 +58,20 @@ const buildAddOnNotes = (selectedAddOnIds: string[]) => {
 };
 
 const buildWhyFitsSection = (input: NarrativeInput): NarrativeSection => {
+  const vertical = input.vertical ?? 'elder-tech';
   if (input.source === 'recommendation' && input.recommendation) {
-    const addOnNotes = buildAddOnNotes(input.recommendation.suggestedAddOns);
+    const addOnNotes = buildAddOnNotes(input.recommendation.suggestedAddOns, vertical);
     return {
       title: 'Why this fits',
       body: `${input.recommendation.rationale} ${addOnNotes}`.trim(),
     };
   }
 
-  const pkg = packagePricing.find((item) => item.id === input.quoteContext?.packageId);
+  const pkg = getPackagePricing(vertical).find((item) => item.id === input.quoteContext?.packageId);
   const packageLine = pkg
     ? `${pkg.name} was selected for its ${pkg.summary.toLowerCase()}.`
     : 'Package selection centers on reliable coverage without extra apps.';
-  const addOnLine = buildAddOnNotes(input.quoteContext?.selectedAddOnIds ?? []);
+  const addOnLine = buildAddOnNotes(input.quoteContext?.selectedAddOnIds ?? [], vertical);
   return {
     title: 'Why this fits',
     body: `${packageLine} ${addOnLine}`.trim(),
@@ -104,7 +108,8 @@ const buildAssumptionsSection = (input: NarrativeInput): NarrativeSection => {
     'Existing Wi-Fi and power are available at device locations; structural changes are excluded.',
     'Local-first design keeps automations running during internet outages when power is available.',
   ];
-  const addOnLine = buildAddOnNotes(input.quoteContext?.selectedAddOnIds ?? []);
+  const vertical = input.vertical ?? 'elder-tech';
+  const addOnLine = buildAddOnNotes(input.quoteContext?.selectedAddOnIds ?? [], vertical);
   return {
     title: 'Assumptions & exclusions',
     body: `${cityLine}${scopeLines.join(' ')} ${addOnLine}`.trim(),
@@ -160,4 +165,3 @@ export const generateNarrative = async (input: NarrativeInput): Promise<Narrativ
   if (apiNarrative) return apiNarrative;
   return buildDeterministicNarrative(input);
 };
-

@@ -1,7 +1,8 @@
-import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from './agreement';
 import { buildQuoteReference } from './quoteUtils';
+import { VerticalKey } from './verticals';
 
 export type ResumePayload = {
   quoteRef: string;
@@ -9,6 +10,7 @@ export type ResumePayload = {
   quoteHash: string;
   tierKey: PackageTierId | string;
   addOnKeys: string[];
+  vertical?: VerticalKey;
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -37,6 +39,7 @@ const buildResumePayload = (quote: QuoteContext): ResumePayload => {
     quoteHash: quote.quoteHash ?? '',
     tierKey: quote.packageId,
     addOnKeys: quote.selectedAddOns.slice().sort(),
+    vertical: quote.vertical ?? 'elder-tech',
     customerName: quote.customerName,
     customerEmail: contact.includes('@') ? contact : undefined,
     customerPhone: !contact.includes('@') && contact ? contact : undefined,
@@ -91,7 +94,9 @@ export const deriveGeneratedAtFromReference = (quoteRef: string) => {
 };
 
 export const buildQuoteFromResumePayload = (payload: ResumePayload): QuoteContext => {
-  const packageInfo = packagePricing.find((pkg) => pkg.id === payload.tierKey) ?? packagePricing[0];
+  const vertical = payload.vertical ?? 'elder-tech';
+  const packageInfo = getPackagePricing(vertical).find((pkg) => pkg.id === payload.tierKey) ?? getPackagePricing(vertical)[0];
+  const addOns = getAddOns(vertical);
   const addOnKeys = addOns
     .filter((item) => payload.addOnKeys.includes(item.id))
     .map((item) => item.id)
@@ -103,6 +108,7 @@ export const buildQuoteFromResumePayload = (payload: ResumePayload): QuoteContex
   const contact = payload.customerEmail ?? payload.customerPhone ?? '';
 
   return {
+    vertical,
     customerName: payload.customerName,
     contact,
     city: payload.city,

@@ -90,11 +90,14 @@ const AgreementPrint = () => {
     };
   }, [quote, acceptance]);
 
+  const vertical = quote?.vertical ?? 'elder-tech';
+
   useEffect(() => {
     if (!quote) return;
     const fetchNarrative = async () => {
       const result = await generateNarrative({
         source: 'quote',
+        vertical,
         quoteContext: {
           packageId: quote.packageId,
           selectedAddOnIds: quote.selectedAddOns,
@@ -111,16 +114,16 @@ const AgreementPrint = () => {
     };
 
     fetchNarrative();
-  }, [quote]);
+  }, [quote, vertical]);
 
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
   const hardwareGroups = useMemo(
-    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
   const featureGroups = useMemo(
-    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
 
   useEffect(() => {
@@ -321,7 +324,7 @@ const AgreementPrint = () => {
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <TierBadge tierId={quote.packageId} />
+                <TierBadge tierId={quote.packageId} vertical={vertical} />
                 <div style={{ fontWeight: 700 }}>{agreement.quoteSummary.packageName}</div>
               </div>
               <div style={{ color: '#444' }}>Add-ons: {agreement.quoteSummary.addOnLabels.join(', ')}</div>
@@ -329,59 +332,67 @@ const AgreementPrint = () => {
             <div style={{ textAlign: 'right' }}>
               <div style={{ color: '#444' }}>One-time total</div>
               <div style={{ fontSize: '2rem', fontWeight: 800 }}>{formatCurrency(quote.pricing.total)}</div>
-              <div style={{ color: '#444' }}>No monthly subscriptions required.</div>
+              <div style={{ color: '#444' }}>
+                {vertical === 'home-security'
+                  ? 'Add-ons are quoted separately; no subscriptions sold.'
+                  : 'No monthly subscriptions required.'}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="print-section" style={{ marginTop: '1.25rem' }}>
-          <h2>Hardware list</h2>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {hardwareGroups.map((group) => (
-              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
-                <strong>{group.heading}</strong>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item.name}>
-                            {item.name} — qty {item.quantity}
-                            {item.note ? ` (${item.note})` : ''}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <section className="print-section" style={{ marginTop: '1.25rem' }}>
+            <h2>Hardware list</h2>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {hardwareGroups.map((group) => (
+                <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                  <strong>{group.heading}</strong>
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item.name}>
+                              {item.name} — qty {item.quantity}
+                              {item.note ? ` (${item.note})` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <section className="print-section" style={{ marginTop: '1.25rem' }}>
-          <h2>Features</h2>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {featureGroups.map((group) => (
-              <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
-                <strong>{group.heading}</strong>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="print-list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <section className="print-section" style={{ marginTop: '1.25rem' }}>
+            <h2>Features</h2>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {featureGroups.map((group) => (
+                <div key={group.heading} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem', display: 'grid', gap: '0.5rem' }}>
+                  <strong>{group.heading}</strong>
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} style={{ border: '1px solid #e0e0e0', borderRadius: '12px', padding: '0.85rem' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="print-list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Scope & Deliverables</h2>

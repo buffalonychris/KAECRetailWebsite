@@ -1,6 +1,10 @@
+import { useSearchParams } from 'react-router-dom';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
+import { resolveVertical } from '../lib/verticals';
 
 const Reliability = () => {
+  const [searchParams] = useSearchParams();
+  const vertical = resolveVertical(searchParams.get('vertical'));
   return (
     <div className="container section">
       <h1 style={{ marginTop: 0 }}>How it Works</h1>
@@ -32,6 +36,17 @@ const Reliability = () => {
             requirements so you know how long core features can ride through outages.
           </p>
         </div>
+        {vertical === 'home-security' && (
+          <div className="card">
+            <h3 style={{ marginTop: 0, color: '#fff7e6' }}>UniFi Protect + Home Assistant</h3>
+            <p>
+              UniFi Protect handles local recording and LAN streaming. Home Assistant surfaces live
+              views, triggers automations, and keeps the primary dashboard consistent. Advanced
+              camera management and detailed playback can remain in the UniFi Protect app when
+              needed.
+            </p>
+          </div>
+        )}
       </div>
       <div className="card" style={{ marginTop: '1.5rem' }}>
         <h3 style={{ marginTop: 0, color: '#fff7e6' }}>What stays available during outages?</h3>
@@ -48,11 +63,23 @@ const Reliability = () => {
             <span />
             <span>Sensor alerts configured for local-only notifications.</span>
           </li>
+          {vertical === 'home-security' && (
+            <li>
+              <span />
+              <span>Local siren and arming status inside Home Assistant.</span>
+            </li>
+          )}
         </ul>
         <p style={{ marginTop: '1rem' }}>
           Remote notifications and viewing may require available internet or cellular backup, but core
           on-site controls remain centralized in Home Assistant.
         </p>
+        {vertical === 'home-security' && (
+          <p style={{ marginTop: '0.5rem' }}>
+            Assumption: the local-first Home Assistant core runs on your LAN even if the internet is
+            down. Remote access requires an active connection.
+          </p>
+        )}
       </div>
     </div>
   );

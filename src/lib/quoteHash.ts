@@ -1,4 +1,4 @@
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { siteConfig } from '../config/site';
@@ -58,31 +58,40 @@ const toHex = (buffer: ArrayBuffer) => {
 };
 
 export const computeQuoteHash = async (quote: QuoteContext): Promise<string> => {
-  const packageInfo = packagePricing.find((pkg) => pkg.id === quote.packageId) ?? packagePricing[0];
+  const vertical = quote.vertical ?? 'elder-tech';
+  const packageInfo = getPackagePricing(vertical).find((pkg) => pkg.id === quote.packageId) ?? getPackagePricing(vertical)[0];
+  const addOns = getAddOns(vertical);
   const addOnKeys = quote.selectedAddOns.slice().sort();
   const addOnLabels = addOns
     .filter((addOn) => addOnKeys.includes(addOn.id))
     .map((addOn) => addOn.label);
-  const hardware = getHardwareList(quote.packageId, quote.selectedAddOns)
-    .map((category) => ({
-      title: category.title,
-      items: category.items
-        .map((item) => ({ name: item.name, quantity: item.quantity, note: item.note }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-    .sort((a, b) => a.title.localeCompare(b.title));
+  const hardware =
+    vertical === 'home-security'
+      ? []
+      : getHardwareList(quote.packageId, quote.selectedAddOns)
+          .map((category) => ({
+            title: category.title,
+            items: category.items
+              .map((item) => ({ name: item.name, quantity: item.quantity, note: item.note }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          }))
+          .sort((a, b) => a.title.localeCompare(b.title));
 
-  const features = getFeatureCategories(quote.packageId, quote.selectedAddOns)
-    .map((category) => ({
-      title: category.title,
-      items: category.items.slice().sort(),
-    }))
-    .sort((a, b) => a.title.localeCompare(b.title));
+  const features =
+    vertical === 'home-security'
+      ? []
+      : getFeatureCategories(quote.packageId, quote.selectedAddOns)
+          .map((category) => ({
+            title: category.title,
+            items: category.items.slice().sort(),
+          }))
+          .sort((a, b) => a.title.localeCompare(b.title));
 
   const payload = {
     reference: buildQuoteReference(quote),
     quoteDocVersion: quote.quoteDocVersion ?? siteConfig.quoteDocVersion,
     quoteHashAlgorithm: quote.quoteHashAlgorithm ?? siteConfig.quoteHashAlgorithm,
+    vertical,
     package: { id: quote.packageId, name: packageInfo.name },
     selectedAddOns: addOnKeys,
     addOnLabels,

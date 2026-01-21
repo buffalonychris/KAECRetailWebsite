@@ -1,4 +1,4 @@
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from './agreement';
 import { buildQuoteReference } from './quoteUtils';
@@ -36,8 +36,9 @@ const toHex = (buffer: ArrayBuffer) => {
 };
 
 const defaultContext = (): QuoteContext => {
-  const defaultPackage = packagePricing[0];
+  const defaultPackage = getPackagePricing('elder-tech')[0];
   return {
+    vertical: 'elder-tech',
     packageId: defaultPackage.id,
     selectedAddOns: [],
     pricing: {
@@ -55,7 +56,9 @@ export const computeAgreementHash = async (
   acceptance?: Pick<AcceptanceRecord, 'accepted' | 'fullName' | 'acceptanceDate'>
 ): Promise<string> => {
   const context = quote ?? defaultContext();
-  const packageInfo = packagePricing.find((pkg) => pkg.id === context.packageId) ?? packagePricing[0];
+  const vertical = context.vertical ?? 'elder-tech';
+  const packageInfo = getPackagePricing(vertical).find((pkg) => pkg.id === context.packageId) ?? getPackagePricing(vertical)[0];
+  const addOns = getAddOns(vertical);
   const addOnKeys = context.selectedAddOns.slice().sort();
   const addOnDetails = addOnKeys
     .map((id) => addOns.find((item) => item.id === id))
@@ -81,6 +84,7 @@ export const computeAgreementHash = async (
       priorQuoteHash: context.priorQuoteHash ?? '',
       hashAlgorithm: context.quoteHashAlgorithm ?? siteConfig.quoteHashAlgorithm,
     },
+    vertical,
     package: { id: context.packageId, name: packageInfo.name, price: context.pricing.packagePrice },
     addOns: addOnDetails,
     totals: {
