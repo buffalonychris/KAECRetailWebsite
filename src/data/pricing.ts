@@ -13,9 +13,10 @@ export type AddOn = {
   tier: 'Low' | 'Mid' | 'High';
   price: number;
   description: string;
+  priceLabel?: string;
 };
 
-export const packagePricing: PackagePricing[] = [
+export const elderTechPackagePricing: PackagePricing[] = [
   {
     id: 'A1',
     name: 'Elder Tech Basic',
@@ -36,10 +37,40 @@ export const packagePricing: PackagePricing[] = [
   },
 ];
 
-const tierLabels: Record<PackageTierId, string> = {
-  A1: 'Elder Tech Basic',
-  A2: 'Elder Tech Plus',
-  A3: 'Elder Tech Pro',
+export const homeSecurityPackagePricing: PackagePricing[] = [
+  {
+    id: 'A1',
+    name: 'Bronze',
+    basePrice: 1699,
+    summary: 'Starter Security & Awareness.',
+  },
+  {
+    id: 'A2',
+    name: 'Silver',
+    basePrice: 2599,
+    summary: 'Whole-Home Coverage + Outdoor Camera Reliability.',
+  },
+  {
+    id: 'A3',
+    name: 'Gold',
+    basePrice: 3499,
+    summary: 'Local Recording + Highest Coverage.',
+  },
+];
+
+export const packagePricing: PackagePricing[] = elderTechPackagePricing;
+
+const tierLabelsByVertical: Record<'elder-tech' | 'home-security', Record<PackageTierId, string>> = {
+  'elder-tech': {
+    A1: 'Elder Tech Basic',
+    A2: 'Elder Tech Plus',
+    A3: 'Elder Tech Pro',
+  },
+  'home-security': {
+    A1: 'Bronze',
+    A2: 'Silver',
+    A3: 'Gold',
+  },
 };
 
 const tierBadgeClass: Record<PackageTierId, string> = {
@@ -48,11 +79,9 @@ const tierBadgeClass: Record<PackageTierId, string> = {
   A3: 'tier-badge-gold',
 };
 
-export const getTierLabel = (tier: PackageTierId): string => tierLabels[tier];
-
 export const getTierBadgeClass = (tier: PackageTierId): string => tierBadgeClass[tier];
 
-export const addOns: AddOn[] = [
+export const elderTechAddOns: AddOn[] = [
   {
     id: 'night-pathway-lighting',
     label: 'Night pathway lighting kit',
@@ -134,3 +163,69 @@ export const addOns: AddOn[] = [
       'Surveillance-adjacent: cameras remain off by default and require explicit consent; privacy-first alternatives include sensor-only check-ins and door/motion cues. Install complexity: Heavy.',
   },
 ];
+
+export const homeSecurityAddOns: AddOn[] = [
+  {
+    id: 'wall-tablet-dashboard',
+    label: 'Wall-mounted tablet/dashboard',
+    tier: 'Low',
+    price: 0,
+    priceLabel: 'Quoted separately',
+    description: 'Dedicated in-home dashboard for arming, camera views, and status tiles.',
+  },
+  {
+    id: 'additional-sensors',
+    label: 'Additional entry/motion/leak sensors',
+    tier: 'Low',
+    price: 0,
+    priceLabel: 'Quoted separately',
+    description: 'Extend coverage to more doors, rooms, and water-risk zones.',
+  },
+  {
+    id: 'additional-cameras',
+    label: 'Additional cameras (per angle)',
+    tier: 'Mid',
+    price: 0,
+    priceLabel: 'Quoted separately',
+    description: 'Add indoor or outdoor views per coverage angle.',
+  },
+  {
+    id: 'ups-backup',
+    label: 'UPS battery backup for hub/NVR/network gear',
+    tier: 'Mid',
+    price: 0,
+    priceLabel: 'Quoted separately',
+    description: 'Keeps the hub, network, and local recording online during power interruptions.',
+  },
+  {
+    id: 'water-shutoff',
+    label: 'Water shutoff valve (plumbing required)',
+    tier: 'High',
+    price: 0,
+    priceLabel: 'Quoted separately',
+    description: 'Adds preferred local control for automatic water shutoff; requires plumbing coordination.',
+  },
+];
+
+export const addOns: AddOn[] = elderTechAddOns;
+
+export const packagePricingByVertical = {
+  'elder-tech': elderTechPackagePricing,
+  'home-security': homeSecurityPackagePricing,
+};
+
+export const addOnsByVertical = {
+  'elder-tech': elderTechAddOns,
+  'home-security': homeSecurityAddOns,
+};
+
+export const getPackagePricing = (vertical: 'elder-tech' | 'home-security' = 'elder-tech') =>
+  packagePricingByVertical[vertical];
+
+export const getAddOns = (vertical: 'elder-tech' | 'home-security' = 'elder-tech') =>
+  addOnsByVertical[vertical];
+
+export const getTierLabel = (
+  tier: PackageTierId,
+  vertical: 'elder-tech' | 'home-security' = 'elder-tech'
+): string => tierLabelsByVertical[vertical][tier];

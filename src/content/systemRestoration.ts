@@ -99,9 +99,9 @@ export const verticalContent: Record<string, VerticalContent> = {
       'Verification summary and handoff record',
     ],
     packageHighlights: [
-      'Security Basic: entry awareness, on-site lighting deterrence, and local siren response.',
-      'Security Plus: expanded perimeter visibility with environmental hazard alerts.',
-      'Security Pro: redundancy, system health assurance, and pro-grade local recording.',
+      'Bronze: Starter Security & Awareness with entry sensors, local siren response, and leak awareness.',
+      'Silver: Whole-Home Coverage + Outdoor Camera Reliability with doorbell awareness and expanded sensors.',
+      'Gold: Local Recording + Highest Coverage with dedicated on-site recording and expanded camera angles.',
       'No subscriptions sold; optional third-party monitoring can be added directly by the homeowner.',
       'Home Assistant remains the single dashboard for arming, sensors, lighting, and alerts.',
     ],

@@ -13,6 +13,7 @@ export type PackageTier = {
   agreements: string[];
   differentiators: string[];
   idealFor: string;
+  typicalCoverage?: string;
 };
 
 export const packages: PackageTier[] = [
@@ -176,3 +177,157 @@ export const packages: PackageTier[] = [
     ],
   },
 ];
+
+export const homeSecurityPackages: PackageTier[] = [
+  {
+    id: 'a1',
+    name: 'Bronze',
+    badge: 'Bronze tier',
+    price: '$1,699 one-time',
+    tagline: 'Starter Security & Awareness',
+    oneLiner:
+      'Entry awareness, local siren response, and leak alerts that stay usable even when the internet drops.',
+    bio:
+      'Bronze is a wireless-first, privacy-first starter package designed for homeowners who want local control and a clear deterrence response without subscriptions.',
+    idealFor:
+      'Smaller homes or households that want ownership, clear entry awareness, and dependable local response cues.',
+    typicalCoverage: '2–3 entry points, key interior zones, and kitchen/bath leak coverage.',
+    includes: [
+      'Home Assistant hub configured as the primary security dashboard',
+      'Wireless entry sensors for primary doors/windows',
+      'Motion sensors for main circulation zones',
+      'Leak sensors for kitchen and bath awareness',
+      'Local siren + lighting deterrence scenes',
+      'Arming modes, alerts, and homeowner training',
+    ],
+    billOfMaterials: [],
+    automationFlows: [
+      'Arm/disarm locally in Home Assistant with clear modes and status tiles.',
+      'Entry + motion triggers local lights and siren response while logging events on-site.',
+      'Leak alerts trigger local notifications and dashboard banners for rapid response.',
+      'Remote access is optional and requires internet; local control remains functional on LAN.',
+    ],
+    journeyFlow: [
+      'Security consult intake and property profile',
+      'Coverage design + Bronze tier confirmation',
+      'Quote and agreement confirmation',
+      'Deposit capture and installation scheduling',
+      'Install, verification, and homeowner handoff',
+    ],
+    agreements: [
+      'Security coverage agreement',
+      'Privacy-first, local data handling acknowledgement',
+      'Offline Dignity Rule confirmation (local control stays available)',
+      'Deposit and scheduling gate confirmation',
+      'Verification summary and handoff record',
+    ],
+    differentiators: [
+      'Home Assistant remains the single dashboard for arming, sensors, lighting, and alerts.',
+      'No subscriptions sold; optional third-party monitoring is contracted directly by the homeowner.',
+      'Offline Dignity Rule: core security behaviors keep running locally without cloud dependency.',
+    ],
+  },
+  {
+    id: 'a2',
+    name: 'Silver',
+    badge: 'Silver tier',
+    price: '$2,599 one-time',
+    tagline: 'Whole-Home Coverage + Outdoor Camera Reliability',
+    oneLiner:
+      'Adds doorbell awareness and outdoor PoE camera reliability with expanded sensors across the home.',
+    bio:
+      'Silver expands coverage to include doorbell visibility and reliable outdoor camera angles while keeping Home Assistant as the single control plane.',
+    idealFor:
+      'Homes that want consistent perimeter visibility plus indoor verification without moving to cloud-only tools.',
+    typicalCoverage: 'All primary entries, main-floor motion zones, doorbell, and 1–2 outdoor camera angles.',
+    includes: [
+      'Everything in Bronze',
+      'Doorbell camera coverage surfaced in Home Assistant',
+      'Outdoor PoE camera coverage for key entry angles (local LAN streaming)',
+      'Indoor camera for entry verification (privacy-first placement)',
+      'Expanded entry and motion sensor coverage',
+    ],
+    billOfMaterials: [],
+    automationFlows: [
+      'Doorbell events surface instantly in Home Assistant with local chimes and lighting cues.',
+      'Outdoor PoE cameras stay reliable on LAN; Home Assistant can trigger recordings or alerts.',
+      'Intrusion, motion, and leak workflows stay local; remote access is optional with internet.',
+      'Optional third-party monitoring can be added directly by the homeowner if desired.',
+    ],
+    journeyFlow: [
+      'Security consult intake and property profile',
+      'Coverage design + Silver tier confirmation',
+      'Quote and agreement confirmation',
+      'Deposit capture and installation scheduling',
+      'Install, verification, and homeowner handoff',
+    ],
+    agreements: [
+      'Security coverage agreement',
+      'Privacy-first, local data handling acknowledgement',
+      'Offline Dignity Rule confirmation (local control stays available)',
+      'Deposit and scheduling gate confirmation',
+      'Verification summary and handoff record',
+    ],
+    differentiators: [
+      'Home Assistant remains the primary dashboard for arming, sensors, and camera tiles.',
+      'Outdoor cameras emphasize local LAN reliability; cloud access is optional.',
+      'No subscriptions sold; the homeowner contracts optional monitoring directly.',
+    ],
+  },
+  {
+    id: 'a3',
+    name: 'Gold',
+    badge: 'Gold tier',
+    price: '$3,499 one-time',
+    tagline: 'Local Recording + Highest Coverage',
+    oneLiner:
+      'Adds dedicated local recording and the widest camera + sensor coverage for the most resilient footprint.',
+    bio:
+      'Gold delivers the highest coverage with dedicated local recording, multiple outdoor angles, and expanded interior awareness—without giving up local control.',
+    idealFor:
+      'Larger homes or households that want dedicated local recording and the most comprehensive coverage.',
+    typicalCoverage:
+      'All entry points, expanded interior motion zones, multiple outdoor angles, and dedicated local recording.',
+    includes: [
+      'Everything in Silver',
+      'Dedicated local recording (UniFi Protect NVR) with on-site storage',
+      'Additional outdoor camera angles for full perimeter visibility',
+      'Expanded interior camera coverage for verification',
+      'Expanded entry, motion, and leak sensor coverage',
+    ],
+    billOfMaterials: [],
+    automationFlows: [
+      'Dedicated local recording captures events on-site with LAN playback.',
+      'Home Assistant remains the core dashboard for arming, alerts, and automations.',
+      'Camera events can trigger local lights, siren, and on-site notifications without cloud reliance.',
+      'Remote viewing requires internet; local controls remain functional over LAN.',
+    ],
+    journeyFlow: [
+      'Security consult intake and property profile',
+      'Coverage design + Gold tier confirmation',
+      'Quote and agreement confirmation',
+      'Deposit capture and installation scheduling',
+      'Install, verification, and homeowner handoff',
+    ],
+    agreements: [
+      'Security coverage agreement',
+      'Privacy-first, local data handling acknowledgement',
+      'Offline Dignity Rule confirmation (local control stays available)',
+      'Deposit and scheduling gate confirmation',
+      'Verification summary and handoff record',
+    ],
+    differentiators: [
+      'Dedicated local recording stays on-premises with homeowner ownership.',
+      'No subscriptions sold; optional third-party monitoring is homeowner-contracted.',
+      'Home Assistant remains the single dashboard, even with advanced camera coverage.',
+    ],
+  },
+];
+
+export const packagesByVertical = {
+  'elder-tech': packages,
+  'home-security': homeSecurityPackages,
+};
+
+export const getPackages = (vertical: 'elder-tech' | 'home-security' = 'elder-tech') =>
+  packagesByVertical[vertical];

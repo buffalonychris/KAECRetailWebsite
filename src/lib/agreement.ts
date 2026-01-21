@@ -1,11 +1,13 @@
-import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import { getHardwareList } from '../data/hardware';
 import { getFeatureCategories } from '../data/features';
 import { siteConfig } from '../config/site';
 import { buildQuoteReference } from './quoteUtils';
 import { brandSite } from './brand';
+import { VerticalKey } from './verticals';
 
 export type QuoteContext = {
+  vertical?: VerticalKey;
   customerName?: string;
   contact?: string;
   issuedAt?: string;
@@ -160,12 +162,13 @@ const buildScope = (context: QuoteContext) => {
 };
 
 const defaultQuote = (): QuoteContext => ({
+  vertical: 'elder-tech',
   packageId: 'A2',
   selectedAddOns: [],
   pricing: {
-    packagePrice: packagePricing.find((pkg) => pkg.id === 'A2')?.basePrice ?? 0,
+    packagePrice: getPackagePricing('elder-tech').find((pkg) => pkg.id === 'A2')?.basePrice ?? 0,
     addOnTotal: 0,
-    total: packagePricing.find((pkg) => pkg.id === 'A2')?.basePrice ?? 0,
+    total: getPackagePricing('elder-tech').find((pkg) => pkg.id === 'A2')?.basePrice ?? 0,
   },
   quoteDocVersion: siteConfig.quoteDocVersion,
   quoteHashAlgorithm: siteConfig.quoteHashAlgorithm,
@@ -173,16 +176,26 @@ const defaultQuote = (): QuoteContext => ({
 
 export const generateAgreement = (input?: QuoteContext): AgreementContent => {
   const context = input ?? defaultQuote();
-  const packageInfo = packagePricing.find((pkg) => pkg.id === context.packageId) ?? packagePricing[0];
+  const vertical = context.vertical ?? 'elder-tech';
+  const packageInfo = getPackagePricing(vertical).find((pkg) => pkg.id === context.packageId) ?? getPackagePricing(vertical)[0];
+  const addOns = getAddOns(vertical);
   const addOnLabels = addOns
     .filter((addOn) => context.selectedAddOns.includes(addOn.id))
     .map((addOn) => addOn.label);
-  const hardwareSummary = getHardwareList(context.packageId, context.selectedAddOns)
-    .sort((a, b) => a.title.localeCompare(b.title))
-    .map((category) => `${category.title}: ${category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}`);
-  const featureSummary = getFeatureCategories(context.packageId, context.selectedAddOns)
-    .sort((a, b) => a.title.localeCompare(b.title))
-    .map((category) => `${category.title}: ${category.items.slice().sort().join('; ')}`);
+  const hardwareSummary =
+    vertical === 'home-security'
+      ? []
+      : getHardwareList(context.packageId, context.selectedAddOns)
+          .sort((a, b) => a.title.localeCompare(b.title))
+          .map((category) =>
+            `${category.title}: ${category.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}`,
+          );
+  const featureSummary =
+    vertical === 'home-security'
+      ? []
+      : getFeatureCategories(context.packageId, context.selectedAddOns)
+          .sort((a, b) => a.title.localeCompare(b.title))
+          .map((category) => `${category.title}: ${category.items.slice().sort().join('; ')}`);
   const quoteVersion = context.quoteDocVersion ?? siteConfig.quoteDocVersion;
   const agreementVersion = siteConfig.agreementDocVersion;
   const quoteReference = buildQuoteReference({ ...context, generatedAt: context.generatedAt });

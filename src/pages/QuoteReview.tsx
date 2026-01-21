@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import FlowGuidePanel from '../components/FlowGuidePanel';
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
@@ -101,23 +101,24 @@ const QuoteReview = () => {
     }
   }, [token]);
 
+  const vertical = quote?.vertical ?? 'elder-tech';
   const selectedPackage = useMemo(
-    () => packagePricing.find((pkg) => pkg.id === quote?.packageId) ?? packagePricing[0],
-    [quote]
+    () => getPackagePricing(vertical).find((pkg) => pkg.id === quote?.packageId) ?? getPackagePricing(vertical)[0],
+    [quote, vertical]
   );
 
   const selectedAddOns = useMemo(
-    () => addOns.filter((addOn) => quote?.selectedAddOns.includes(addOn.id)),
-    [quote]
+    () => getAddOns(vertical).filter((addOn) => quote?.selectedAddOns.includes(addOn.id)),
+    [quote, vertical]
   );
 
   const hardwareGroups = useMemo(
-    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
   const featureGroups = useMemo(
-    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
 
   const resumeUrl = useMemo(() => (quote ? buildResumeUrl(quote, 'agreement') : ''), [quote]);
@@ -165,6 +166,7 @@ const QuoteReview = () => {
     setNarrativeLoading(true);
     const result = await generateNarrative({
       source: 'quote',
+      vertical,
       quoteContext: {
         packageId: quote.packageId,
         selectedAddOnIds: quote.selectedAddOns,
@@ -346,7 +348,7 @@ const QuoteReview = () => {
           <div style={{ display: 'grid', gap: '0.35rem' }}>
             <div className="badge">Quote summary</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <TierBadge tierId={selectedPackage.id} />
+              <TierBadge tierId={selectedPackage.id} vertical={vertical} />
               <h2 style={{ margin: 0 }}>{selectedPackage.name}</h2>
             </div>
             <p style={{ margin: 0, color: '#c8c0aa' }}>Ref: {reference} • Date: {quoteDate}</p>
@@ -357,7 +359,11 @@ const QuoteReview = () => {
             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--kaec-gold)' }}>
               {formatCurrency(quote.pricing.total)}
             </div>
-            <small style={{ color: '#c8c0aa' }}>No monthly subscriptions required.</small>
+            <small style={{ color: '#c8c0aa' }}>
+              {vertical === 'home-security'
+                ? 'Add-ons are quoted separately; no subscriptions sold.'
+                : 'No monthly subscriptions required.'}
+            </small>
           </div>
         </div>
 
@@ -403,14 +409,17 @@ const QuoteReview = () => {
                 <span>No add-ons selected.</span>
               </li>
             )}
-            {selectedAddOns.map((addOn) => (
-              <li key={addOn.id}>
-                <span />
-                <span>
-                  {addOn.label} ({formatCurrency(addOn.price)})
-                </span>
-              </li>
-            ))}
+            {selectedAddOns.map((addOn) => {
+              const priceDisplay = addOn.priceLabel ?? formatCurrency(addOn.price);
+              return (
+                <li key={addOn.id}>
+                  <span />
+                  <span>
+                    {addOn.label} ({priceDisplay})
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -594,67 +603,71 @@ const QuoteReview = () => {
           </div>
         </AccordionSection>
 
-        <AccordionSection title="Hardware included" description="Device counts grouped by location." defaultOpen={false}>
-          <div className="card" style={{ display: 'grid', gap: '1rem' }}>
-            <div className="badge">Hardware</div>
-            {hardwareGroups.map((group) => (
-              <div
-                key={group.heading}
-                className="card"
-                style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
-              >
-                <strong>{group.heading}</strong>
-                <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item.name}>
-                            <span />
-                            <span>
-                              {item.name} — qty {item.quantity}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <AccordionSection title="Hardware included" description="Device counts grouped by location." defaultOpen={false}>
+            <div className="card" style={{ display: 'grid', gap: '1rem' }}>
+              <div className="badge">Hardware</div>
+              {hardwareGroups.map((group) => (
+                <div
+                  key={group.heading}
+                  className="card"
+                  style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+                >
+                  <strong>{group.heading}</strong>
+                  <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item.name}>
+                              <span />
+                              <span>
+                                {item.name} — qty {item.quantity}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </AccordionSection>
+              ))}
+            </div>
+          </AccordionSection>
+        )}
 
-        <AccordionSection title="Feature coverage" description="Feature categories included in this selection." defaultOpen={false}>
-          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-            <div className="badge">Feature coverage</div>
-            {featureGroups.map((group) => (
-              <div
-                key={group.heading}
-                className="card"
-                style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
-              >
-                <strong>{group.heading}</strong>
-                <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
-                  {group.categories.map((category) => (
-                    <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                      <strong>{category.title}</strong>
-                      <ul className="list" style={{ marginTop: '0.35rem' }}>
-                        {category.items.map((item) => (
-                          <li key={item}>
-                            <span />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+        {vertical !== 'home-security' && (
+          <AccordionSection title="Feature coverage" description="Feature categories included in this selection." defaultOpen={false}>
+            <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+              <div className="badge">Feature coverage</div>
+              {featureGroups.map((group) => (
+                <div
+                  key={group.heading}
+                  className="card"
+                  style={{ border: '1px solid rgba(245, 192, 66, 0.35)', display: 'grid', gap: '0.5rem' }}
+                >
+                  <strong>{group.heading}</strong>
+                  <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
+                    {group.categories.map((category) => (
+                      <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                        <strong>{category.title}</strong>
+                        <ul className="list" style={{ marginTop: '0.35rem' }}>
+                          {category.items.map((item) => (
+                            <li key={item}>
+                              <span />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </AccordionSection>
+              ))}
+            </div>
+          </AccordionSection>
+        )}
 
         <AccordionSection title="Narrative / Explanation" description="Advisory explanation and disclaimers." defaultOpen={false}>
           <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>

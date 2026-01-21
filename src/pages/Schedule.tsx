@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { loadRetailFlow, markFlowStep, ScheduleRequest, updateRetailFlow } from '../lib/retailFlow';
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
@@ -37,9 +37,10 @@ const Schedule = () => {
   const acceptance = flowState.agreementAcceptance;
   const depositStatus = flowState.payment?.depositStatus ?? 'pending';
 
+  const vertical = quoteContext?.vertical ?? 'elder-tech';
   const selectedPackage = useMemo(
-    () => packagePricing.find((pkg) => pkg.id === quoteContext?.packageId) ?? packagePricing[0],
-    [quoteContext?.packageId]
+    () => getPackagePricing(vertical).find((pkg) => pkg.id === quoteContext?.packageId) ?? getPackagePricing(vertical)[0],
+    [quoteContext?.packageId, vertical]
   );
 
   const selectedAddOns = useMemo(() => {
@@ -48,8 +49,8 @@ const Schedule = () => {
   }, [quoteContext]);
 
   const addOnLabels = useMemo(
-    () => addOns.filter((addOn) => selectedAddOns.includes(addOn.id)).map((addOn) => addOn.label),
-    [selectedAddOns]
+    () => getAddOns(vertical).filter((addOn) => selectedAddOns.includes(addOn.id)).map((addOn) => addOn.label),
+    [selectedAddOns, vertical]
   );
 
   const schedulingAllowed = Boolean(quoteContext && acceptance?.accepted && depositStatus === 'completed');
@@ -451,7 +452,7 @@ const Schedule = () => {
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Package</strong>
           <small style={{ color: '#c8c0aa' }}>
-            <TierBadge tierId={selectedPackage.id} /> {selectedPackage.name} — {formatCurrency(selectedPackage.basePrice)}
+            <TierBadge tierId={selectedPackage.id} vertical={vertical} /> {selectedPackage.name} — {formatCurrency(selectedPackage.basePrice)}
           </small>
           <small style={{ color: '#c8c0aa' }}>
             Add-ons: {addOnLabels.length ? addOnLabels.join(', ') : 'None selected'}

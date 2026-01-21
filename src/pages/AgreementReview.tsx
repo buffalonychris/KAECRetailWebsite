@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
-import { addOns, packagePricing } from '../data/pricing';
+import { getAddOns, getPackagePricing } from '../data/pricing';
 import { getHardwareGroups } from '../data/hardware';
 import { getFeatureGroups } from '../data/features';
 import { generateAgreement, QuoteContext } from '../lib/agreement';
@@ -168,21 +168,22 @@ const AgreementReview = () => {
   }, [acceptedRecord, email, quote, token]);
 
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
+  const vertical = quote?.vertical ?? 'elder-tech';
   const hardwareGroups = useMemo(
-    () => (quote ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
   const featureGroups = useMemo(
-    () => (quote ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
-    [quote]
+    () => (quote && vertical !== 'home-security' ? getFeatureGroups(quote.packageId, quote.selectedAddOns) : []),
+    [quote, vertical]
   );
   const selectedPackage = useMemo(() => {
-    const match = quote ? packagePricing.find((pkg) => pkg.id === quote.packageId) : null;
-    return match ?? packagePricing[0];
-  }, [quote]);
+    const match = quote ? getPackagePricing(vertical).find((pkg) => pkg.id === quote.packageId) : null;
+    return match ?? getPackagePricing(vertical)[0];
+  }, [quote, vertical]);
   const selectedAddOns = useMemo(
-    () => (quote ? addOns.filter((item) => quote.selectedAddOns.includes(item.id)) : []),
-    [quote]
+    () => (quote ? getAddOns(vertical).filter((item) => quote.selectedAddOns.includes(item.id)) : []),
+    [quote, vertical]
   );
   const agreementReference = quote ? buildAgreementReference(quote) : '';
   const quoteHashDisplay = shortenMiddle(quote?.quoteHash || '');
@@ -501,7 +502,7 @@ const AgreementReview = () => {
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}
                 >
                   <div className="badge">Agreement summary</div>
-                  <TierBadge tierId={selectedPackage.id} labelOverride={selectedPackage.name} />
+                  <TierBadge tierId={selectedPackage.id} labelOverride={selectedPackage.name} vertical={vertical} />
                 </div>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                   <strong style={{ fontSize: '1.1rem' }}>One-time total: {formatCurrency(estimatedTotal)}</strong>
@@ -542,7 +543,7 @@ const AgreementReview = () => {
                         <li key={addOn.id}>
                           <span />
                           <span>
-                            {addOn.label} ({formatCurrency(addOn.price)})
+                            {addOn.label} ({addOn.priceLabel ?? formatCurrency(addOn.price)})
                           </span>
                         </li>
                       ))}
@@ -916,54 +917,58 @@ const AgreementReview = () => {
               </ul>
             </div>
           </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Hardware included</strong>
-            <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.35rem' }}>
-              {hardwareGroups.map((group) => (
-                <div key={group.heading} style={{ display: 'grid', gap: '0.5rem' }}>
-                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
-                  <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                    {group.categories.map((category) => (
-                      <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                        <strong>{category.title}</strong>
-                        <ul className="list" style={{ marginTop: '0.35rem' }}>
-                          {category.items.map((item) => (
-                            <li key={item.name}>
-                              <span />
-                              <span>
-                                {item.name}: x{item.quantity}
-                                {item.note ? ` (${item.note})` : ''}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+          {vertical !== 'home-security' && (
+            <>
+              <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                <strong>Hardware included</strong>
+                <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.35rem' }}>
+                  {hardwareGroups.map((group) => (
+                    <div key={group.heading} style={{ display: 'grid', gap: '0.5rem' }}>
+                      <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                      <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                        {group.categories.map((category) => (
+                          <div key={category.title} className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                            <strong>{category.title}</strong>
+                            <ul className="list" style={{ marginTop: '0.35rem' }}>
+                              {category.items.map((item) => (
+                                <li key={item.name}>
+                                  <span />
+                                  <span>
+                                    {item.name}: x{item.quantity}
+                                    {item.note ? ` (${item.note})` : ''}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Feature summary</strong>
-            <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
-              {featureGroups.map((group) => (
-                <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
-                  <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
-                  <ul className="list" style={{ marginTop: 0 }}>
-                    {group.categories.map((category) => (
-                      <li key={category.title}>
-                        <span />
-                        <span>
-                          {category.title}: {category.items.join(', ')}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+              </div>
+              <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                <strong>Feature summary</strong>
+                <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.35rem' }}>
+                  {featureGroups.map((group) => (
+                    <div key={group.heading} style={{ display: 'grid', gap: '0.25rem' }}>
+                      <small style={{ color: '#c8c0aa' }}>{group.heading}</small>
+                      <ul className="list" style={{ marginTop: 0 }}>
+                        {group.categories.map((category) => (
+                          <li key={category.title}>
+                            <span />
+                            <span>
+                              {category.title}: {category.items.join(', ')}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
-import { addOns, packagePricing, PackageTierId } from '../data/pricing';
+import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import { brandSite } from '../lib/brand';
 import TierBadge from '../components/TierBadge';
 import { QuoteContext } from '../lib/agreement';
@@ -9,12 +9,16 @@ import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlo
 import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
+import { resolveVertical } from '../lib/verticals';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
 const Quote = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const vertical = resolveVertical(searchParams.get('vertical'));
+  const packagePricing = getPackagePricing(vertical);
+  const addOns = getAddOns(vertical);
   const [customerName, setCustomerName] = useState('');
   const [contact, setContact] = useState('');
   const [city, setCity] = useState('');
@@ -35,11 +39,11 @@ const Quote = () => {
     if (!tierParam) return;
     const match = packagePricing.find((pkg) => pkg.id === tierParam);
     if (match) setPackageId(match.id);
-  }, [searchParams]);
+  }, [packagePricing, searchParams]);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],
-    [packageId]
+    [packageId, packagePricing]
   );
 
   const toggleAddOn = (id: string) => {
@@ -52,7 +56,7 @@ const Quote = () => {
     return addOns
       .filter((addOn) => selectedAddOns.includes(addOn.id))
       .reduce((sum, addOn) => sum + addOn.price, 0);
-  }, [selectedAddOns]);
+  }, [addOns, selectedAddOns]);
 
   const addOnGroups = useMemo(() => {
     return addOns.reduce<Record<'Low' | 'Mid' | 'High', typeof addOns>>(
@@ -62,7 +66,7 @@ const Quote = () => {
       },
       { Low: [], Mid: [], High: [] },
     );
-  }, []);
+  }, [addOns]);
 
   const total = selectedPackage.basePrice + addOnTotal;
 
@@ -70,6 +74,7 @@ const Quote = () => {
     const existing = loadRetailFlow();
     const previousQuote = existing.quote;
     const payload: QuoteContext = {
+      vertical,
       customerName,
       contact,
       issuedAt: previousQuote?.issuedAt,
@@ -122,6 +127,7 @@ const Quote = () => {
     setNarrativeLoading(true);
     const result = await generateNarrative({
       source: 'quote',
+      vertical,
       quoteContext: {
         packageId,
         selectedAddOnIds: selectedAddOns,
@@ -254,8 +260,9 @@ const Quote = () => {
           <div>
             <div className="badge">Package selection</div>
             <p style={{ margin: '0.35rem 0', color: '#c8c0aa' }}>
-              Deterministic pricing pulls from the table below. Pick a tier and any add-ons to tune
-              the scope.
+              {vertical === 'home-security'
+                ? 'Deterministic pricing uses the Home Security table below. Add-ons are quoted separately and do not require subscriptions.'
+                : 'Deterministic pricing pulls from the table below. Pick a tier and any add-ons to tune the scope.'}
             </p>
           </div>
           <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -272,12 +279,12 @@ const Quote = () => {
                     textAlign: 'left',
                     borderRadius: '14px',
                     border: isSelected ? '1px solid var(--kaec-gold)' : '1px solid rgba(245, 192, 66, 0.25)',
-                    background: isSelected ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
-                    padding: '1rem',
-                    cursor: 'pointer',
-                    color: '#fff7e6',
-                  }}
-                >
+                      background: isSelected ? 'rgba(245, 192, 66, 0.12)' : 'rgba(255,255,255,0.02)',
+                      padding: '1rem',
+                      cursor: 'pointer',
+                      color: '#fff7e6',
+                    }}
+                  >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <strong>{pkg.name}</strong>
                     <span style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(pkg.basePrice)}</span>
@@ -291,7 +298,7 @@ const Quote = () => {
         </div>
 
         <div id="addons" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div className="badge">Optional add-ons</div>
+          <div className="badge">Optional Add-Ons {vertical === 'home-security' ? '(Quoted Separately)' : ''}</div>
           <h2 style={{ margin: 0, color: '#fff7e6' }}>Add-ons</h2>
           {(['Low', 'Mid', 'High'] as const).map((tier) => (
             <div key={tier} style={{ display: 'grid', gap: '0.75rem' }}>
@@ -306,6 +313,7 @@ const Quote = () => {
               <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                 {addOnGroups[tier].map((addOn) => {
                   const checked = selectedAddOns.includes(addOn.id);
+                  const priceDisplay = addOn.priceLabel ?? formatCurrency(addOn.price);
                   return (
                     <label
                       key={addOn.id}
@@ -328,7 +336,7 @@ const Quote = () => {
                         />
                         <div>
                           <strong>{addOn.label}</strong>
-                          <div style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{formatCurrency(addOn.price)}</div>
+                          <div style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>{priceDisplay}</div>
                         </div>
                       </div>
                       <small style={{ color: '#c8c0aa' }}>{addOn.description}</small>
@@ -338,6 +346,11 @@ const Quote = () => {
               </div>
             </div>
           ))}
+          {vertical === 'home-security' && (
+            <small style={{ color: '#c8c0aa' }}>
+              Home Security add-ons are quoted separately and do not change the deterministic package price.
+            </small>
+          )}
         </div>
       </div>
 
@@ -351,7 +364,7 @@ const Quote = () => {
           <div>
             <div className="badge">Quote summary</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <TierBadge tierId={selectedPackage.id} />
+              <TierBadge tierId={selectedPackage.id} vertical={vertical} />
               <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
             </div>
             <p style={{ margin: 0, color: '#c8c0aa' }}>{selectedPackage.summary}</p>
@@ -359,7 +372,11 @@ const Quote = () => {
           <div style={{ textAlign: 'right' }}>
             <div style={{ color: '#c8c0aa', fontSize: '0.95rem' }}>One-time estimate</div>
             <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--kaec-gold)' }}>{formatCurrency(total)}</div>
-            <small style={{ color: '#c8c0aa' }}>No monthly subscriptions required.</small>
+            <small style={{ color: '#c8c0aa' }}>
+              {vertical === 'home-security'
+                ? 'Add-ons are quoted separately; no subscriptions sold.'
+                : 'No monthly subscriptions required.'}
+            </small>
           </div>
         </div>
 
@@ -403,7 +420,7 @@ const Quote = () => {
             <li>
               <span />
               <span>
-                Package: <TierBadge tierId={selectedPackage.id} className="inline-badge" /> {selectedPackage.name} ({formatCurrency(selectedPackage.basePrice)})
+                Package: <TierBadge tierId={selectedPackage.id} className="inline-badge" vertical={vertical} /> {selectedPackage.name} ({formatCurrency(selectedPackage.basePrice)})
               </span>
             </li>
             {selectedAddOns.length === 0 && (
@@ -415,11 +432,12 @@ const Quote = () => {
             {selectedAddOns.map((id) => {
               const addOn = addOns.find((item) => item.id === id);
               if (!addOn) return null;
+              const addOnPriceLabel = addOn.priceLabel ?? formatCurrency(addOn.price);
               return (
                 <li key={addOn.id}>
                   <span />
                   <span>
-                    {addOn.label} ({formatCurrency(addOn.price)})
+                    {addOn.label} ({addOnPriceLabel})
                   </span>
                 </li>
               );
@@ -442,6 +460,12 @@ const Quote = () => {
               <span />
               <span>Local-first design keeps automations running during internet outages when power is available.</span>
             </li>
+            {vertical === 'home-security' && (
+              <li>
+                <span />
+                <span>Remote access requires internet; local control stays available on LAN.</span>
+              </li>
+            )}
           </ul>
         </div>
 
@@ -460,6 +484,12 @@ const Quote = () => {
               <span />
               <span>Cellular data plans are only added if explicitly selected and available in-market.</span>
             </li>
+            {vertical === 'home-security' && (
+              <li>
+                <span />
+                <span>Optional third-party monitoring is contracted directly by the homeowner.</span>
+              </li>
+            )}
           </ul>
         </div>
 
