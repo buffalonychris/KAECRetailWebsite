@@ -1,5 +1,13 @@
 import PortalTile from '../components/PortalTile';
 import SectionHeader from '../components/operator/SectionHeader';
+import businessAutomationImage from '../assets/tiles/business-automation.png';
+import businessSecurityImage from '../assets/tiles/business-security.png';
+import elderTechImage from '../assets/tiles/elder-tech.png';
+import haloImage from '../assets/tiles/halo.png';
+import homeAutomationImage from '../assets/tiles/home-automation.png';
+import homeSecurityImage from '../assets/tiles/home-security.png';
+import mancaveImage from '../assets/tiles/mancave.png';
+import operatorImage from '../assets/tiles/saas-operator.png';
 
 const activePortals = [
   {
@@ -9,6 +17,8 @@ const activePortals = [
     description: 'Local-first protection workflows with sensors, deterrence, and resilience.',
     ctaLabel: 'Enter Home Security',
     to: '/home-security',
+    image: homeSecurityImage,
+    imageAlt: 'Home security control surfaces and monitoring visuals',
   },
   {
     title: 'Home Automation',
@@ -17,6 +27,8 @@ const activePortals = [
     description: 'Deterministic routines and scenes for comfort, efficiency, and reliability.',
     ctaLabel: 'Enter Home Automation',
     to: '/home-automation',
+    image: homeAutomationImage,
+    imageAlt: 'Smart home automation interface and connected devices',
   },
   {
     title: 'Home Elder Tech Systems',
@@ -25,6 +37,8 @@ const activePortals = [
     description: 'Dignity-first in-home safety and awareness for aging-in-place.',
     ctaLabel: 'Enter Elder Tech Systems',
     to: '/elder-care-tech',
+    image: elderTechImage,
+    imageAlt: 'Elder tech safety monitoring and wellbeing systems',
   },
   {
     title: 'HALO PERS',
@@ -33,6 +47,8 @@ const activePortals = [
     description: 'Personal safety signaling with clear response pathways.',
     ctaLabel: 'Enter HALO PERS',
     to: '/halo',
+    image: haloImage,
+    imageAlt: 'Halo personal emergency response system visuals',
   },
   {
     title: 'SaaS Operator Platform',
@@ -41,6 +57,8 @@ const activePortals = [
     description: 'Operator-grade scheduling, follow-up, and escalation workflows.',
     ctaLabel: 'Enter Operator Platform',
     to: '/operator',
+    image: operatorImage,
+    imageAlt: 'Operator platform dashboards and workflow controls',
   },
 ];
 
@@ -51,6 +69,8 @@ const futurePortals = [
     category: 'LIFESTYLE',
     description: 'Specialized entertainment and environment control workflows.',
     ctaLabel: 'Coming Soon',
+    image: mancaveImage,
+    imageAlt: 'Man cave lifestyle systems showcase',
   },
   {
     title: 'Business Security',
@@ -58,6 +78,8 @@ const futurePortals = [
     category: 'SECURITY',
     description: 'Commercial-grade protection and incident response workflows.',
     ctaLabel: 'Coming Soon',
+    image: businessSecurityImage,
+    imageAlt: 'Business security monitoring with enterprise control systems',
   },
   {
     title: 'Business Automation',
@@ -65,6 +87,8 @@ const futurePortals = [
     category: 'AUTOMATION',
     description: 'Operational routines and deterministic facility orchestration.',
     ctaLabel: 'Coming Soon',
+    image: businessAutomationImage,
+    imageAlt: 'Business automation systems and facility controls',
   },
   {
     title: 'Property Management',

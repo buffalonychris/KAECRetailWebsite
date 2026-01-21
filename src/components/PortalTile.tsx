@@ -10,13 +10,27 @@ type PortalTileProps = {
   description: string;
   ctaLabel: string;
   to?: string;
+  image?: string;
+  imageAlt?: string;
 };
 
-const PortalTile = ({ title, status, category, description, ctaLabel, to }: PortalTileProps) => {
+const PortalTile = ({ title, status, category, description, ctaLabel, to, image, imageAlt }: PortalTileProps) => {
   const isDisabled = status === 'COMING SOON' || !to;
 
   return (
-    <SpaceFrame className={`portal-card${isDisabled ? ' portal-card-disabled' : ''}`} as="article">
+    <SpaceFrame
+      className={`portal-card ${isDisabled ? 'portal-card-disabled' : 'portal-card-active'}`}
+      as="article"
+    >
+      <div className="portal-media">
+        {image ? (
+          <img className="portal-media-image" src={image} alt={imageAlt ?? title} loading="lazy" />
+        ) : (
+          <div className="portal-media-placeholder" aria-hidden="true">
+            <span>Asset Pending</span>
+          </div>
+        )}
+      </div>
       <div className="portal-chip-row">
         <Pill className={`portal-chip portal-chip-status ${isDisabled ? 'portal-chip-muted' : 'portal-chip-active'}`}>
           {status}
