@@ -59,83 +59,86 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [location.pathname, location.search]);
 
   const businessesActive = businessLinks.some((item) => location.pathname.startsWith(item.path));
+  const hideNav = location.pathname === '/';
 
   return (
     <div>
       <Seo />
-      <header className="hide-when-print">
-        <div className="container nav">
-          <NavLink to="/" className="brand" aria-label={`${brandSite} home`}>
-            <div className="brand-mark" aria-hidden="true">
-              RE
-            </div>
-            <div>
-              <div className="brand-name">{brandSite}</div>
-              <small className="brand-tagline">Business portals for connected care</small>
-            </div>
-          </NavLink>
-          <div className="nav-center">
-            <details className="dropdown">
-              <summary className={`dropdown-trigger${businessesActive ? ' active' : ''}`}>
-                Businesses
-                <Pill className="pill-inline">5</Pill>
-              </summary>
-              <div className="dropdown-menu dropdown-menu-wide">
-                <BusinessMenu items={businessLinks} />
+      {!hideNav && (
+        <header className="hide-when-print">
+          <div className="container nav">
+            <NavLink to="/" className="brand" aria-label={`${brandSite} home`}>
+              <div className="brand-mark" aria-hidden="true">
+                RE
               </div>
-            </details>
-          </div>
-          <div className="nav-actions">
-            <button
-              className="nav-toggle"
-              aria-expanded={mobileOpen}
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              onClick={() => setMobileOpen((prev) => !prev)}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-            <nav className="nav-links" aria-label="Secondary navigation">
-              {secondaryLinks.map((item) => (
-                <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-            <NavLink className="btn btn-primary nav-cta" to="/demo">
-              See a Live Demo
+              <div>
+                <div className="brand-name">{brandSite}</div>
+                <small className="brand-tagline">Business portals for connected care</small>
+              </div>
             </NavLink>
-          </div>
-        </div>
-        {mobileOpen && (
-          <div
-            className="mobile-menu"
-            role="dialog"
-            aria-label="Mobile navigation"
-            onClick={handleOverlayClick}
-          >
-            <div className="mobile-menu-inner">
-              <div className="mobile-links" role="menu">
-                <details>
-                  <summary>Businesses</summary>
-                  <div className="mobile-dropdown">
-                    <BusinessMenu items={businessLinks} />
-                  </div>
-                </details>
+            <div className="nav-center">
+              <details className="dropdown">
+                <summary className={`dropdown-trigger${businessesActive ? ' active' : ''}`}>
+                  Businesses
+                  <Pill className="pill-inline">5</Pill>
+                </summary>
+                <div className="dropdown-menu dropdown-menu-wide">
+                  <BusinessMenu items={businessLinks} />
+                </div>
+              </details>
+            </div>
+            <div className="nav-actions">
+              <button
+                className="nav-toggle"
+                aria-expanded={mobileOpen}
+                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                onClick={() => setMobileOpen((prev) => !prev)}
+              >
+                <span />
+                <span />
+                <span />
+              </button>
+              <nav className="nav-links" aria-label="Secondary navigation">
                 {secondaryLinks.map((item) => (
-                  <NavLink key={item.path} to={item.path} role="menuitem">
+                  <NavLink key={item.path} to={item.path} className={({ isActive }) => (isActive ? 'active' : undefined)}>
                     {item.label}
                   </NavLink>
                 ))}
-                <NavLink className="btn btn-primary" to="/demo">
-                  See a Live Demo
-                </NavLink>
-              </div>
+              </nav>
+              <NavLink className="btn btn-primary nav-cta" to="/demo">
+                See a Live Demo
+              </NavLink>
             </div>
           </div>
-        )}
-      </header>
+          {mobileOpen && (
+            <div
+              className="mobile-menu"
+              role="dialog"
+              aria-label="Mobile navigation"
+              onClick={handleOverlayClick}
+            >
+              <div className="mobile-menu-inner">
+                <div className="mobile-links" role="menu">
+                  <details>
+                    <summary>Businesses</summary>
+                    <div className="mobile-dropdown">
+                      <BusinessMenu items={businessLinks} />
+                    </div>
+                  </details>
+                  {secondaryLinks.map((item) => (
+                    <NavLink key={item.path} to={item.path} role="menuitem">
+                      {item.label}
+                    </NavLink>
+                  ))}
+                  <NavLink className="btn btn-primary" to="/demo">
+                    See a Live Demo
+                  </NavLink>
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
+      )}
       <div className="sitewide-notice" role="status">
         No pricing, guarantees, or promises are given by the assistant.
       </div>
