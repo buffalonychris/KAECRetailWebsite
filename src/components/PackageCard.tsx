@@ -12,11 +12,16 @@ type Props = {
 const PackageCard = ({ pkg, vertical }: Props) => {
   const tierId = pkg.id.toUpperCase() as PackageTierId;
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
+  const isMostPopular = vertical === 'home-security' && pkg.id === 'a2';
+  const contactLink = vertical === 'home-security' ? `/contact?vertical=home-security&package=${pkg.id}` : '/contact';
   return (
-    <div className="card" aria-label={`${pkg.name} package`}>
+    <div className={`card ${isMostPopular ? 'card-popular' : ''}`} aria-label={`${pkg.name} package`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} vertical={vertical} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+            <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} vertical={vertical} />
+            {isMostPopular && <span className="popular-pill">Most popular</span>}
+          </div>
           <h3 style={{ margin: 0, color: '#fff7e6' }}>{pkg.name}</h3>
           <div style={{ color: 'var(--kaec-muted)' }}>{pkg.tagline}</div>
         </div>
@@ -46,7 +51,7 @@ const PackageCard = ({ pkg, vertical }: Props) => {
         </Link>
         <Link
           className="btn btn-secondary"
-          to={`/contact${verticalQuery}`}
+          to={contactLink}
           aria-label="Talk to us about this package"
         >
           Talk to us

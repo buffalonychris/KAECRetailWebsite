@@ -270,6 +270,29 @@ header.hide-when-print {
   box-shadow: 0 24px 60px rgba(4, 10, 20, 0.65);
 }
 
+.card.card-popular {
+  border-color: rgba(148, 163, 184, 0.6);
+  box-shadow: 0 18px 45px rgba(148, 163, 184, 0.18);
+}
+
+.card.card-popular::after {
+  border-color: rgba(226, 232, 240, 0.18);
+}
+
+.popular-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #f8fafc;
+  background: rgba(100, 116, 139, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
 .pdp-shell {
   display: grid;
   gap: 1.75rem;
@@ -294,6 +317,13 @@ header.hide-when-print {
   align-items: flex-start;
   gap: 1.5rem;
   flex-wrap: wrap;
+}
+
+.pdp-hero-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .pdp-title {
@@ -329,6 +359,37 @@ header.hide-when-print {
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.pdp-jump-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--kaec-muted);
+}
+
+.pdp-jump-links span {
+  font-weight: 600;
+  color: #cbd5f5;
+}
+
+.pdp-jump-links a {
+  color: #9bd4ff;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(155, 212, 255, 0.4);
+  padding-bottom: 0.1rem;
+}
+
+.pdp-jump-links a:hover,
+.pdp-jump-links a:focus {
+  color: #e6f7ff;
+  border-bottom-color: rgba(155, 212, 255, 0.8);
+}
+
+.pdp-section {
+  scroll-margin-top: 120px;
 }
 
 .pdp-hero-actions .btn-link {
@@ -393,6 +454,17 @@ header.hide-when-print {
 .pdp-what-card h3 {
   margin-top: 0;
   color: #fff7e6;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.pdp-what-card .list {
+  line-height: 1.6;
+}
+
+.pdp-what-card .list li span:last-child {
+  color: #f1ead9;
+  font-weight: 500;
 }
 
 .pdp-microcopy {
