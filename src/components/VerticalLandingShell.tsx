@@ -14,6 +14,7 @@ import ChartCard from './operator/ChartCard';
 import SectionHeader from './operator/SectionHeader';
 import SpaceFrame from './operator/SpaceFrame';
 import AccordionSection from './AccordionSection';
+import CampaignHero from './CampaignHero';
 
 export type VerticalLandingShellProps = {
   verticalName: string;
@@ -67,6 +68,8 @@ export type VerticalLandingShellProps = {
     heading: string;
     body: string;
   };
+  heroTrustItems?: string[];
+  heroSideContent?: ReactNode;
   journeySteps?: string[];
   agreementHighlights?: string[];
   packageHighlights?: string[];
@@ -99,6 +102,8 @@ const VerticalLandingShell = ({
   reliabilityLink,
   supportLink = '/support',
   bottomCTA,
+  heroTrustItems,
+  heroSideContent,
   journeySteps,
   agreementHighlights,
   packageHighlights,
@@ -110,56 +115,81 @@ const VerticalLandingShell = ({
   return (
     <div className="space-shell">
       <div className={containerClasses}>
-        <section
-          className={`vertical-hero${heroMedia ? ' vertical-hero--media' : ''}${
-            heroVariant === 'campaign' ? ' vertical-hero--campaign' : ''
-          }`}
-        >
-          {heroMedia ? (
-            <div className="vertical-hero-media" aria-hidden="true">
-              <picture>
-                {heroMedia.sources?.map((source) => (
-                  <source key={source.type} type={source.type} srcSet={source.srcSet} />
-                ))}
-                <img
-                  src={heroMedia.src}
-                  srcSet={heroMedia.srcSet}
-                  sizes={heroMedia.sizes}
-                  alt={heroMedia.alt}
-                  fetchPriority="high"
-                  loading="eager"
-                />
-              </picture>
-              <div className="vertical-hero-overlay" />
-            </div>
-          ) : null}
-          <div className="vertical-hero-content">
-            <SectionHeader
-              kicker={badgeLabel}
-              title={heroHeadline}
-              subtitle={heroSubhead}
-              actions={
-                <>
-                  <Link className="btn btn-primary" to={primaryCTA.to}>
-                    {primaryCTA.label}
+        {heroVariant === 'campaign' ? (
+          <CampaignHero
+            kicker={badgeLabel}
+            title={heroHeadline}
+            subtitle={heroSubhead}
+            background={heroMedia ? { ...heroMedia, eager: true } : undefined}
+            microBadges={heroBadges}
+            trustItems={heroTrustItems}
+            sideContent={heroSideContent}
+            className="campaign-hero--landing"
+            actions={
+              <>
+                <Link className="btn btn-primary" to={primaryCTA.to}>
+                  {primaryCTA.label}
+                </Link>
+                {secondaryCTA ? (
+                  <Link className="btn btn-secondary" to={secondaryCTA.to}>
+                    {secondaryCTA.label}
                   </Link>
-                  {secondaryCTA ? (
-                    <Link className="btn btn-secondary" to={secondaryCTA.to}>
-                      {secondaryCTA.label}
-                    </Link>
-                  ) : null}
-                </>
-              }
-            />
-            {heroBadges && heroBadges.length > 0 ? (
-              <div className="vertical-hero-badges" aria-label="Key promises">
-                {heroBadges.map((badge) => (
-                  <span key={badge}>{badge}</span>
-                ))}
+                ) : null}
+              </>
+            }
+          />
+        ) : (
+          <section
+            className={`vertical-hero${heroMedia ? ' vertical-hero--media' : ''}${
+              heroVariant === 'campaign' ? ' vertical-hero--campaign' : ''
+            }`}
+          >
+            {heroMedia ? (
+              <div className="vertical-hero-media" aria-hidden="true">
+                <picture>
+                  {heroMedia.sources?.map((source) => (
+                    <source key={source.type} type={source.type} srcSet={source.srcSet} />
+                  ))}
+                  <img
+                    src={heroMedia.src}
+                    srcSet={heroMedia.srcSet}
+                    sizes={heroMedia.sizes}
+                    alt={heroMedia.alt}
+                    fetchPriority="high"
+                    loading="eager"
+                  />
+                </picture>
+                <div className="vertical-hero-overlay" />
               </div>
             ) : null}
-          </div>
-        </section>
+            <div className="vertical-hero-content">
+              <SectionHeader
+                kicker={badgeLabel}
+                title={heroHeadline}
+                subtitle={heroSubhead}
+                actions={
+                  <>
+                    <Link className="btn btn-primary" to={primaryCTA.to}>
+                      {primaryCTA.label}
+                    </Link>
+                    {secondaryCTA ? (
+                      <Link className="btn btn-secondary" to={secondaryCTA.to}>
+                        {secondaryCTA.label}
+                      </Link>
+                    ) : null}
+                  </>
+                }
+              />
+              {heroBadges && heroBadges.length > 0 ? (
+                <div className="vertical-hero-badges" aria-label="Key promises">
+                  {heroBadges.map((badge) => (
+                    <span key={badge}>{badge}</span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </section>
+        )}
 
         {!isExplainer && journeyLinks && journeyLinks.length > 0 && (
           <SpaceFrame>
