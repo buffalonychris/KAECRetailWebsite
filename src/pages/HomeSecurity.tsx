@@ -1,7 +1,14 @@
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import { useLayoutConfig } from '../components/LayoutConfig';
 import { verticalContent } from '../content/systemRestoration';
 
 const HomeSecurity = () => {
+  useLayoutConfig({
+    layoutVariant: 'funnel',
+    showBreadcrumbs: true,
+    breadcrumb: [{ label: 'Home Security', href: '/home-security' }],
+  });
+
   const content = verticalContent.homeSecurity;
   const keyCapabilities = [
     'Who it is for: households that want ownership, privacy-first control, and wireless-first deployment.',

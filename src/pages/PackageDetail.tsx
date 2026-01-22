@@ -7,6 +7,7 @@ import { siteConfig } from '../config/site';
 import { resolveVertical } from '../lib/verticals';
 import AccordionSection from '../components/AccordionSection';
 import { HOME_SECURITY_PDP_CONTENT } from '../content/homeSecurityPdp';
+import { useLayoutConfig } from '../components/LayoutConfig';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -23,6 +24,19 @@ const PackageDetail = () => {
     [isHomeSecurityPdp, pkg]
   );
   const quoteLink = pkg ? `/quote?vertical=home-security&package=${pkg.id}` : '/quote?vertical=home-security';
+  const tierLabel = pkg?.name ?? 'Package';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurityPdp ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurityPdp,
+    breadcrumb: isHomeSecurityPdp
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Packages', href: '/packages?vertical=home-security' },
+          { label: tierLabel },
+        ]
+      : [],
+  });
 
   useEffect(() => {
     if (!isHomeSecurityPdp) return;
