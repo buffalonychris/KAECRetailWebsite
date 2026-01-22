@@ -35,9 +35,10 @@ const Quote = () => {
   }, []);
 
   useEffect(() => {
-    const tierParam = searchParams.get('tier');
+    const tierParam = searchParams.get('tier') ?? searchParams.get('package');
     if (!tierParam) return;
-    const match = packagePricing.find((pkg) => pkg.id === tierParam);
+    const normalizedTier = tierParam.toUpperCase();
+    const match = packagePricing.find((pkg) => pkg.id === normalizedTier);
     if (match) setPackageId(match.id);
   }, [packagePricing, searchParams]);
 
