@@ -279,6 +279,37 @@ header.hide-when-print {
   border-color: rgba(226, 232, 240, 0.18);
 }
 
+.package-card {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.package-card-media {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(120, 203, 255, 0.35);
+  box-shadow: 0 20px 45px rgba(5, 10, 20, 0.5);
+  background: rgba(8, 14, 24, 0.6);
+}
+
+.package-card-media picture,
+.package-card-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.package-card-media-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(8, 14, 24, 0.5), rgba(8, 14, 24, 0.1)),
+    radial-gradient(circle at 20% 10%, rgba(56, 189, 248, 0.18), transparent 50%);
+  pointer-events: none;
+}
+
 .popular-pill {
   display: inline-flex;
   align-items: center;
@@ -1294,6 +1325,76 @@ header.hide-when-print {
   gap: 3.25rem;
   position: relative;
   z-index: 1;
+}
+
+.vertical-hero {
+  position: relative;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.vertical-hero--media {
+  padding: clamp(2rem, 4vw, 3.25rem);
+  border-radius: 32px;
+  overflow: hidden;
+  min-height: clamp(320px, 46vw, 520px);
+  align-items: flex-end;
+}
+
+.vertical-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.vertical-hero-media picture,
+.vertical-hero-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.vertical-hero-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 50%, rgba(4, 7, 14, 0.35), transparent 55%),
+    radial-gradient(circle at 20% 10%, rgba(4, 7, 14, 0.7), transparent 55%);
+  pointer-events: none;
+}
+
+.vertical-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(4, 9, 18, 0.92), rgba(4, 9, 18, 0.5) 45%, rgba(4, 9, 18, 0.12)),
+    radial-gradient(circle at 25% 20%, rgba(6, 12, 20, 0.85), transparent 55%);
+  pointer-events: none;
+}
+
+.vertical-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.vertical-hero--media .vertical-hero-content::before {
+  content: '';
+  position: absolute;
+  inset: -2.5rem 35% auto -1.5rem;
+  height: 65%;
+  background: radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.45), transparent 65%);
+  filter: blur(6px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.vertical-hero--media .space-section-header h1 {
+  color: #f8fafc;
+  text-shadow: 0 8px 30px rgba(4, 9, 18, 0.65);
+}
+
+.vertical-hero--media .space-section-header p {
+  color: rgba(226, 232, 240, 0.9);
 }
 
 .hub-hero .space-section-header {

@@ -20,6 +20,16 @@ export type VerticalLandingShellProps = {
   badgeLabel: string;
   heroHeadline: string;
   heroSubhead: string;
+  heroMedia?: {
+    alt: string;
+    src: string;
+    srcSet?: string;
+    sizes?: string;
+    sources?: Array<{
+      type: string;
+      srcSet: string;
+    }>;
+  };
   primaryCTA: {
     label: string;
     to: string;
@@ -72,6 +82,7 @@ const VerticalLandingShell = ({
   badgeLabel,
   heroHeadline,
   heroSubhead,
+  heroMedia,
   primaryCTA,
   secondaryCTA,
   layoutVariant = 'default',
@@ -95,23 +106,45 @@ const VerticalLandingShell = ({
   return (
     <div className="space-shell">
       <div className={containerClasses}>
-        <SectionHeader
-          kicker={badgeLabel}
-          title={heroHeadline}
-          subtitle={heroSubhead}
-          actions={
-            <>
-              <Link className="btn btn-primary" to={primaryCTA.to}>
-                {primaryCTA.label}
-              </Link>
-              {secondaryCTA ? (
-                <Link className="btn btn-secondary" to={secondaryCTA.to}>
-                  {secondaryCTA.label}
-                </Link>
-              ) : null}
-            </>
-          }
-        />
+        <section className={`vertical-hero${heroMedia ? ' vertical-hero--media' : ''}`}>
+          {heroMedia ? (
+            <div className="vertical-hero-media" aria-hidden="true">
+              <picture>
+                {heroMedia.sources?.map((source) => (
+                  <source key={source.type} type={source.type} srcSet={source.srcSet} />
+                ))}
+                <img
+                  src={heroMedia.src}
+                  srcSet={heroMedia.srcSet}
+                  sizes={heroMedia.sizes}
+                  alt={heroMedia.alt}
+                  fetchPriority="high"
+                  loading="eager"
+                />
+              </picture>
+              <div className="vertical-hero-overlay" />
+            </div>
+          ) : null}
+          <div className="vertical-hero-content">
+            <SectionHeader
+              kicker={badgeLabel}
+              title={heroHeadline}
+              subtitle={heroSubhead}
+              actions={
+                <>
+                  <Link className="btn btn-primary" to={primaryCTA.to}>
+                    {primaryCTA.label}
+                  </Link>
+                  {secondaryCTA ? (
+                    <Link className="btn btn-secondary" to={secondaryCTA.to}>
+                      {secondaryCTA.label}
+                    </Link>
+                  ) : null}
+                </>
+              }
+            />
+          </div>
+        </section>
 
         {!isExplainer && journeyLinks && journeyLinks.length > 0 && (
           <SpaceFrame>
