@@ -7,6 +7,7 @@ import { VerticalKey } from '../lib/verticals';
 type Props = {
   pkg: PackageTier;
   vertical?: VerticalKey;
+  imageCaption?: string;
   image?: {
     alt: string;
     src: string;
@@ -19,13 +20,16 @@ type Props = {
   };
 };
 
-const PackageCard = ({ pkg, vertical, image }: Props) => {
+const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
   const tierId = pkg.id.toUpperCase() as PackageTierId;
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   const isMostPopular = vertical === 'home-security' && pkg.id === 'a2';
   const contactLink = vertical === 'home-security' ? `/contact?vertical=home-security&package=${pkg.id}` : '/contact';
   return (
-    <div className={`card package-card ${isMostPopular ? 'card-popular' : ''}`} aria-label={`${pkg.name} package`}>
+    <div
+      className={`card package-card${isMostPopular ? ' card-popular package-card--featured' : ''}`}
+      aria-label={`${pkg.name} package`}
+    >
       {image ? (
         <div className="package-card-media">
           <picture>
@@ -41,6 +45,8 @@ const PackageCard = ({ pkg, vertical, image }: Props) => {
             />
           </picture>
           <div className="package-card-media-overlay" aria-hidden="true" />
+          {imageCaption ? <div className="package-card-caption">{imageCaption}</div> : null}
+          {isMostPopular ? <div className="package-card-ribbon">Most popular</div> : null}
         </div>
       ) : null}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -25,6 +25,8 @@ const HomeSecurity = () => {
       badgeLabel="Local-first"
       heroHeadline="Home security that works even when the internet doesn’t"
       heroSubhead="A wireless home security system you control from one simple dashboard. No required subscriptions. No “cloud-only” lock-in. Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available."
+      heroBadges={['Offline-first', 'No subscriptions sold by us', 'Local control']}
+      heroVariant="campaign"
       heroMedia={{
         alt: 'Modern home entry with discreet security hardware and warm lighting',
         src: '/images/home-security/hero-1024w.png',
