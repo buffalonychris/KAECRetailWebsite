@@ -15,8 +15,13 @@ const Layout = () => {
 
   const isHub = location.pathname === '/';
   const isFunnel = layoutConfig.layoutVariant === 'funnel';
-  const showComparePackages =
-    isFunnel && location.pathname.startsWith('/packages/') && location.search.includes('vertical=home-security');
+  const isHomeSecurityFunnel =
+    isFunnel &&
+    (location.pathname.startsWith('/home-security') || location.search.includes('vertical=home-security'));
+  const brandLink = isHomeSecurityFunnel ? '/home-security' : '/';
+  const supportLink = isHomeSecurityFunnel ? '/support?vertical=home-security' : '/support';
+  const contactLink = isHomeSecurityFunnel ? '/contact?vertical=home-security' : '/contact';
+  const showComparePackages = isHomeSecurityFunnel;
 
   return (
     <LayoutConfigContext.Provider value={{ layoutConfig, setLayoutConfig }}>
@@ -25,14 +30,14 @@ const Layout = () => {
         {isFunnel ? (
           <header className="funnel-header hide-when-print">
             <div className="container funnel-header-inner">
-              <NavLink to="/" className="brand" aria-label={`${brandSite} home`}>
+              <NavLink to={brandLink} className="brand" aria-label={`${brandSite} home`}>
                 <div className="brand-mark" aria-hidden="true">
                   RE
                 </div>
                 <div className="brand-name">{brandSite}</div>
               </NavLink>
               <div className="funnel-header-actions">
-                <NavLink to="/support">Support</NavLink>
+                <NavLink to={supportLink}>Support</NavLink>
                 {showComparePackages && <NavLink to="/packages?vertical=home-security">Compare packages</NavLink>}
               </div>
             </div>
@@ -45,8 +50,8 @@ const Layout = () => {
               <div className="footer-funnel-links">
                 <NavLink to="/privacy">Privacy Policy</NavLink>
                 <NavLink to="/terms">Terms &amp; Conditions</NavLink>
-                <NavLink to="/support">Support</NavLink>
-                <NavLink to="/contact">Contact</NavLink>
+                <NavLink to={supportLink}>Support</NavLink>
+                <NavLink to={contactLink}>Contact</NavLink>
               </div>
               <small className="footer-funnel-meta">
                 © 2025 {brandSite} · {brandLegal}. All Rights Reserved.

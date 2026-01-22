@@ -24,6 +24,7 @@ const PackageDetail = () => {
     [isHomeSecurityPdp, pkg]
   );
   const quoteLink = pkg ? `/quote?vertical=home-security&package=${pkg.id}` : '/quote?vertical=home-security';
+  const contactLink = vertical === 'home-security' ? '/contact?vertical=home-security' : '/contact';
   const tierLabel = pkg?.name ?? 'Package';
 
   useLayoutConfig({
@@ -109,7 +110,7 @@ const PackageDetail = () => {
             </div>
           </div>
           <div className="pdp-hero-actions">
-            <Link className="btn btn-primary" to="/contact">
+            <Link className="btn btn-primary" to={contactLink}>
               Request install
             </Link>
             <Link className="btn btn-secondary" to={quoteLink}>
@@ -220,7 +221,7 @@ const PackageDetail = () => {
         </AccordionSection>
 
         <div className="pdp-bottom-cta">
-          <Link className="btn btn-primary" to="/contact">
+          <Link className="btn btn-primary" to={contactLink}>
             Request install
           </Link>
           <Link className="btn btn-secondary" to={quoteLink}>
@@ -233,7 +234,7 @@ const PackageDetail = () => {
 
         <div className={`pdp-sticky-cta ${showStickyCta ? 'is-visible' : ''}`} aria-hidden={!showStickyCta}>
           <div className="pdp-sticky-inner">
-            <Link className="btn btn-primary" to="/contact">
+            <Link className="btn btn-primary" to={contactLink}>
               Request install
             </Link>
             <Link className="btn btn-secondary" to={quoteLink}>
@@ -364,7 +365,7 @@ const PackageDetail = () => {
           </ul>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-          <Link className="btn btn-primary" to="/contact">
+          <Link className="btn btn-primary" to={contactLink}>
             Ask about this package
           </Link>
           <Link

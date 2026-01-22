@@ -25,8 +25,8 @@ const HomeSecurity = () => {
       badgeLabel="Local-first"
       heroHeadline="Home security that works even when the internet doesn’t"
       heroSubhead="A wireless home security system you control from one simple dashboard. No required subscriptions. No “cloud-only” lock-in. Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available."
-      primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support' }}
-      secondaryCTA={{ label: 'Explore Packages', to: '/home-security/packages?vertical=home-security' }}
+      primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support?vertical=home-security' }}
+      secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
       layoutVariant="explainer"
       containerClassName="hub-container"
       chartData={[
@@ -166,6 +166,7 @@ const HomeSecurity = () => {
         label: 'Explore reliability details →',
         to: '/reliability?vertical=home-security',
       }}
+      supportLink="/support?vertical=home-security"
       bottomCTA={{
         heading: 'Ready to explore Home Security?',
         body: 'Start a quick guided intake and we’ll route you to the right next step.',

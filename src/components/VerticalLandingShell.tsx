@@ -50,6 +50,7 @@ export type VerticalLandingShellProps = {
     label: string;
     to: string;
   };
+  supportLink?: string;
   bottomCTA?: {
     heading: string;
     body: string;
@@ -81,6 +82,7 @@ const VerticalLandingShell = ({
   valueBlocks,
   accordionSections,
   reliabilityLink,
+  supportLink = '/support',
   bottomCTA,
   journeySteps,
   agreementHighlights,
@@ -271,7 +273,7 @@ const VerticalLandingShell = ({
               {primaryCTA.label}
             </Link>
             {!isExplainer && (
-              <Link className="btn btn-secondary" to="/support">
+              <Link className="btn btn-secondary" to={supportLink}>
                 Explore solutions
               </Link>
             )}
