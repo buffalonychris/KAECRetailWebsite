@@ -24,11 +24,11 @@ describe('Operator navbar routing', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /residential security that stays local, private, and always usable/i,
+        name: /home security that works even when the internet doesn’t/i,
       }),
     ).toBeInTheDocument();
 
-    expect(screen.queryByLabelText(`${brandSite} home`)).not.toBeInTheDocument();
+    expect(screen.queryByText(/business portals for connected care/i)).not.toBeInTheDocument();
   });
 
   it('does not render the operator navbar on /halo', async () => {
@@ -41,6 +41,6 @@ describe('Operator navbar routing', () => {
       }),
     ).toBeInTheDocument();
 
-    expect(screen.queryByLabelText(`${brandSite} home`)).not.toBeInTheDocument();
+    expect(screen.queryByText(/business portals for connected care/i)).not.toBeInTheDocument();
   });
 });

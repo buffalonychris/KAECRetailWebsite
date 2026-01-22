@@ -9,7 +9,7 @@ const DefaultLayout = () => {
 
   return (
     <>
-      {!isHub && (
+      {!isHub && layoutConfig.layoutVariant !== 'funnel' && (
         <div className="sitewide-notice" role="status">
           No pricing, guarantees, or promises are given by the assistant.
         </div>

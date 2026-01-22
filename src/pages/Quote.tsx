@@ -10,6 +10,7 @@ import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import { resolveVertical } from '../lib/verticals';
+import { useLayoutConfig } from '../components/LayoutConfig';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -17,6 +18,7 @@ const Quote = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const vertical = resolveVertical(searchParams.get('vertical'));
+  const isHomeSecurity = vertical === 'home-security';
   const packagePricing = getPackagePricing(vertical);
   const addOns = getAddOns(vertical);
   const [customerName, setCustomerName] = useState('');
@@ -29,6 +31,17 @@ const Quote = () => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Build a quote' },
+        ]
+      : [],
+  });
 
   useEffect(() => {
     markFlowStep('quote');

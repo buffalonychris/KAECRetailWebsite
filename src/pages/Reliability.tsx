@@ -1,10 +1,24 @@
 import { useSearchParams } from 'react-router-dom';
+import { useLayoutConfig } from '../components/LayoutConfig';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import { resolveVertical } from '../lib/verticals';
 
 const Reliability = () => {
   const [searchParams] = useSearchParams();
   const vertical = resolveVertical(searchParams.get('vertical'));
+  const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'How it works' },
+        ]
+      : [],
+  });
+
   return (
     <div className="container section">
       <h1 style={{ marginTop: 0 }}>How it Works</h1>

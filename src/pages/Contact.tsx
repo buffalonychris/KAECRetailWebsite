@@ -1,6 +1,24 @@
+import { useSearchParams } from 'react-router-dom';
+import { useLayoutConfig } from '../components/LayoutConfig';
 import { brandSite } from '../lib/brand';
+import { resolveVertical } from '../lib/verticals';
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
+  const vertical = resolveVertical(searchParams.get('vertical'));
+  const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Request install' },
+        ]
+      : [],
+  });
+
   return (
     <div className="container section">
       <h2 style={{ marginTop: 0 }}>Talk with {brandSite}</h2>

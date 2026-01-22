@@ -44,7 +44,11 @@ const PackageCard = ({ pkg, vertical }: Props) => {
         >
           View details
         </Link>
-        <Link className="btn btn-secondary" to="/contact" aria-label="Talk to us about this package">
+        <Link
+          className="btn btn-secondary"
+          to={`/contact${verticalQuery}`}
+          aria-label="Talk to us about this package"
+        >
           Talk to us
         </Link>
       </div>
