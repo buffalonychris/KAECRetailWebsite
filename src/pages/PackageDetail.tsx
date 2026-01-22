@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { getPackages } from '../content/packages';
 import TierBadge from '../components/TierBadge';
@@ -17,6 +17,7 @@ const PackageDetail = () => {
   const pkg = packageList.find((item) => item.id === id);
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   const isHomeSecurityPdp = vertical === 'home-security' && (id === 'a1' || id === 'a2' || id === 'a3');
+  const isMostPopular = isHomeSecurityPdp && id === 'a2';
   const heroRef = useRef<HTMLDivElement | null>(null);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const packageContent = useMemo(
@@ -24,8 +25,21 @@ const PackageDetail = () => {
     [isHomeSecurityPdp, pkg]
   );
   const quoteLink = pkg ? `/quote?vertical=home-security&package=${pkg.id}` : '/quote?vertical=home-security';
-  const contactLink = vertical === 'home-security' ? '/contact?vertical=home-security' : '/contact';
+  const contactLink =
+    vertical === 'home-security'
+      ? pkg
+        ? `/contact?vertical=home-security&package=${pkg.id}`
+        : '/contact?vertical=home-security'
+      : '/contact';
   const tierLabel = pkg?.name ?? 'Package';
+  const handleJump = (targetId: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const target = document.getElementById(targetId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.history.replaceState(null, '', `#${targetId}`);
+    }
+  };
 
   useLayoutConfig({
     layoutVariant: isHomeSecurityPdp ? 'funnel' : 'sitewide',
@@ -96,11 +110,14 @@ const PackageDetail = () => {
         <section ref={heroRef} className="hero-card pdp-hero">
           <div className="pdp-hero-header">
             <div style={{ display: 'grid', gap: '0.75rem' }}>
-              <TierBadge
-                tierId={(pkg.id.toUpperCase() as PackageTierId) ?? 'A1'}
-                labelOverride={pkg.badge ?? undefined}
-                vertical={vertical}
-              />
+              <div className="pdp-hero-badges">
+                <TierBadge
+                  tierId={(pkg.id.toUpperCase() as PackageTierId) ?? 'A1'}
+                  labelOverride={pkg.badge ?? undefined}
+                  vertical={vertical}
+                />
+                {isMostPopular && <span className="popular-pill">Most popular</span>}
+              </div>
               <h1 className="pdp-title">{pkg.name}</h1>
               <p className="pdp-tagline">{packageContent.heroOneLiner}</p>
             </div>
@@ -120,9 +137,24 @@ const PackageDetail = () => {
               Compare packages
             </Link>
           </div>
+          <div className="pdp-jump-links" aria-label="Jump to">
+            <span>Jump to:</span>
+            <a href="#what-you-get" onClick={handleJump('what-you-get')}>
+              What you get
+            </a>
+            <a href="#key-outcomes" onClick={handleJump('key-outcomes')}>
+              Key outcomes
+            </a>
+            <a href="#how-it-works" onClick={handleJump('how-it-works')}>
+              How it works
+            </a>
+            <a href="#trust-policies" onClick={handleJump('trust-policies')}>
+              Trust &amp; policies
+            </a>
+          </div>
         </section>
 
-        <section className="card pdp-what-you-get">
+        <section id="what-you-get" className="card pdp-what-you-get pdp-section">
           <div className="pdp-section-header">
             <h2>What you get</h2>
             <p>Hardware included in this tier.</p>
@@ -149,7 +181,7 @@ const PackageDetail = () => {
         </section>
 
         <div className="pdp-two-column">
-          <section className="card">
+          <section id="key-outcomes" className="card pdp-section">
             <h2>Key outcomes</h2>
             <ul className="list">
               {packageContent.keyOutcomes.map((item) => (
@@ -200,7 +232,7 @@ const PackageDetail = () => {
           </div>
         </AccordionSection>
 
-        <section className="card pdp-how">
+        <section id="how-it-works" className="card pdp-how pdp-section">
           <h2>How it works</h2>
           <ol className="pdp-steps">
             {packageContent.howItWorks.map((step) => (
@@ -209,16 +241,18 @@ const PackageDetail = () => {
           </ol>
         </section>
 
-        <AccordionSection title="Trust & policies" defaultOpen={false}>
-          <ul className="list">
-            {trustPolicies.map((item) => (
-              <li key={item}>
-                <span />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </AccordionSection>
+        <div id="trust-policies" className="pdp-section">
+          <AccordionSection title="Trust & policies" defaultOpen={false}>
+            <ul className="list">
+              {trustPolicies.map((item) => (
+                <li key={item}>
+                  <span />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </AccordionSection>
+        </div>
 
         <div className="pdp-bottom-cta">
           <Link className="btn btn-primary" to={contactLink}>
