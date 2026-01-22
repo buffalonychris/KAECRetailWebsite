@@ -25,6 +25,20 @@ const HomeSecurity = () => {
       badgeLabel="Local-first"
       heroHeadline="Home security that works even when the internet doesn’t"
       heroSubhead="A wireless home security system you control from one simple dashboard. No required subscriptions. No “cloud-only” lock-in. Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available."
+      heroMedia={{
+        alt: 'Modern home entry with discreet security hardware and warm lighting',
+        src: '/images/home-security/hero-1024w.png',
+        srcSet:
+          '/images/home-security/hero-768w.png 768w, /images/home-security/hero-1024w.png 1024w, /images/home-security/hero-1536w.png 1536w',
+        sizes: '(max-width: 900px) 100vw, 1536px',
+        sources: [
+          {
+            type: 'image/webp',
+            srcSet:
+              '/images/home-security/hero-768w.webp 768w, /images/home-security/hero-1024w.webp 1024w, /images/home-security/hero-1536w.webp 1536w',
+          },
+        ],
+      }}
       primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support?vertical=home-security' }}
       secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
       layoutVariant="explainer"

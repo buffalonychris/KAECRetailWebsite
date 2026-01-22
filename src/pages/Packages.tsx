@@ -19,6 +19,52 @@ const Packages = () => {
   const packageList = getPackages(vertical);
   const addOns = getAddOns(vertical);
   const isHomeSecurity = vertical === 'home-security';
+  const homeSecurityTierImages = isHomeSecurity
+    ? {
+        a1: {
+          alt: 'Apartment entry with discreet doorbell and indoor camera',
+          src: '/images/home-security/tier-bronze-960w.png',
+          srcSet:
+            '/images/home-security/tier-bronze-512w.png 512w, /images/home-security/tier-bronze-640w.png 640w, /images/home-security/tier-bronze-960w.png 960w',
+          sizes: '(max-width: 720px) 100vw, 360px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-bronze-512w.webp 512w, /images/home-security/tier-bronze-640w.webp 640w, /images/home-security/tier-bronze-960w.webp 960w',
+            },
+          ],
+        },
+        a2: {
+          alt: 'Suburban home exterior with outdoor camera coverage',
+          src: '/images/home-security/tier-silver-960w.png',
+          srcSet:
+            '/images/home-security/tier-silver-512w.png 512w, /images/home-security/tier-silver-640w.png 640w, /images/home-security/tier-silver-960w.png 960w',
+          sizes: '(max-width: 720px) 100vw, 360px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-silver-512w.webp 512w, /images/home-security/tier-silver-640w.webp 640w, /images/home-security/tier-silver-960w.webp 960w',
+            },
+          ],
+        },
+        a3: {
+          alt: 'Large home exterior with multi-angle camera coverage',
+          src: '/images/home-security/tier-gold-960w.png',
+          srcSet:
+            '/images/home-security/tier-gold-512w.png 512w, /images/home-security/tier-gold-640w.png 640w, /images/home-security/tier-gold-960w.png 960w',
+          sizes: '(max-width: 720px) 100vw, 360px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-gold-512w.webp 512w, /images/home-security/tier-gold-640w.webp 640w, /images/home-security/tier-gold-960w.webp 960w',
+            },
+          ],
+        },
+      }
+    : null;
 
   useLayoutConfig({
     layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
@@ -116,7 +162,12 @@ const Packages = () => {
       />
       <div className="card-grid">
         {packageList.map((pkg) => (
-          <PackageCard key={pkg.id} pkg={pkg} vertical={vertical} />
+          <PackageCard
+            key={pkg.id}
+            pkg={pkg}
+            vertical={vertical}
+            image={homeSecurityTierImages ? homeSecurityTierImages[pkg.id as keyof typeof homeSecurityTierImages] : undefined}
+          />
         ))}
       </div>
 
