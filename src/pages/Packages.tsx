@@ -103,7 +103,7 @@ const Packages = () => {
   };
 
   return (
-    <div className="container section">
+    <div className="container section packages-shell">
       {guidedMode && (
         <div
           className="hero-card"
@@ -121,33 +121,29 @@ const Packages = () => {
           </button>
         </div>
       )}
-      <h1 style={{ marginTop: 0 }}>Packages</h1>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <p className="badge" style={{ marginBottom: '0.5rem' }}>
-            One-time pricing only
-          </p>
-          <h2 style={{ margin: 0 }}>
+      <section className="packages-hero">
+        <div className="packages-hero-main">
+          <p className="badge">One-time pricing only</p>
+          <h1>Packages</h1>
+          <h2>
             {vertical === 'home-security' ? 'Choose a Home Security package' : `Choose the ${brandSite} package that fits`}
           </h2>
-          <p style={{ maxWidth: 640 }}>
+          <p>
             {vertical === 'home-security'
               ? 'Home Security packages are built to work locally first, using Home Assistant as the main control screen. We don’t sell monthly subscriptions. If you want professional monitoring, you can add it separately with a provider you choose.'
               : 'Every tier is delivered with Home Assistant as the single control surface. Pricing is upfront—no subscriptions required for included capabilities.'}
           </p>
         </div>
-        <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'end' }}>
+        <div className="packages-hero-cta">
           <Link
             className="btn btn-primary"
             to={vertical === 'home-security' ? '/quote?vertical=home-security' : '/quote'}
           >
             Build my quote
           </Link>
-          <small style={{ color: '#c8c0aa' }}>
-            Pro install, set up to work even during internet outages, with clear pricing.
-          </small>
+          <small>Pro install, set up to work even during internet outages, with clear pricing.</small>
         </div>
-      </div>
+      </section>
       <OwnershipOfflineGuarantee
         intro={
           vertical === 'home-security'
@@ -167,7 +163,7 @@ const Packages = () => {
         }
         className="section"
       />
-      <div className="card-grid">
+      <div className="card-grid package-grid">
         {packageList.map((pkg) => (
           <PackageCard
             key={pkg.id}

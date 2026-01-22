@@ -42,6 +42,7 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
               sizes={image.sizes}
               alt={image.alt}
               loading="lazy"
+              decoding="async"
             />
           </picture>
           <div className="package-card-media-overlay" aria-hidden="true" />
@@ -49,46 +50,44 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
           {isMostPopular ? <div className="package-card-ribbon">Most popular</div> : null}
         </div>
       ) : null}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-            <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} vertical={vertical} />
-            {isMostPopular && <span className="popular-pill">Most popular</span>}
+      <div className="package-card-body">
+        <div className="package-card-header">
+          <div className="package-card-intro">
+            <div className="package-card-badges">
+              <TierBadge tierId={tierId} labelOverride={pkg.badge ?? undefined} vertical={vertical} />
+              {isMostPopular && <span className="popular-pill">Most popular</span>}
+            </div>
+            <h3 className="package-card-title">{pkg.name}</h3>
+            <div className="package-card-tagline">{pkg.tagline}</div>
           </div>
-          <h3 style={{ margin: 0, color: '#fff7e6' }}>{pkg.name}</h3>
-          <div style={{ color: 'var(--kaec-muted)' }}>{pkg.tagline}</div>
-        </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--kaec-gold)' }}>
-            {pkg.price}
+          <div className="package-card-price">
+            <div className="package-card-price-value">{pkg.price}</div>
+            <small>One-time upfront</small>
           </div>
-          <small style={{ color: 'var(--kaec-muted)' }}>One-time upfront</small>
         </div>
-      </div>
-      <p style={{ marginTop: '1rem', color: '#e6ddc7' }}>{pkg.oneLiner}</p>
-      <ul className="list" aria-label="Included features">
-        {pkg.includes.map((item) => (
-          <li key={item}>
-            <span />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-      <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-        <Link
-          className="btn btn-primary"
-          to={`/packages/${pkg.id}${verticalQuery}`}
-          aria-label={`View ${pkg.name} details`}
-        >
-          View details
-        </Link>
-        <Link
-          className="btn btn-secondary"
-          to={contactLink}
-          aria-label="Talk to us about this package"
-        >
-          Talk to us
-        </Link>
+        <div className="package-card-details">
+          <p>{pkg.oneLiner}</p>
+          <ul className="list" aria-label="Included features">
+            {pkg.includes.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="package-card-actions">
+          <Link
+            className="btn btn-primary"
+            to={`/packages/${pkg.id}${verticalQuery}`}
+            aria-label={`View ${pkg.name} details`}
+          >
+            View details
+          </Link>
+          <Link className="btn btn-secondary" to={contactLink} aria-label="Talk to us about this package">
+            Talk to us
+          </Link>
+        </div>
       </div>
     </div>
   );

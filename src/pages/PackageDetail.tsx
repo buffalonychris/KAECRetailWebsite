@@ -8,6 +8,7 @@ import { resolveVertical } from '../lib/verticals';
 import AccordionSection from '../components/AccordionSection';
 import { HOME_SECURITY_PDP_CONTENT } from '../content/homeSecurityPdp';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import CampaignHero from '../components/CampaignHero';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -18,11 +19,50 @@ const PackageDetail = () => {
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   const isHomeSecurityPdp = vertical === 'home-security' && (id === 'a1' || id === 'a2' || id === 'a3');
   const isMostPopular = isHomeSecurityPdp && id === 'a2';
-  const homeSecurityTierStrip = isHomeSecurityPdp
+  const homeSecurityHeroMedia = isHomeSecurityPdp
     ? {
-        a1: '/images/home-security/tier-bronze-960w.png',
-        a2: '/images/home-security/tier-silver-960w.png',
-        a3: '/images/home-security/tier-gold-960w.png',
+        a1: {
+          alt: 'Bronze tier home security package',
+          src: '/images/home-security/tier-bronze-960w.png',
+          srcSet:
+            '/images/home-security/tier-bronze-512w.png 512w, /images/home-security/tier-bronze-640w.png 640w, /images/home-security/tier-bronze-960w.png 960w',
+          sizes: '(max-width: 900px) 100vw, 960px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-bronze-512w.webp 512w, /images/home-security/tier-bronze-640w.webp 640w, /images/home-security/tier-bronze-960w.webp 960w',
+            },
+          ],
+        },
+        a2: {
+          alt: 'Silver tier home security package',
+          src: '/images/home-security/tier-silver-960w.png',
+          srcSet:
+            '/images/home-security/tier-silver-512w.png 512w, /images/home-security/tier-silver-640w.png 640w, /images/home-security/tier-silver-960w.png 960w',
+          sizes: '(max-width: 900px) 100vw, 960px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-silver-512w.webp 512w, /images/home-security/tier-silver-640w.webp 640w, /images/home-security/tier-silver-960w.webp 960w',
+            },
+          ],
+        },
+        a3: {
+          alt: 'Gold tier home security package',
+          src: '/images/home-security/tier-gold-960w.png',
+          srcSet:
+            '/images/home-security/tier-gold-512w.png 512w, /images/home-security/tier-gold-640w.png 640w, /images/home-security/tier-gold-960w.png 960w',
+          sizes: '(max-width: 900px) 100vw, 960px',
+          sources: [
+            {
+              type: 'image/webp',
+              srcSet:
+                '/images/home-security/tier-gold-512w.webp 512w, /images/home-security/tier-gold-640w.webp 640w, /images/home-security/tier-gold-960w.webp 960w',
+            },
+          ],
+        },
       }
     : null;
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -87,7 +127,7 @@ const PackageDetail = () => {
   }
 
   if (isHomeSecurityPdp && packageContent) {
-    const heroStripImage = pkg ? homeSecurityTierStrip?.[pkg.id as keyof typeof homeSecurityTierStrip] : null;
+    const heroMedia = pkg ? homeSecurityHeroMedia?.[pkg.id as keyof typeof homeSecurityHeroMedia] : null;
     const trustPolicies = [
       'You own the equipment, automations, and data.',
       'Optional third-party services connect directly to you; we do not sell subscriptions.',
@@ -115,12 +155,11 @@ const PackageDetail = () => {
         <Link to={`/packages${verticalQuery}`} className="btn btn-secondary pdp-back">
           Back to packages
         </Link>
-        <section ref={heroRef} className="hero-card pdp-hero">
-          {heroStripImage ? (
-            <div className="pdp-hero-strip" style={{ backgroundImage: `url(${heroStripImage})` }} aria-hidden="true" />
-          ) : null}
-          <div className="pdp-hero-header">
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
+        <div ref={heroRef}>
+          <CampaignHero
+            className="pdp-hero"
+            background={heroMedia ?? undefined}
+            kicker={
               <div className="pdp-hero-badges">
                 <TierBadge
                   tierId={(pkg.id.toUpperCase() as PackageTierId) ?? 'A1'}
@@ -129,41 +168,53 @@ const PackageDetail = () => {
                 />
                 {isMostPopular && <span className="popular-pill">Most popular</span>}
               </div>
-              <h1 className="pdp-title">{pkg.name}</h1>
-              <p className="pdp-tagline">{packageContent.heroOneLiner}</p>
+            }
+            title={pkg.name}
+            subtitle={packageContent.heroOneLiner}
+            trustItems={[
+              'Local-first operation',
+              'No subscriptions sold by us',
+              'Optional monitoring via partner',
+            ]}
+            sideContent={
+              <div className="pdp-price">
+                <div className="pdp-price-value">{pkg.price}</div>
+                <small>One-time upfront cost</small>
+              </div>
+            }
+            actions={
+              <>
+                <Link className="btn btn-primary" to={contactLink}>
+                  Request install
+                </Link>
+                <Link className="btn btn-secondary" to={quoteLink}>
+                  Build a Quote
+                </Link>
+                <Link className="btn btn-link" to="/packages?vertical=home-security">
+                  Compare packages
+                </Link>
+              </>
+            }
+          >
+            <div className="pdp-jump-links" aria-label="Jump to">
+              <span>Jump to:</span>
+              <div className="pdp-jump-links-group">
+                <a href="#what-you-get" onClick={handleJump('what-you-get')}>
+                  What you get
+                </a>
+                <a href="#key-outcomes" onClick={handleJump('key-outcomes')}>
+                  Key outcomes
+                </a>
+                <a href="#how-it-works" onClick={handleJump('how-it-works')}>
+                  How it works
+                </a>
+                <a href="#trust-policies" onClick={handleJump('trust-policies')}>
+                  Trust &amp; policies
+                </a>
+              </div>
             </div>
-            <div className="pdp-price">
-              <div className="pdp-price-value">{pkg.price}</div>
-              <small>One-time upfront cost</small>
-            </div>
-          </div>
-          <div className="pdp-hero-actions">
-            <Link className="btn btn-primary" to={contactLink}>
-              Request install
-            </Link>
-            <Link className="btn btn-secondary" to={quoteLink}>
-              Build a Quote
-            </Link>
-            <Link className="btn btn-link" to="/packages?vertical=home-security">
-              Compare packages
-            </Link>
-          </div>
-          <div className="pdp-jump-links" aria-label="Jump to">
-            <span>Jump to:</span>
-            <a href="#what-you-get" onClick={handleJump('what-you-get')}>
-              What you get
-            </a>
-            <a href="#key-outcomes" onClick={handleJump('key-outcomes')}>
-              Key outcomes
-            </a>
-            <a href="#how-it-works" onClick={handleJump('how-it-works')}>
-              How it works
-            </a>
-            <a href="#trust-policies" onClick={handleJump('trust-policies')}>
-              Trust &amp; policies
-            </a>
-          </div>
-        </section>
+          </CampaignHero>
+        </div>
 
         <section id="what-you-get" className="card pdp-what-you-get pdp-section">
           <div className="pdp-section-header">

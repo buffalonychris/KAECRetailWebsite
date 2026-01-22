@@ -19,13 +19,39 @@ const HomeSecurity = () => {
     'Offline Dignity Rule: local control remains available for arming, sensors, lighting, and siren.',
     'Remote access is optional and requires internet; LAN control remains active when the connection drops.',
   ];
+  const heroProductCluster = (
+    <div className="campaign-hero-product">
+      <div className="campaign-hero-product-label">Tier coverage</div>
+      <div className="campaign-hero-product-grid">
+        {[
+          {
+            label: 'Bronze',
+            src: '/images/home-security/tier-bronze-512w.png',
+          },
+          {
+            label: 'Silver',
+            src: '/images/home-security/tier-silver-512w.png',
+          },
+          {
+            label: 'Gold',
+            src: '/images/home-security/tier-gold-512w.png',
+          },
+        ].map((tier) => (
+          <div key={tier.label} className="campaign-hero-product-card">
+            <img src={tier.src} alt={`${tier.label} tier preview`} loading="lazy" decoding="async" />
+            <span>{tier.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
   return (
     <VerticalLandingShell
       verticalName="Home Security"
       badgeLabel="Local-first"
       heroHeadline="Home security that works even when the internet doesn’t"
       heroSubhead="A wireless home security system you control from one simple dashboard. No required subscriptions. No “cloud-only” lock-in. Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available."
-      heroBadges={['Offline-first', 'No subscriptions sold by us', 'Local control']}
+      heroBadges={['LOCAL-FIRST', 'NO SUBSCRIPTIONS SOLD BY US', 'OFFLINE CAPABLE', 'OPTIONAL REMOTE']}
       heroVariant="campaign"
       heroMedia={{
         alt: 'Modern home entry with discreet security hardware and warm lighting',
@@ -41,6 +67,13 @@ const HomeSecurity = () => {
           },
         ],
       }}
+      heroTrustItems={[
+        'You own the system + data',
+        'No monitoring plans sold by us',
+        'Local control works without internet',
+        'Optional remote access when online',
+      ]}
+      heroSideContent={heroProductCluster}
       primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support?vertical=home-security' }}
       secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
       layoutVariant="explainer"
