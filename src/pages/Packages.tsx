@@ -9,6 +9,7 @@ import { getAddOns } from '../data/pricing';
 import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { resolveVertical } from '../lib/verticals';
+import { useLayoutConfig } from '../components/LayoutConfig';
 
 const Packages = () => {
   const navigate = useNavigate();
@@ -17,6 +18,18 @@ const Packages = () => {
   const vertical = resolveVertical(searchParams.get('vertical'));
   const packageList = getPackages(vertical);
   const addOns = getAddOns(vertical);
+  const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Packages', href: '/packages?vertical=home-security' },
+        ]
+      : [],
+  });
 
   useEffect(() => {
     const guidedParam = searchParams.get('guided') === '1';
