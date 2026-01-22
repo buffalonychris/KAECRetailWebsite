@@ -20,6 +20,8 @@ export type VerticalLandingShellProps = {
   badgeLabel: string;
   heroHeadline: string;
   heroSubhead: string;
+  heroBadges?: string[];
+  heroVariant?: 'default' | 'campaign';
   heroMedia?: {
     alt: string;
     src: string;
@@ -82,6 +84,8 @@ const VerticalLandingShell = ({
   badgeLabel,
   heroHeadline,
   heroSubhead,
+  heroBadges,
+  heroVariant = 'default',
   heroMedia,
   primaryCTA,
   secondaryCTA,
@@ -106,7 +110,11 @@ const VerticalLandingShell = ({
   return (
     <div className="space-shell">
       <div className={containerClasses}>
-        <section className={`vertical-hero${heroMedia ? ' vertical-hero--media' : ''}`}>
+        <section
+          className={`vertical-hero${heroMedia ? ' vertical-hero--media' : ''}${
+            heroVariant === 'campaign' ? ' vertical-hero--campaign' : ''
+          }`}
+        >
           {heroMedia ? (
             <div className="vertical-hero-media" aria-hidden="true">
               <picture>
@@ -143,6 +151,13 @@ const VerticalLandingShell = ({
                 </>
               }
             />
+            {heroBadges && heroBadges.length > 0 ? (
+              <div className="vertical-hero-badges" aria-label="Key promises">
+                {heroBadges.map((badge) => (
+                  <span key={badge}>{badge}</span>
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
 

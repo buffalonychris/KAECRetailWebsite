@@ -19,6 +19,13 @@ const Packages = () => {
   const packageList = getPackages(vertical);
   const addOns = getAddOns(vertical);
   const isHomeSecurity = vertical === 'home-security';
+  const homeSecurityTierCaptions = isHomeSecurity
+    ? {
+        a1: 'Essential indoor visibility',
+        a2: 'Balanced indoor + outdoor',
+        a3: 'Maximum coverage + deterrence',
+      }
+    : null;
   const homeSecurityTierImages = isHomeSecurity
     ? {
         a1: {
@@ -166,6 +173,9 @@ const Packages = () => {
             key={pkg.id}
             pkg={pkg}
             vertical={vertical}
+            imageCaption={
+              homeSecurityTierCaptions ? homeSecurityTierCaptions[pkg.id as keyof typeof homeSecurityTierCaptions] : undefined
+            }
             image={homeSecurityTierImages ? homeSecurityTierImages[pkg.id as keyof typeof homeSecurityTierImages] : undefined}
           />
         ))}

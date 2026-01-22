@@ -18,6 +18,13 @@ const PackageDetail = () => {
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   const isHomeSecurityPdp = vertical === 'home-security' && (id === 'a1' || id === 'a2' || id === 'a3');
   const isMostPopular = isHomeSecurityPdp && id === 'a2';
+  const homeSecurityTierStrip = isHomeSecurityPdp
+    ? {
+        a1: '/images/home-security/tier-bronze-960w.png',
+        a2: '/images/home-security/tier-silver-960w.png',
+        a3: '/images/home-security/tier-gold-960w.png',
+      }
+    : null;
   const heroRef = useRef<HTMLDivElement | null>(null);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const packageContent = useMemo(
@@ -80,6 +87,7 @@ const PackageDetail = () => {
   }
 
   if (isHomeSecurityPdp && packageContent) {
+    const heroStripImage = pkg ? homeSecurityTierStrip?.[pkg.id as keyof typeof homeSecurityTierStrip] : null;
     const trustPolicies = [
       'You own the equipment, automations, and data.',
       'Optional third-party services connect directly to you; we do not sell subscriptions.',
@@ -108,6 +116,9 @@ const PackageDetail = () => {
           Back to packages
         </Link>
         <section ref={heroRef} className="hero-card pdp-hero">
+          {heroStripImage ? (
+            <div className="pdp-hero-strip" style={{ backgroundImage: `url(${heroStripImage})` }} aria-hidden="true" />
+          ) : null}
           <div className="pdp-hero-header">
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               <div className="pdp-hero-badges">
