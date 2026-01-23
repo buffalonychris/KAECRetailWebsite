@@ -1453,6 +1453,24 @@ header.hide-when-print {
   gap: 0.75rem;
 }
 
+.home-security-framed-media {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+  border-radius: 24px;
+  border: 1px solid rgba(120, 203, 255, 0.3);
+  background: rgba(8, 14, 22, 0.75);
+  box-shadow: 0 18px 50px rgba(5, 10, 18, 0.55);
+  aspect-ratio: 4 / 3;
+}
+
+.home-security-framed-media__image {
+  width: min(100%, 520px);
+  height: min(100%, 340px);
+  object-fit: contain;
+}
+
 .home-security-architecture-image {
   max-height: 420px;
   object-fit: cover;
@@ -1556,6 +1574,97 @@ body.modal-open {
   overflow: hidden;
 }
 
+.media-modal__content {
+  overflow-y: auto;
+  max-height: 70vh;
+  padding-right: 0.5rem;
+}
+
+.home-security-page .space-grid.three-column .space-frame {
+  cursor: default;
+}
+
+.home-security-page .space-grid.three-column .space-frame:hover {
+  transform: none;
+  border-color: rgba(120, 203, 255, 0.4);
+  box-shadow: 0 24px 60px rgba(5, 10, 18, 0.65);
+}
+
+.home-security-learn-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.home-security-learn-tile {
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  min-height: 220px;
+  display: grid;
+  gap: 0.75rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.home-security-learn-tile:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.7);
+  outline-offset: 3px;
+}
+
+.home-security-learn-tile__header h3 {
+  font-size: 1.15rem;
+}
+
+.home-security-learn-tile__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.home-security-learn-tile__icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(125, 211, 252, 0.55);
+  background: rgba(15, 23, 42, 0.6);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.home-security-reliability {
+  align-items: stretch;
+}
+
+.home-security-health-panel {
+  border-radius: 24px;
+  border: 1px solid rgba(120, 203, 255, 0.3);
+  background: rgba(10, 17, 28, 0.82);
+  padding: 1.5rem;
+  display: grid;
+  gap: 0.85rem;
+  box-shadow: 0 18px 46px rgba(5, 10, 18, 0.55);
+}
+
+.home-security-health-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.home-security-health-panel__row span:first-child {
+  color: #34d399;
+  font-size: 1.1rem;
+}
+
 .home-security-trust-strip {
   margin: 2rem 0;
 }
@@ -1631,6 +1740,22 @@ body.modal-open {
   .discovery-mobile-accordion {
     display: none;
   }
+
+  .home-security-learn-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .home-security-learn-tile {
+    grid-column: span 2;
+  }
+
+  .home-security-learn-grid .home-security-learn-tile:nth-child(4) {
+    grid-column-start: 2;
+  }
+
+  .home-security-learn-grid .home-security-learn-tile:nth-child(5) {
+    grid-column-start: 4;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -1643,9 +1768,25 @@ body.modal-open {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .home-security-learn-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-security-learn-grid .home-security-learn-tile:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    max-width: 540px;
+    justify-self: center;
+  }
+}
+
 @media (max-width: 768px) {
   .home-security-architecture-image {
     max-height: 320px;
+  }
+
+  .home-security-learn-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1680,10 +1821,20 @@ body.modal-open {
   padding: clamp(1.5rem, 4vw, 3.5rem);
 }
 
+.home-security-page .vertical-hero--campaign .vertical-hero-content {
+  padding-top: clamp(1rem, 3vw, 2.5rem);
+  padding-bottom: clamp(1.25rem, 3vw, 3rem);
+}
+
 .vertical-hero--campaign .space-section-header h1 {
   font-size: clamp(2.75rem, 4.4vw, 4.1rem);
   font-weight: 700;
   text-shadow: 0 10px 28px rgba(4, 9, 18, 0.75), 0 0 18px rgba(148, 163, 184, 0.2);
+}
+
+.home-security-page .vertical-hero--campaign .space-section-header h1 {
+  font-size: clamp(2.6rem, 3.9vw, 3.8rem);
+  line-height: 1.05;
 }
 
 .vertical-hero--campaign .space-section-header p {

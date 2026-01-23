@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import VerticalLandingShell from '../components/VerticalLandingShell';
 import SpaceFrame from '../components/operator/SpaceFrame';
@@ -7,6 +8,7 @@ import { verticalContent } from '../content/systemRestoration';
 
 const HomeSecurity = () => {
   const [isDiagramOpen, setIsDiagramOpen] = useState(false);
+  const [activeLearnMoreIndex, setActiveLearnMoreIndex] = useState<number | null>(null);
 
   useLayoutConfig({
     layoutVariant: 'funnel',
@@ -15,9 +17,13 @@ const HomeSecurity = () => {
   });
 
   useEffect(() => {
-    if (!isDiagramOpen) return undefined;
+    if (!isDiagramOpen && activeLearnMoreIndex === null) return undefined;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (activeLearnMoreIndex !== null) {
+          setActiveLearnMoreIndex(null);
+          return;
+        }
         setIsDiagramOpen(false);
       }
     };
@@ -27,7 +33,7 @@ const HomeSecurity = () => {
       document.body.classList.remove('modal-open');
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isDiagramOpen]);
+  }, [activeLearnMoreIndex, isDiagramOpen]);
 
   const content = verticalContent.homeSecurity;
   const keyCapabilities = [
@@ -39,6 +45,108 @@ const HomeSecurity = () => {
     'Offline Dignity Rule: local control remains available for arming, sensors, lighting, and siren.',
     'Remote access is optional and requires internet; LAN control remains active when the connection drops.',
   ];
+  const learnMoreTiles = [
+    {
+      title: 'How Home Security Works',
+      summary:
+        'A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and hand you a system you understand and control.',
+      content: (
+        <>
+          <p>
+            A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and hand
+            you a system you understand and control.
+          </p>
+          <ul className="operator-list">
+            {content.journeySteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ul>
+        </>
+      ),
+    },
+    {
+      title: 'What’s Included',
+      summary:
+        'A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one solves.',
+      content: (
+        <>
+          <p>
+            A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one
+            solves.
+          </p>
+          <ul className="operator-list">
+            {content.packageHighlights.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      ),
+    },
+    {
+      title: 'Automation & Response Playbooks',
+      summary:
+        'Smart “if-this-then-that” actions: lights-on deterrence, siren triggers, entry alerts, leak alerts, and more.',
+      content: (
+        <div className="card-grid" style={{ marginTop: '1rem' }}>
+          {content.playbooks.map((playbook) => (
+            <div className="card" key={playbook.title}>
+              <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{playbook.title}</h3>
+              <p style={{ color: '#c8c0aa' }}>{playbook.purpose}</p>
+              <p style={{ margin: '0.5rem 0', color: '#c8c0aa' }}>
+                <strong>Trigger:</strong> {playbook.trigger}
+              </p>
+              <ul className="list">
+                {playbook.actions.map((action) => (
+                  <li key={action}>
+                    <span />
+                    <span>{action}</span>
+                  </li>
+                ))}
+              </ul>
+              <p style={{ margin: '0.75rem 0 0', color: '#c8c0aa' }}>
+                <strong>Handoff:</strong> {playbook.handoff}
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: 'Privacy, Ownership & Reliability',
+      summary:
+        'What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription traps.',
+      content: (
+        <>
+          <p>
+            What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription traps.
+          </p>
+          <ul className="operator-list">
+            {keyCapabilities.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      ),
+    },
+    {
+      title: 'Agreements & What to Expect',
+      summary: 'What happens before, during, and after install — timeline, what we need from you, and how support works.',
+      content: (
+        <>
+          <p>
+            What happens before, during, and after install — timeline, what we need from you, and how support works.
+          </p>
+          <ul className="operator-list">
+            {content.agreements.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      ),
+    },
+  ];
+  const activeLearnMoreTile = activeLearnMoreIndex !== null ? learnMoreTiles[activeLearnMoreIndex] : null;
+
   return (
     <>
       <VerticalLandingShell
@@ -62,7 +170,7 @@ const HomeSecurity = () => {
         primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/discovery?vertical=home-security' }}
         secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
         layoutVariant="explainer"
-        containerClassName="hub-container"
+        containerClassName="hub-container home-security-page"
         chartData={[
           { label: 'Mon', value: 18 },
           { label: 'Tue', value: 22 },
@@ -114,117 +222,57 @@ const HomeSecurity = () => {
                 </button>
               </div>
             </div>
-          </>
-        }
-        accordionSections={[
-          {
-            title: 'How Home Security Works',
-            description:
-              'A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and hand you a system you understand and control.',
-            content: (
-              <>
-                <p>
-                  A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and
-                  hand you a system you understand and control.
-                </p>
-                <ul className="operator-list">
-                  {content.journeySteps.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ul>
-              </>
-            ),
-          },
-          {
-            title: 'What’s Included',
-            description:
-              'A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one solves.',
-            content: (
-              <>
-                <p>
-                  A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one
-                  solves.
-                </p>
-                <ul className="operator-list">
-                  {content.packageHighlights.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </>
-            ),
-          },
-          {
-            title: 'Automation & Response Playbooks',
-            description:
-              'Smart “if-this-then-that” actions: lights-on deterrence, siren triggers, entry alerts, leak alerts, and more.',
-            content: (
-            <div className="card-grid" style={{ marginTop: '1rem' }}>
-              {content.playbooks.map((playbook) => (
-                <div className="card" key={playbook.title}>
-                  <h3 style={{ marginTop: 0, color: '#fff7e6' }}>{playbook.title}</h3>
-                  <p style={{ color: '#c8c0aa' }}>{playbook.purpose}</p>
-                  <p style={{ margin: '0.5rem 0', color: '#c8c0aa' }}>
-                    <strong>Trigger:</strong> {playbook.trigger}
-                  </p>
-                  <ul className="list">
-                    {playbook.actions.map((action) => (
-                      <li key={action}>
-                        <span />
-                        <span>{action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p style={{ margin: '0.75rem 0 0', color: '#c8c0aa' }}>
-                    <strong>Handoff:</strong> {playbook.handoff}
-                  </p>
-                </div>
+            <div className="section-divider" aria-hidden="true" />
+            <div className="home-security-learn-grid">
+              {learnMoreTiles.map((tile, index) => (
+                <button
+                  type="button"
+                  key={tile.title}
+                  className="space-frame home-security-learn-tile"
+                  onClick={() => setActiveLearnMoreIndex(index)}
+                  aria-haspopup="dialog"
+                >
+                  <div className="home-security-learn-tile__header">
+                    <h3 style={{ marginTop: 0 }}>{tile.title}</h3>
+                  </div>
+                  <p>{tile.summary}</p>
+                  <span className="home-security-learn-tile__action">
+                    <span className="home-security-learn-tile__icon" aria-hidden="true">
+                      +
+                    </span>
+                    Open
+                  </span>
+                </button>
               ))}
             </div>
-            ),
-          },
-          {
-            title: 'Privacy, Ownership & Reliability',
-            description:
-              'What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription traps.',
-            content: (
-              <>
-                <p>
-                  What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription
-                  traps.
+            <div className="section-divider" aria-hidden="true" />
+            <div className="space-grid two-column home-security-reliability motion-stagger">
+              <SpaceFrame className="motion-fade-up">
+                <div className="badge">System reliability</div>
+                <h2 style={{ marginTop: 0 }}>Reliability and health checks</h2>
+                <p style={{ marginBottom: 0 }}>
+                  We build your system to be dependable and easy to maintain. We also include simple health signals so
+                  you can tell if anything needs attention.{' '}
+                  <Link to="/reliability?vertical=home-security">Explore reliability details →</Link>
                 </p>
-                <ul className="operator-list">
-                  {keyCapabilities.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </>
-            ),
-          },
-          {
-            title: 'Agreements & What to Expect',
-            description:
-              'What happens before, during, and after install — timeline, what we need from you, and how support works.',
-            content: (
-              <>
-                <p>
-                  What happens before, during, and after install — timeline, what we need from you, and how support
-                  works.
-                </p>
-                <ul className="operator-list">
-                  {content.agreements.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </>
-            ),
-          },
-        ]}
-      reliabilityLink={{
-        summary:
-          'We build your system to be dependable and easy to maintain. We also include simple health signals so you can tell if anything needs attention.',
-        label: 'Explore reliability details →',
-        to: '/reliability?vertical=home-security',
-      }}
+              </SpaceFrame>
+              <div className="home-security-health-panel motion-fade-up">
+                <div className="home-security-health-panel__row">
+                  <span aria-hidden="true">✔</span>
+                  <span>Sensors OK</span>
+                </div>
+                <div className="home-security-health-panel__row">
+                  <span aria-hidden="true">✔</span>
+                  <span>Recording OK</span>
+                </div>
+                <div className="home-security-health-panel__row">
+                  <span aria-hidden="true">✔</span>
+                  <span>Network OK</span>
+                </div>
+              </div>
+            </div>
+          </>
+        }
       supportLink="/support?vertical=home-security"
       preCtaSections={
         <>
@@ -238,11 +286,11 @@ const HomeSecurity = () => {
                 exterior visibility.
               </p>
             </SpaceFrame>
-            <div className="premium-media-card motion-fade-up">
+            <div className="home-security-framed-media motion-fade-up">
               <ResponsivePublicImage
                 srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
                 alt="Graphic showing typical coverage by package tier"
-                className="premium-image premium-image--contain hover-lift"
+                className="home-security-framed-media__image"
               />
             </div>
           </div>
@@ -256,11 +304,11 @@ const HomeSecurity = () => {
                 what stays local and what stays optional.
               </p>
             </SpaceFrame>
-            <div className="premium-media-card motion-fade-up">
+            <div className="home-security-framed-media motion-fade-up">
               <ResponsivePublicImage
                 srcBase="/images/home-security/hs_badges_trust-grid"
                 alt="Trust and guarantees grid highlighting ownership and offline readiness"
-                className="premium-image premium-image--contain hover-lift"
+                className="home-security-framed-media__image"
               />
             </div>
           </div>
@@ -275,6 +323,30 @@ const HomeSecurity = () => {
       packageHighlights={content.packageHighlights}
       playbooks={content.playbooks}
     />
+      {activeLearnMoreTile ? (
+        <div
+          className="media-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeLearnMoreTile.title}
+          onClick={() => setActiveLearnMoreIndex(null)}
+        >
+          <div className="media-modal__backdrop" />
+          <div className="media-modal__dialog" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-small media-modal__close"
+              onClick={() => setActiveLearnMoreIndex(null)}
+            >
+              Close
+            </button>
+            <div className="media-modal__content">
+              <h2 style={{ marginTop: 0 }}>{activeLearnMoreTile.title}</h2>
+              {activeLearnMoreTile.content}
+            </div>
+          </div>
+        </div>
+      ) : null}
       {isDiagramOpen ? (
         <div
           className="media-modal"
