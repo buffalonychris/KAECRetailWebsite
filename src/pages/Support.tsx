@@ -47,7 +47,7 @@ const Support = () => {
           <h2>Email</h2>
           <p>Send us a message and include your name, address, and the best number to reach you.</p>
           <p>
-            <strong>support@reliableeldercare.com</strong>
+            <strong>admin@reliableeldercare.com</strong>
           </p>
         </SpaceFrame>
 

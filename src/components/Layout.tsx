@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
-import { brandLegal, brandSite } from '../lib/brand';
+import { brandLegal, brandPhonePrimary, brandServiceLocation, brandSite } from '../lib/brand';
 import { defaultLayoutConfig, LayoutConfigContext } from './LayoutConfig';
 
 const Layout = () => {
@@ -53,6 +53,9 @@ const Layout = () => {
                 <NavLink to={supportLink}>Support</NavLink>
                 <NavLink to={contactLink}>Contact</NavLink>
               </div>
+              <small className="footer-funnel-meta">
+                Service location: {brandServiceLocation} · {brandPhonePrimary}
+              </small>
               <small className="footer-funnel-meta">
                 © 2025 {brandSite} · {brandLegal}. All Rights Reserved.
               </small>

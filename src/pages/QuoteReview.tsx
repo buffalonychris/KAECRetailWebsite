@@ -18,6 +18,7 @@ import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
+import { calculateDepositDue } from '../lib/paymentTerms';
 // SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
 
 type AccordionSectionProps = {
@@ -67,6 +68,7 @@ const QuoteReview = () => {
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const token = searchParams.get('t') || '';
+  const isInternalView = searchParams.get('internal') === '1';
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
@@ -122,6 +124,11 @@ const QuoteReview = () => {
   );
 
   const resumeUrl = useMemo(() => (quote ? buildResumeUrl(quote, 'agreement') : ''), [quote]);
+  const depositDue = useMemo(
+    () => calculateDepositDue(quote?.pricing.total ?? 0, siteConfig.depositPolicy),
+    [quote?.pricing.total],
+  );
+  const balanceDue = useMemo(() => Math.max((quote?.pricing.total ?? 0) - depositDue, 0), [depositDue, quote?.pricing.total]);
 
   useEffect(() => {
     let isMounted = true;
@@ -364,6 +371,10 @@ const QuoteReview = () => {
                 ? 'Add-ons are quoted separately; no subscriptions sold.'
                 : 'No monthly subscriptions required.'}
             </small>
+            <div style={{ display: 'grid', gap: '0.25rem', marginTop: '0.5rem', color: '#c8c0aa' }}>
+              <small>Deposit due today: {formatCurrency(depositDue)}</small>
+              <small>Remaining balance on arrival: {formatCurrency(balanceDue)}</small>
+            </div>
           </div>
         </div>
 
@@ -422,6 +433,14 @@ const QuoteReview = () => {
             })}
           </ul>
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className="badge">Payment terms</div>
+        <p style={{ margin: 0, color: '#c8c0aa' }}>
+          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
+          avoids payment issues after work is complete and keeps your install day on schedule.
+        </p>
       </div>
 
       <FlowGuidePanel
@@ -520,88 +539,9 @@ const QuoteReview = () => {
         <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
           <div className="badge">Validation &amp; Details</div>
           <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Expand for verification, audit trail, hardware, coverage, and advisory narrative. All technical details remain
-            available.
+            Expand for hardware, coverage, and advisory narrative details. Internal-only logs stay hidden from customers.
           </p>
         </div>
-
-        <AccordionSection title="Verification & Authority" description="Hashes, authority metadata, and verification links." defaultOpen={false}>
-          <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <div style={{ display: 'grid', gap: '0.25rem', color: '#c8c0aa' }}>
-              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
-                {quote.quoteHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
-                    {hashCopied ? 'Copied full hash' : 'Copy full hash'}
-                  </button>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior: {supersedes}</span>
-                {quote.priorQuoteHash && (
-                  <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
-                    {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
-                  </button>
-                )}
-              </div>
-              {quote.issuedAtISO && <small>Issued: {quote.issuedAtISO}</small>}
-              {quote.quoteDocVersion && <small>Document version: {quote.quoteDocVersion}</small>}
-            </div>
-          </div>
-          <AuthorityBlock meta={authorityMeta} />
-        </AccordionSection>
-
-        <AccordionSection title="Email delivery log" description="Provider status, recipients, and included links." defaultOpen={false}>
-          <div className="card" style={{ display: 'grid', gap: '0.35rem', background: '#0f0e0d' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <strong>Email delivery</strong>
-              <small style={{ color: '#c8c0aa' }}>
-                {quote.emailLastStatus
-                  ? `${quote.emailLastStatus.toUpperCase()} ${quote.emailIssuedAtISO ? `at ${quote.emailIssuedAtISO}` : ''}`
-                  : 'Not sent'}
-              </small>
-            </div>
-            <ul className="list" style={{ marginTop: 0 }}>
-              <li>
-                <span />
-                <span>Provider: {quote.emailProvider ?? 'not configured (mock mode)'}</span>
-              </li>
-              <li>
-                <span />
-                <span>Message ID: {quote.emailMessageId ?? 'n/a'}</span>
-              </li>
-              <li>
-                <span />
-                <span>Recipients: {quote.emailRecipients?.slice(0, 3).join(', ') || quote.contact || 'n/a'}</span>
-              </li>
-            </ul>
-            {emailPayload?.links && (
-              <div style={{ display: 'grid', gap: '0.35rem' }}>
-                <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
-                <ul className="list" style={{ marginTop: 0 }}>
-                  <li>
-                    <span />
-                    <span className="break-all">Print: {emailPayload.links.printUrl}</span>
-                  </li>
-                  <li>
-                    <span />
-                    <span className="break-all">Verify: {emailPayload.links.verifyUrl}</span>
-                  </li>
-                  <li>
-                    <span />
-                    <span className="break-all">Resume: {emailPayload.links.resumeUrl}</span>
-                  </li>
-                  {emailPayload.links.reviewUrl && (
-                    <li>
-                      <span />
-                      <span className="break-all">Review: {emailPayload.links.reviewUrl}</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </AccordionSection>
 
         {vertical !== 'home-security' && (
           <AccordionSection title="Hardware included" description="Device counts grouped by location." defaultOpen={false}>
@@ -749,6 +689,83 @@ const QuoteReview = () => {
             </div>
           </div>
         </AccordionSection>
+
+        {isInternalView && (
+          <AccordionSection title="Internal support log" description="Internal-only identifiers and delivery metadata." defaultOpen={false}>
+            <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <div style={{ display: 'grid', gap: '0.25rem', color: '#c8c0aa' }}>
+                <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
+                  {quote.quoteHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                      {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior: {supersedes}</span>
+                  {quote.priorQuoteHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                      {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                    </button>
+                  )}
+                </div>
+                {quote.issuedAtISO && <small>Issued: {quote.issuedAtISO}</small>}
+                {quote.quoteDocVersion && <small>Document version: {quote.quoteDocVersion}</small>}
+              </div>
+            </div>
+            <AuthorityBlock meta={authorityMeta} />
+            <div className="card" style={{ display: 'grid', gap: '0.35rem', background: '#0f0e0d' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <strong>Email delivery</strong>
+                <small style={{ color: '#c8c0aa' }}>
+                  {quote.emailLastStatus
+                    ? `${quote.emailLastStatus.toUpperCase()} ${quote.emailIssuedAtISO ? `at ${quote.emailIssuedAtISO}` : ''}`
+                    : 'Not sent'}
+                </small>
+              </div>
+              <ul className="list" style={{ marginTop: 0 }}>
+                <li>
+                  <span />
+                  <span>Provider: {quote.emailProvider ?? 'not configured (mock mode)'}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Message ID: {quote.emailMessageId ?? 'n/a'}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Recipients: {quote.emailRecipients?.slice(0, 3).join(', ') || quote.contact || 'n/a'}</span>
+                </li>
+              </ul>
+              {emailPayload?.links && (
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <small style={{ color: '#c8c0aa' }}>Links included in the email payload:</small>
+                  <ul className="list" style={{ marginTop: 0 }}>
+                    <li>
+                      <span />
+                      <span className="break-all">Print: {emailPayload.links.printUrl}</span>
+                    </li>
+                    <li>
+                      <span />
+                      <span className="break-all">Verify: {emailPayload.links.verifyUrl}</span>
+                    </li>
+                    <li>
+                      <span />
+                      <span className="break-all">Resume: {emailPayload.links.resumeUrl}</span>
+                    </li>
+                    {emailPayload.links.reviewUrl && (
+                      <li>
+                        <span />
+                        <span className="break-all">Review: {emailPayload.links.reviewUrl}</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </AccordionSection>
+        )}
       </div>
     </div>
   );
