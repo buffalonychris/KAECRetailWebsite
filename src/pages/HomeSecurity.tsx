@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import VerticalLandingShell from '../components/VerticalLandingShell';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { verticalContent } from '../content/systemRestoration';
@@ -55,11 +56,11 @@ const HomeSecurity = () => {
       keyCapabilities={keyCapabilities}
       valueBlocks={[
         {
-          title: 'Know when doors or windows open — even during outages',
+          title: 'Works during outages',
           description: 'Door and window sensors give you instant alerts and keep working on your home network if the internet drops.',
         },
         {
-          title: 'Fast, reliable actions (no waiting on the cloud)',
+          title: 'Fast reliable alerts (no waiting)',
           description:
             'When something happens, your system can turn on lights, sound a siren, or run deterrent routines right away — from inside your home.',
         },
@@ -75,7 +76,7 @@ const HomeSecurity = () => {
       ]}
       accordionSections={[
         {
-          title: 'How Home Security Works',
+          title: 'How Home Security works',
           description:
             'A simple start-to-finish process: we learn your layout, recommend a package, install it cleanly, and hand you a system you understand and control.',
           content: (
@@ -93,7 +94,7 @@ const HomeSecurity = () => {
           ),
         },
         {
-          title: 'What’s Included',
+          title: 'What’s included',
           description:
             'A clear overview of what comes with each package (Bronze / Silver / Gold) and what problems each one solves.',
           content: (
@@ -111,7 +112,7 @@ const HomeSecurity = () => {
           ),
         },
         {
-          title: 'Automation & Response Playbooks',
+          title: 'Automations & response playbooks',
           description:
             'Smart “if-this-then-that” actions: lights-on deterrence, siren triggers, entry alerts, leak alerts, and more.',
           content: (
@@ -140,7 +141,7 @@ const HomeSecurity = () => {
           ),
         },
         {
-          title: 'Privacy, Ownership & Reliability',
+          title: 'Privacy, ownership & reliability',
           description:
             'What runs locally, what needs internet, what you own, and how we avoid cloud lock-in and subscription traps.',
           content: (
@@ -154,11 +155,16 @@ const HomeSecurity = () => {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              <p>
+                We build your system to be dependable and easy to maintain. We also include simple health signals so
+                you can tell if anything needs attention.{' '}
+                <Link to="/reliability?vertical=home-security">Explore reliability details →</Link>
+              </p>
             </>
           ),
         },
         {
-          title: 'Agreements & What to Expect',
+          title: 'Agreements & what to expect',
           description:
             'What happens before, during, and after install — timeline, what we need from you, and how support works.',
           content: (
@@ -176,17 +182,14 @@ const HomeSecurity = () => {
           ),
         },
       ]}
-      reliabilityLink={{
-        summary:
-          'We build your system to be dependable and easy to maintain. We also include simple health signals so you can tell if anything needs attention.',
-        label: 'Explore reliability details →',
-        to: '/reliability?vertical=home-security',
-      }}
-      supportLink="/support?vertical=home-security"
-      bottomCTA={{
+      midCTA={{
         heading: 'Ready to explore Home Security?',
         body: 'Start a quick guided intake and we’ll route you to the right next step.',
+        primaryCTA: { label: 'Explore packages', to: '/packages?vertical=home-security' },
+        secondaryCTA: { label: 'Check fit / start discovery', to: '/support?vertical=home-security' },
       }}
+      supportLink="/support?vertical=home-security"
+      showBottomCTA={false}
       journeySteps={content.journeySteps}
       agreementHighlights={content.agreements}
       packageHighlights={content.packageHighlights}

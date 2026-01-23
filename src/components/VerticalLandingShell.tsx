@@ -57,6 +57,18 @@ export type VerticalLandingShellProps = {
     description?: string;
     content: ReactNode;
   }>;
+  midCTA?: {
+    heading: string;
+    body: string;
+    primaryCTA: {
+      label: string;
+      to: string;
+    };
+    secondaryCTA?: {
+      label: string;
+      to: string;
+    };
+  };
   reliabilityLink?: {
     summary: string;
     label: string;
@@ -67,6 +79,7 @@ export type VerticalLandingShellProps = {
     heading: string;
     body: string;
   };
+  showBottomCTA?: boolean;
   journeySteps?: string[];
   agreementHighlights?: string[];
   packageHighlights?: string[];
@@ -96,9 +109,11 @@ const VerticalLandingShell = ({
   keyCapabilities,
   valueBlocks,
   accordionSections,
+  midCTA,
   reliabilityLink,
   supportLink = '/support',
   bottomCTA,
+  showBottomCTA = true,
   journeySteps,
   agreementHighlights,
   packageHighlights,
@@ -199,6 +214,22 @@ const VerticalLandingShell = ({
                 ))}
               </div>
             )}
+            {midCTA ? (
+              <SpaceFrame className="vertical-cta">
+                <h2>{midCTA.heading}</h2>
+                <p>{midCTA.body}</p>
+                <div className="space-section-actions">
+                  <Link className="btn btn-primary" to={midCTA.primaryCTA.to}>
+                    {midCTA.primaryCTA.label}
+                  </Link>
+                  {midCTA.secondaryCTA ? (
+                    <Link className="btn btn-secondary" to={midCTA.secondaryCTA.to}>
+                      {midCTA.secondaryCTA.label}
+                    </Link>
+                  ) : null}
+                </div>
+              </SpaceFrame>
+            ) : null}
             {reliabilityLink ? (
               <SpaceFrame>
                 <div className="badge">System reliability</div>
@@ -313,20 +344,24 @@ const VerticalLandingShell = ({
           </SpaceFrame>
         )}
 
-        <SpaceFrame className="vertical-cta">
-          <h2>{bottomCTA?.heading ?? `Ready to explore ${verticalName}?`}</h2>
-          <p>{bottomCTA?.body ?? 'Start a guided intake and we will route you to the right team for the next step.'}</p>
-          <div className="space-section-actions">
-            <Link className="btn btn-primary" to={primaryCTA.to}>
-              {primaryCTA.label}
-            </Link>
-            {!isExplainer && (
-              <Link className="btn btn-secondary" to={supportLink}>
-                Explore solutions
+        {showBottomCTA ? (
+          <SpaceFrame className="vertical-cta">
+            <h2>{bottomCTA?.heading ?? `Ready to explore ${verticalName}?`}</h2>
+            <p>
+              {bottomCTA?.body ?? 'Start a guided intake and we will route you to the right team for the next step.'}
+            </p>
+            <div className="space-section-actions">
+              <Link className="btn btn-primary" to={primaryCTA.to}>
+                {primaryCTA.label}
               </Link>
-            )}
-          </div>
-        </SpaceFrame>
+              {!isExplainer && (
+                <Link className="btn btn-secondary" to={supportLink}>
+                  Explore solutions
+                </Link>
+              )}
+            </div>
+          </SpaceFrame>
+        ) : null}
       </div>
     </div>
   );
