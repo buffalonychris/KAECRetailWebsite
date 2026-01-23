@@ -66,6 +66,7 @@ const Pricing = lazy(() => import('./pages/Pricing'));
 const FiveDayDemo = lazy(() => import('./pages/FiveDayDemo'));
 const Partners = lazy(() => import('./pages/Partners'));
 const Support = lazy(() => import('./pages/Support'));
+const Discovery = lazy(() => import('./pages/Discovery'));
 
 const App = () => {
   return (
@@ -153,6 +154,7 @@ const App = () => {
             <Route path="/5-day-demo" element={<FiveDayDemo />} />
             <Route path="/partners" element={<Partners />} />
             <Route path="/support" element={<Support />} />
+            <Route path="/discovery" element={<Discovery />} />
           </Route>
           <Route element={<OperatorLayout />}>
             <Route path="/operator" element={<Operator />} />
