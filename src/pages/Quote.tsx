@@ -173,7 +173,7 @@ const Quote = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
-      <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+      <div className="hero-card motion-fade-up" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Deterministic quote</div>
         <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a {brandSite} quote</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
@@ -376,14 +376,17 @@ const Quote = () => {
             <ResponsivePublicImage
               srcBase="/images/home-security/hs_badges_trust-grid"
               alt="Trust and guarantees summary"
-              className="premium-image premium-image--contain"
+              className="premium-image premium-image--contain hover-lift motion-fade-up"
             />
           ) : null
         }
-        className="section"
+        className="section motion-fade-up"
       />
 
-      <div className="card" style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+      <div
+        className="card motion-fade-up"
+        style={{ display: 'grid', gap: '1rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           <div>
             <div className="badge">Quote summary</div>

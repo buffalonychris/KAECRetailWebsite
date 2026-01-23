@@ -132,7 +132,7 @@ const VerticalLandingShell = ({
                   srcSet={heroMedia.srcSet}
                   sizes={heroMedia.sizes}
                   alt={heroMedia.alt}
-                  fetchpriority="high"
+                  fetchPriority="high"
                   loading="eager"
                 />
               </picture>

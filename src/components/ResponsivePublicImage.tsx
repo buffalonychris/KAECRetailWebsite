@@ -18,7 +18,7 @@ const ResponsivePublicImage = ({
   priority = false,
 }: ResponsivePublicImageProps) => {
   const loading = priority ? 'eager' : 'lazy';
-  const fetchPriority = priority ? 'high' : undefined;
+  const fetchPriority: ImgHTMLAttributes<HTMLImageElement>['fetchPriority'] = priority ? 'high' : 'auto';
   const pictureClassName = 'responsive-public-image';
   const imageClassName = ['responsive-public-image__img', className].filter(Boolean).join(' ');
 
@@ -31,7 +31,7 @@ const ResponsivePublicImage = ({
         className={imageClassName}
         loading={loading}
         decoding="async"
-        fetchpriority={fetchPriority}
+        fetchPriority={fetchPriority}
         width={width}
         height={height}
       />

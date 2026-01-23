@@ -107,7 +107,7 @@ const Packages = () => {
     <div className="container section">
       {guidedMode && (
         <div
-          className="hero-card"
+          className="hero-card motion-fade-up"
           role="status"
           style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}
         >
@@ -166,18 +166,18 @@ const Packages = () => {
               ]
             : undefined
         }
-        className="section"
+        className="section motion-fade-up"
       />
       {vertical === 'home-security' && (
-        <div className="home-security-trust-strip">
+        <div className="home-security-trust-strip motion-fade-up">
           <ResponsivePublicImage
             srcBase="/images/home-security/hs_badges_trust-grid"
             alt="Trust and guarantees summary"
-            className="premium-image premium-image--strip"
+            className="premium-image premium-image--strip hover-lift"
           />
         </div>
       )}
-      <div className="card-grid">
+      <div className="card-grid motion-stagger">
         {packageList.map((pkg) => (
           <PackageCard
             key={pkg.id}
@@ -203,7 +203,7 @@ const Packages = () => {
             <ResponsivePublicImage
               srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
               alt="Typical coverage by package tier"
-              className="premium-image premium-image--contain"
+              className="premium-image premium-image--contain hover-lift motion-fade-up"
             />
           </div>
           <HomeSecurityComparisonTable />

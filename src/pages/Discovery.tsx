@@ -49,12 +49,12 @@ const Discovery = () => {
               <ResponsivePublicImage
                 srcBase="/images/home-security/hs_badges_trust-grid"
                 alt="Trust and guarantees summary"
-                className="premium-image premium-image--contain"
+                className="premium-image premium-image--contain hover-lift motion-fade-up"
               />
               <ResponsivePublicImage
                 srcBase="/images/home-security/hs_diagram_local-first-architecture"
                 alt="Local-first architecture diagram"
-                className="premium-image premium-image--contain"
+                className="premium-image premium-image--contain hover-lift motion-fade-up"
               />
             </div>
             <div className="discovery-mobile-accordion">
@@ -62,7 +62,7 @@ const Discovery = () => {
                 <ResponsivePublicImage
                   srcBase="/images/home-security/hs_badges_trust-grid"
                   alt="Trust and guarantees summary"
-                  className="premium-image premium-image--contain"
+                  className="premium-image premium-image--contain hover-lift motion-fade-up"
                 />
               </AccordionSection>
             </div>

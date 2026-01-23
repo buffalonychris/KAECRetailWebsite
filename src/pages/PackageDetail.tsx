@@ -140,7 +140,7 @@ const PackageDetail = () => {
         <Link to={`/packages${verticalQuery}`} className="btn btn-secondary pdp-back">
           Back to packages
         </Link>
-        <section ref={heroRef} className="hero-card pdp-hero">
+        <section ref={heroRef} className="hero-card pdp-hero motion-fade-up">
           {heroStripImage ? (
             <div className="pdp-hero-strip" style={{ backgroundImage: `url(${heroStripImage})` }} aria-hidden="true" />
           ) : null}
@@ -190,24 +190,24 @@ const PackageDetail = () => {
           </div>
         </section>
 
-        <section id="what-you-get" className="card pdp-what-you-get pdp-section">
+        <section id="what-you-get" className="card pdp-what-you-get pdp-section motion-fade-up">
           <div className="pdp-section-header">
             <h2>What you get</h2>
             <p>Hardware included in this tier.</p>
           </div>
           {isGoldTier ? (
-            <div className="pdp-what-grid pdp-what-grid--media">
+            <div className="pdp-what-grid pdp-what-grid--media motion-stagger">
               {goldCardImages.map((card) => (
                 <ResponsivePublicImage
                   key={card.title}
                   srcBase={card.srcBase}
                   alt={card.alt}
-                  className="premium-image premium-image--card"
+                  className="premium-image premium-image--card hover-lift"
                 />
               ))}
             </div>
           ) : (
-            <div className="pdp-what-grid">
+            <div className="pdp-what-grid motion-stagger">
               {packageContent.whatYouGet.map((group) => (
                 <div key={group.title} className="pdp-what-card">
                   <h3>{group.title}</h3>
@@ -229,8 +229,8 @@ const PackageDetail = () => {
           </div>
         </section>
 
-        <div className="pdp-two-column">
-          <section id="key-outcomes" className="card pdp-section">
+        <div className="pdp-two-column motion-stagger">
+          <section id="key-outcomes" className="card pdp-section motion-fade-up">
             <h2>Key outcomes</h2>
             <ul className="list">
               {packageContent.keyOutcomes.map((item) => (
@@ -245,12 +245,12 @@ const PackageDetail = () => {
                 <ResponsivePublicImage
                   srcBase="/images/home-security/hs_badges_trust-grid"
                   alt="Trust and guarantees grid"
-                  className="premium-image premium-image--contain"
+                  className="premium-image premium-image--contain hover-lift"
                 />
               </div>
             )}
           </section>
-          <section className="card">
+          <section className="card motion-fade-up">
             <h2>Ideal for</h2>
             <ul className="list">
               {packageContent.idealFor.map((item) => (
@@ -264,7 +264,7 @@ const PackageDetail = () => {
         </div>
 
         <AccordionSection title="Capabilities & limitations" defaultOpen>
-          <div className="pdp-accordion-grid">
+          <div className="pdp-accordion-grid motion-stagger">
             <div>
               <h3>Capabilities</h3>
               <ul className="list">
@@ -290,7 +290,7 @@ const PackageDetail = () => {
           </div>
         </AccordionSection>
 
-        <section id="how-it-works" className="card pdp-how pdp-section">
+        <section id="how-it-works" className="card pdp-how pdp-section motion-fade-up">
           <h2>How it works</h2>
           <ol className="pdp-steps">
             {packageContent.howItWorks.map((step) => (
@@ -299,7 +299,7 @@ const PackageDetail = () => {
           </ol>
         </section>
 
-        <div id="trust-policies" className="pdp-section">
+        <div id="trust-policies" className="pdp-section motion-fade-up">
           <AccordionSection title="Trust & policies" defaultOpen={false}>
             <ul className="list">
               {trustPolicies.map((item) => (
@@ -312,7 +312,7 @@ const PackageDetail = () => {
           </AccordionSection>
         </div>
 
-        <div className="pdp-bottom-cta">
+        <div className="pdp-bottom-cta motion-fade-up">
           <Link className="btn btn-primary" to={contactLink}>
             Request install
           </Link>
