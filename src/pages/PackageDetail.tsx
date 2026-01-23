@@ -8,6 +8,7 @@ import { resolveVertical } from '../lib/verticals';
 import AccordionSection from '../components/AccordionSection';
 import { HOME_SECURITY_PDP_CONTENT } from '../content/homeSecurityPdp';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import ResponsivePublicImage from '../components/ResponsivePublicImage';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -88,6 +89,30 @@ const PackageDetail = () => {
 
   if (isHomeSecurityPdp && packageContent) {
     const heroStripImage = pkg ? homeSecurityTierStrip?.[pkg.id as keyof typeof homeSecurityTierStrip] : null;
+    const isGoldTier = pkg.id === 'a3';
+    const showTrustGrid = pkg.id === 'a1' || pkg.id === 'a2';
+    const goldCardImages = [
+      {
+        title: 'Core platform',
+        srcBase: '/images/home-security/hs_card_core-platform',
+        alt: 'Gold package card showing the core platform bundle',
+      },
+      {
+        title: 'Video & entry',
+        srcBase: '/images/home-security/hs_card_video-door-chime',
+        alt: 'Gold package card showing video door chime coverage',
+      },
+      {
+        title: 'Cameras',
+        srcBase: '/images/home-security/hs_card_indoor-outdoor-coverage',
+        alt: 'Gold package card showing indoor and outdoor camera coverage',
+      },
+      {
+        title: 'Sensors & alerts',
+        srcBase: '/images/home-security/hs_card_sensors-alerts',
+        alt: 'Gold package card showing sensors and alerts coverage',
+      },
+    ];
     const trustPolicies = [
       'You own the equipment, automations, and data.',
       'Optional third-party services connect directly to you; we do not sell subscriptions.',
@@ -170,21 +195,34 @@ const PackageDetail = () => {
             <h2>What you get</h2>
             <p>Hardware included in this tier.</p>
           </div>
-          <div className="pdp-what-grid">
-            {packageContent.whatYouGet.map((group) => (
-              <div key={group.title} className="pdp-what-card">
-                <h3>{group.title}</h3>
-                <ul className="list">
-                  {group.items.map((item) => (
-                    <li key={item}>
-                      <span />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {isGoldTier ? (
+            <div className="pdp-what-grid pdp-what-grid--media">
+              {goldCardImages.map((card) => (
+                <ResponsivePublicImage
+                  key={card.title}
+                  srcBase={card.srcBase}
+                  alt={card.alt}
+                  className="premium-image premium-image--card"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="pdp-what-grid">
+              {packageContent.whatYouGet.map((group) => (
+                <div key={group.title} className="pdp-what-card">
+                  <h3>{group.title}</h3>
+                  <ul className="list">
+                    {group.items.map((item) => (
+                      <li key={item}>
+                        <span />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="pdp-microcopy">
             <p>Equivalent models may be substituted based on availability—same or better specs.</p>
             <p>Final sensor counts may adjust slightly based on layout and entry points.</p>
@@ -202,6 +240,15 @@ const PackageDetail = () => {
                 </li>
               ))}
             </ul>
+            {showTrustGrid && (
+              <div className="pdp-trust-grid">
+                <ResponsivePublicImage
+                  srcBase="/images/home-security/hs_badges_trust-grid"
+                  alt="Trust and guarantees grid"
+                  className="premium-image premium-image--contain"
+                />
+              </div>
+            )}
           </section>
           <section className="card">
             <h2>Ideal for</h2>

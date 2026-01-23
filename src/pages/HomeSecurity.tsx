@@ -1,4 +1,6 @@
+import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import VerticalLandingShell from '../components/VerticalLandingShell';
+import SpaceFrame from '../components/operator/SpaceFrame';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { verticalContent } from '../content/systemRestoration';
 
@@ -28,19 +30,16 @@ const HomeSecurity = () => {
       heroBadges={['Offline-first', 'No subscriptions sold by us', 'Local control']}
       heroVariant="campaign"
       heroMedia={{
-        alt: 'Modern home entry with discreet security hardware and warm lighting',
-        src: '/images/home-security/hero-1024w.png',
-        srcSet:
-          '/images/home-security/hero-768w.png 768w, /images/home-security/hero-1024w.png 1024w, /images/home-security/hero-1536w.png 1536w',
-        sizes: '(max-width: 900px) 100vw, 1536px',
+        alt: 'Local-first home security dashboard with calm lighting',
+        src: '/images/home-security/hs_hero_home-security.png',
         sources: [
           {
             type: 'image/webp',
-            srcSet:
-              '/images/home-security/hero-768w.webp 768w, /images/home-security/hero-1024w.webp 1024w, /images/home-security/hero-1536w.webp 1536w',
+            srcSet: '/images/home-security/hs_hero_home-security.webp',
           },
         ],
       }}
+      heroOverlayClassName="vertical-hero-overlay--muted"
       primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/discovery?vertical=home-security' }}
       secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
       layoutVariant="explainer"
@@ -73,6 +72,25 @@ const HomeSecurity = () => {
           description: 'You own the hardware and the setup. No required monthly monitoring just to make the system function.',
         },
       ]}
+      afterValueBlocks={
+        <div className="space-grid two-column home-security-architecture">
+          <SpaceFrame>
+            <div className="badge">Local-first architecture</div>
+            <h2 style={{ marginTop: 0 }}>Local-first architecture</h2>
+            <p style={{ marginBottom: 0 }}>
+              Your system keeps working on your home network, even when the internet drops. Local automations,
+              sensors, and alerts still run—and you stay in control.
+            </p>
+          </SpaceFrame>
+          <div className="premium-media-card">
+            <ResponsivePublicImage
+              srcBase="/images/home-security/hs_diagram_local-first-architecture"
+              alt="Diagram showing local-first architecture with offline control"
+              className="premium-image premium-image--contain"
+            />
+          </div>
+        </div>
+      }
       accordionSections={[
         {
           title: 'How Home Security Works',
@@ -183,6 +201,44 @@ const HomeSecurity = () => {
         to: '/reliability?vertical=home-security',
       }}
       supportLink="/support?vertical=home-security"
+      preCtaSections={
+        <>
+          <div className="space-grid two-column home-security-coverage">
+            <SpaceFrame>
+              <div className="badge">Coverage overview</div>
+              <h2 style={{ marginTop: 0 }}>Typical coverage</h2>
+              <p style={{ marginBottom: 0 }}>
+                Get a sense of how each tier expands coverage across entry points, interior motion zones, and
+                exterior visibility.
+              </p>
+            </SpaceFrame>
+            <div className="premium-media-card">
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
+                alt="Graphic showing typical coverage by package tier"
+                className="premium-image premium-image--contain"
+              />
+            </div>
+          </div>
+          <div className="space-grid two-column home-security-trust">
+            <SpaceFrame>
+              <div className="badge">Trust &amp; guarantees</div>
+              <h2 style={{ marginTop: 0 }}>Trust &amp; Guarantees</h2>
+              <p style={{ marginBottom: 0 }}>
+                We prioritize ownership, offline continuity, and clear support expectations, so you know exactly
+                what stays local and what stays optional.
+              </p>
+            </SpaceFrame>
+            <div className="premium-media-card">
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_badges_trust-grid"
+                alt="Trust and guarantees grid highlighting ownership and offline readiness"
+                className="premium-image premium-image--contain"
+              />
+            </div>
+          </div>
+        </>
+      }
       bottomCTA={{
         heading: 'Ready to explore Home Security?',
         body: 'Start a quick guided intake and we’ll route you to the right next step.',

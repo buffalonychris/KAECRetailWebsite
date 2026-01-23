@@ -9,6 +9,7 @@ import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlo
 import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
+import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
 
@@ -370,6 +371,15 @@ const Quote = () => {
 
       <OwnershipOfflineGuarantee
         intro="Every add-on follows the same ownership, offline-first, and no-subscription standards."
+        media={
+          isHomeSecurity ? (
+            <ResponsivePublicImage
+              srcBase="/images/home-security/hs_badges_trust-grid"
+              alt="Trust and guarantees summary"
+              className="premium-image premium-image--contain"
+            />
+          ) : null
+        }
         className="section"
       />
 
