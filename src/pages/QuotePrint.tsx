@@ -15,6 +15,7 @@ import { copyToClipboard, shortenMiddle } from '../lib/displayUtils';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
 import { brandSite } from '../lib/brand';
+import { calculateDepositDue } from '../lib/paymentTerms';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -23,6 +24,7 @@ const QuotePrint = () => {
   const location = useLocation();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const token = searchParams.get('t') || '';
+  const isInternalView = searchParams.get('internal') === '1';
   const [quote, setQuote] = useState<QuoteContext | null>(null);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [hashCopied, setHashCopied] = useState(false);
@@ -155,6 +157,8 @@ const QuotePrint = () => {
   const displayedHash = shortenMiddle(quote.quoteHash);
   const supersedes = shortenMiddle(quote.priorQuoteHash);
   const resumeUrl = buildResumeUrl(quote, 'agreement');
+  const depositDue = calculateDepositDue(quote.pricing.total, siteConfig.depositPolicy);
+  const balanceDue = Math.max(quote.pricing.total - depositDue, 0);
 
   const handleCopyHash = async () => {
     if (!quote?.quoteHash) return;
@@ -188,26 +192,10 @@ const QuotePrint = () => {
             <div>Date: {quoteDate}</div>
             <div>Quote Ref: {reference}</div>
             <div>Quote Version: {quoteVersion}</div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
-              {quote.quoteHash && (
-                <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
-                  {hashCopied ? 'Copied full hash' : 'Copy full hash'}
-                </button>
-              )}
-            </div>
           </div>
         </header>
 
         <div style={{ marginTop: '0.5rem', fontSize: '0.95rem', color: '#222' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior quote hash: {supersedes}</span>
-            {quote.priorQuoteHash && (
-              <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
-                {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
-              </button>
-            )}
-          </div>
           <div>This quote supersedes all prior quotes for the same customer/property context.</div>
           <div style={{ fontWeight: 700, color: '#000', marginTop: '0.5rem', display: 'grid', gap: '0.25rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -226,8 +214,6 @@ const QuotePrint = () => {
             you left off.
           </div>
         </div>
-
-        <AuthorityBlock meta={authorityMeta} />
 
         <section className="print-section" style={{ marginTop: '1.5rem' }}>
           <h2>Customer & Property</h2>
@@ -294,8 +280,20 @@ const QuotePrint = () => {
                   ? 'Add-ons are quoted separately; no subscriptions sold.'
                   : 'No monthly subscriptions required.'}
               </div>
+              <div style={{ marginTop: '0.5rem', color: '#444' }}>
+                <div>Deposit due today: {formatCurrency(depositDue)}</div>
+                <div>Remaining balance on arrival: {formatCurrency(balanceDue)}</div>
+              </div>
             </div>
           </div>
+        </section>
+
+        <section className="print-section" style={{ marginTop: '1.25rem' }}>
+          <h2>Payment terms</h2>
+          <p style={{ color: '#444' }}>
+            A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
+            avoids payment issues after work is complete and keeps your install day on schedule.
+          </p>
         </section>
 
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
@@ -409,6 +407,34 @@ const QuotePrint = () => {
             </ul>
           </div>
         </section>
+
+        {isInternalView && (
+          <section className="print-section page-break" style={{ marginTop: '1.5rem' }}>
+            <h2>Internal support log (not customer-facing)</h2>
+            <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.95rem' }}>
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span className="mono-text" title={quote.quoteHash || undefined}>Quote Hash: {displayedHash}</span>
+                  {quote.quoteHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyHash}>
+                      {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span className="mono-text" title={quote.priorQuoteHash || undefined}>Supersedes prior quote hash: {supersedes}</span>
+                  {quote.priorQuoteHash && (
+                    <button type="button" className="btn btn-secondary" onClick={handleCopyPriorHash}>
+                      {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                    </button>
+                  )}
+                </div>
+                {quote.issuedAtISO && <div>Issued: {quote.issuedAtISO}</div>}
+              </div>
+              <AuthorityBlock meta={authorityMeta} />
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

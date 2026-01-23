@@ -10,14 +10,7 @@ import { sendAgreementEmail } from '../lib/emailSend';
 import { buildResumeUrl } from '../lib/resumeToken';
 import { buildQuoteReference } from '../lib/quoteUtils';
 import { brandShort } from '../lib/brand';
-
-const calculateDepositDue = (total: number) => {
-  const { depositPolicy } = siteConfig;
-  if (depositPolicy.type === 'flat') {
-    return Math.min(total, depositPolicy.value);
-  }
-  return Math.min(total, Math.round(total * depositPolicy.value * 100) / 100);
-};
+import { calculateDepositDue } from '../lib/paymentTerms';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -98,7 +91,7 @@ const Payment = () => {
   }, [acceptanceRecord, quoteContext, saveEmail]);
 
   const total = quoteContext?.pricing.total ?? 0;
-  const depositDue = useMemo(() => calculateDepositDue(total), [total]);
+  const depositDue = useMemo(() => calculateDepositDue(total, siteConfig.depositPolicy), [total]);
   const balanceDue = useMemo(() => Math.max(total - depositDue, 0), [depositDue, total]);
   const resumeUrl = useMemo(() => (quoteContext ? buildResumeUrl(quoteContext, 'payment') : ''), [quoteContext]);
 
@@ -317,6 +310,14 @@ const Payment = () => {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className="badge">Payment terms</div>
+        <p style={{ margin: 0, color: '#c8c0aa' }}>
+          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
+          avoids payment issues after work is complete and keeps your install day on schedule.
+        </p>
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>

@@ -1,3 +1,5 @@
+import { brandServiceLocation } from '../lib/brand';
+
 const Home = () => {
   return (
     <div>
@@ -23,7 +25,7 @@ const Home = () => {
               </a>
             </div>
             <div style={{ color: 'var(--kaec-text-subtle)' }}>
-              Serving Buffalo, NY and Western New York with local deployment and support.
+              Service location: {brandServiceLocation}.
             </div>
           </div>
           <div className="hero-card" style={{ display: 'grid', gap: '1rem' }}>

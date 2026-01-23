@@ -16,6 +16,7 @@ import { buildAgreementAuthorityMeta, DocAuthorityMeta, parseAgreementToken } fr
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
 import { brandSite } from '../lib/brand';
+import { calculateDepositDue } from '../lib/paymentTerms';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -408,6 +409,8 @@ const AgreementReview = () => {
 
   const addOnTotal = selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
   const estimatedTotal = quote?.pricing?.total ?? selectedPackage.basePrice + addOnTotal;
+  const depositDue = calculateDepositDue(estimatedTotal, siteConfig.depositPolicy);
+  const balanceDue = Math.max(estimatedTotal - depositDue, 0);
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
@@ -508,6 +511,10 @@ const AgreementReview = () => {
                   <strong style={{ fontSize: '1.1rem' }}>One-time total: {formatCurrency(estimatedTotal)}</strong>
                   <small style={{ color: '#c8c0aa' }}>Based on your selected tier and add-ons.</small>
                 </div>
+                <div style={{ display: 'grid', gap: '0.25rem', color: '#c8c0aa' }}>
+                  <small>Deposit due today: {formatCurrency(depositDue)}</small>
+                  <small>Remaining balance on arrival: {formatCurrency(balanceDue)}</small>
+                </div>
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
                   <strong>Customer & property</strong>
                   <ul className="list" style={{ marginTop: 0 }}>
@@ -555,6 +562,14 @@ const AgreementReview = () => {
               </div>
             </div>
           </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className="badge">Payment terms</div>
+        <p style={{ margin: 0, color: '#c8c0aa' }}>
+          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
+          avoids payment issues after work is complete and keeps your install day on schedule.
+        </p>
+      </div>
 
       <div
         ref={acceptanceSectionRef}

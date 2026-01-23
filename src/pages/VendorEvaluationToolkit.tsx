@@ -125,7 +125,7 @@ const VendorEvaluationToolkit = () => {
             Email only. This is a manual process and every request is reviewed individually.
           </p>
           <p className="mono-text break-all" style={{ marginBottom: '0.75rem' }}>
-            vendors@reliableeldercare.com
+            admin@reliableeldercare.com
           </p>
           <ul className="list">
             <li>
