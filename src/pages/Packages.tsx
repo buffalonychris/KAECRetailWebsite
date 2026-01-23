@@ -5,6 +5,7 @@ import ComparisonLadder from '../components/ComparisonLadder';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
+import AccordionSection from '../components/AccordionSection';
 import { getPackages } from '../content/packages';
 import { getAddOns } from '../data/pricing';
 import { brandSite } from '../lib/brand';
@@ -104,7 +105,7 @@ const Packages = () => {
   };
 
   return (
-    <div className="container section">
+    <div className={`container section ${isHomeSecurity ? 'hub-container' : ''}`}>
       {guidedMode && (
         <div
           className="hero-card motion-fade-up"
@@ -166,17 +167,8 @@ const Packages = () => {
               ]
             : undefined
         }
-        className="section motion-fade-up"
+        className={isHomeSecurity ? 'motion-fade-up' : 'section motion-fade-up'}
       />
-      {vertical === 'home-security' && (
-        <div className="home-security-trust-strip motion-fade-up">
-          <ResponsivePublicImage
-            srcBase="/images/home-security/hs_badges_trust-grid"
-            alt="Trust and guarantees summary"
-            className="premium-image premium-image--strip hover-lift"
-          />
-        </div>
-      )}
       <div className="card-grid motion-stagger">
         {packageList.map((pkg) => (
           <PackageCard
@@ -193,12 +185,17 @@ const Packages = () => {
 
       {vertical === 'home-security' && (
         <div className="section">
-          <div className="card" style={{ marginBottom: '1rem' }}>
-            <h2 style={{ marginTop: 0 }}>Compare Home Security tiers</h2>
-            <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-              One dashboard for everything. Remote access needs internet, but local control still works on your home network.
-            </p>
-          </div>
+          <AccordionSection
+            title="Compare Home Security tiers"
+            description="One dashboard for everything. Remote access needs internet, but local control still works on your home network."
+          >
+            <HomeSecurityComparisonTable />
+          </AccordionSection>
+        </div>
+      )}
+
+      {vertical === 'home-security' && (
+        <div className="section">
           <div className="home-security-coverage-header">
             <ResponsivePublicImage
               srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
@@ -206,7 +203,6 @@ const Packages = () => {
               className="premium-image premium-image--contain hover-lift motion-fade-up"
             />
           </div>
-          <HomeSecurityComparisonTable />
         </div>
       )}
 
