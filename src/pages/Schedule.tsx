@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getAddOns, getPackagePricing } from '../data/pricing';
 import { loadRetailFlow, markFlowStep, ScheduleRequest, updateRetailFlow } from '../lib/retailFlow';
 import FlowGuidePanel from '../components/FlowGuidePanel';
+import PaymentInstallDayAccordion from '../components/PaymentInstallDayAccordion';
 import TierBadge from '../components/TierBadge';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
@@ -38,6 +39,7 @@ const Schedule = () => {
   const depositStatus = flowState.payment?.depositStatus ?? 'pending';
 
   const vertical = quoteContext?.vertical ?? 'elder-tech';
+  const isHomeSecurity = vertical === 'home-security';
   const selectedPackage = useMemo(
     () => getPackagePricing(vertical).find((pkg) => pkg.id === quoteContext?.packageId) ?? getPackagePricing(vertical)[0],
     [quoteContext?.packageId, vertical]
@@ -191,6 +193,8 @@ const Schedule = () => {
         ctaLabel="Resume / Verify"
         onCta={() => navigate('/resume-verify')}
       />
+
+      {isHomeSecurity && <PaymentInstallDayAccordion />}
 
       {gateCards
         .filter((gate) => gate.condition)

@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import FlowGuidePanel from '../components/FlowGuidePanel';
+import HelpContactPanel from '../components/HelpContactPanel';
+import PaymentInstallDayAccordion from '../components/PaymentInstallDayAccordion';
 import { getAddOns, getPackagePricing } from '../data/pricing';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { QuoteContext } from '../lib/agreement';
@@ -104,6 +106,7 @@ const QuoteReview = () => {
   }, [token]);
 
   const vertical = quote?.vertical ?? 'elder-tech';
+  const isHomeSecurity = vertical === 'home-security';
   const selectedPackage = useMemo(
     () => getPackagePricing(vertical).find((pkg) => pkg.id === quote?.packageId) ?? getPackagePricing(vertical)[0],
     [quote, vertical]
@@ -324,30 +327,33 @@ const QuoteReview = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
-      <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div className="badge">Decision support</div>
-          <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Deterministic one-time estimate. No subscriptions. Save or share with family, then continue to agreement.
-          </p>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-            <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
-              Continue to Agreement
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-              Print / Save Quote
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
-              disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
-            >
-              {sending ? 'Sending…' : 'Email this quote'}
-            </button>
+      <div className="card-grid" style={{ alignItems: 'start' }}>
+        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="badge">Decision support</div>
+            <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Deterministic one-time estimate. No subscriptions. Save or share with family, then continue to agreement.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+              <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
+                Continue to Agreement
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+                Print / Save Quote
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
+                disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
+              >
+                {sending ? 'Sending…' : 'Email this quote'}
+              </button>
+            </div>
           </div>
         </div>
+        {isHomeSecurity && <HelpContactPanel />}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
@@ -435,13 +441,17 @@ const QuoteReview = () => {
         </div>
       </div>
 
-      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
-        <div className="badge">Payment terms</div>
-        <p style={{ margin: 0, color: '#c8c0aa' }}>
-          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
-          avoids payment issues after work is complete and keeps your install day on schedule.
-        </p>
-      </div>
+      {isHomeSecurity ? (
+        <PaymentInstallDayAccordion />
+      ) : (
+        <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+          <div className="badge">Payment terms</div>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
+            avoids payment issues after work is complete and keeps your install day on schedule.
+          </p>
+        </div>
+      )}
 
       <FlowGuidePanel
         currentStep="quote"
