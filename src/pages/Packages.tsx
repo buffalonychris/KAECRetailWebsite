@@ -4,6 +4,7 @@ import PackageCard from '../components/PackageCard';
 import ComparisonLadder from '../components/ComparisonLadder';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
+import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { getPackages } from '../content/packages';
 import { getAddOns } from '../data/pricing';
 import { brandSite } from '../lib/brand';
@@ -167,6 +168,15 @@ const Packages = () => {
         }
         className="section"
       />
+      {vertical === 'home-security' && (
+        <div className="home-security-trust-strip">
+          <ResponsivePublicImage
+            srcBase="/images/home-security/hs_badges_trust-grid"
+            alt="Trust and guarantees summary"
+            className="premium-image premium-image--strip"
+          />
+        </div>
+      )}
       <div className="card-grid">
         {packageList.map((pkg) => (
           <PackageCard
@@ -188,6 +198,13 @@ const Packages = () => {
             <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
               One dashboard for everything. Remote access needs internet, but local control still works on your home network.
             </p>
+          </div>
+          <div className="home-security-coverage-header">
+            <ResponsivePublicImage
+              srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
+              alt="Typical coverage by package tier"
+              className="premium-image premium-image--contain"
+            />
           </div>
           <HomeSecurityComparisonTable />
         </div>

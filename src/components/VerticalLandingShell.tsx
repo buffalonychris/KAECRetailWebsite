@@ -32,6 +32,7 @@ export type VerticalLandingShellProps = {
       srcSet: string;
     }>;
   };
+  heroOverlayClassName?: string;
   primaryCTA: {
     label: string;
     to: string;
@@ -57,6 +58,8 @@ export type VerticalLandingShellProps = {
     description?: string;
     content: ReactNode;
   }>;
+  afterValueBlocks?: ReactNode;
+  preCtaSections?: ReactNode;
   reliabilityLink?: {
     summary: string;
     label: string;
@@ -87,6 +90,7 @@ const VerticalLandingShell = ({
   heroBadges,
   heroVariant = 'default',
   heroMedia,
+  heroOverlayClassName,
   primaryCTA,
   secondaryCTA,
   layoutVariant = 'default',
@@ -96,6 +100,8 @@ const VerticalLandingShell = ({
   keyCapabilities,
   valueBlocks,
   accordionSections,
+  afterValueBlocks,
+  preCtaSections,
   reliabilityLink,
   supportLink = '/support',
   bottomCTA,
@@ -126,11 +132,11 @@ const VerticalLandingShell = ({
                   srcSet={heroMedia.srcSet}
                   sizes={heroMedia.sizes}
                   alt={heroMedia.alt}
-                  fetchPriority="high"
+                  fetchpriority="high"
                   loading="eager"
                 />
               </picture>
-              <div className="vertical-hero-overlay" />
+              <div className={['vertical-hero-overlay', heroOverlayClassName].filter(Boolean).join(' ')} />
             </div>
           ) : null}
           <div className="vertical-hero-content">
@@ -190,6 +196,7 @@ const VerticalLandingShell = ({
                 ))}
               </div>
             )}
+            {afterValueBlocks}
             {accordionSections && accordionSections.length > 0 && (
               <div className="space-grid two-column" style={{ alignItems: 'stretch' }}>
                 {accordionSections.map((section) => (
@@ -313,6 +320,7 @@ const VerticalLandingShell = ({
           </SpaceFrame>
         )}
 
+        {preCtaSections}
         <SpaceFrame className="vertical-cta">
           <h2>{bottomCTA?.heading ?? `Ready to explore ${verticalName}?`}</h2>
           <p>{bottomCTA?.body ?? 'Start a guided intake and we will route you to the right team for the next step.'}</p>

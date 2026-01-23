@@ -228,7 +228,13 @@ const buttonClassByVariant: Record<FitCheckConfig['tiers'][FitCheckTier]['ctas']
   ghost: 'btn',
 };
 
-const FitCheck = ({ config }: { config: FitCheckConfig }) => {
+type FitCheckProps = {
+  config: FitCheckConfig;
+  layout?: 'standalone' | 'embedded';
+  className?: string;
+};
+
+const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) => {
   const [answers, setAnswers] = useState<FitCheckAnswers>(initialAnswers);
   const [result, setResult] = useState<FitCheckResult | null>(null);
   const [exteriorLimitWarning, setExteriorLimitWarning] = useState(false);
@@ -326,8 +332,11 @@ const FitCheck = ({ config }: { config: FitCheckConfig }) => {
 
   const submitClassName = `btn btn-primary${canSubmit ? '' : ' disabled'}`;
 
-  return (
-    <div className="container section" style={{ display: 'grid', gap: '2rem' }}>
+  const content = (
+    <div
+      className={layout === 'standalone' ? `container section ${className ?? ''}`.trim() : className}
+      style={{ display: 'grid', gap: '2rem' }}
+    >
       <header style={{ display: 'grid', gap: '0.75rem' }}>
         <h1 style={{ marginBottom: 0 }}>{config.heroTitle}</h1>
         <p style={{ margin: 0, maxWidth: '54rem', color: 'rgba(214, 233, 248, 0.88)' }}>{config.heroSubtitle}</p>
@@ -629,6 +638,12 @@ const FitCheck = ({ config }: { config: FitCheckConfig }) => {
       ) : null}
     </div>
   );
+
+  if (layout === 'embedded') {
+    return <div className={['fit-check', className].filter(Boolean).join(' ')}>{content}</div>;
+  }
+
+  return content;
 };
 
 export default FitCheck;

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import SpaceFrame from './operator/SpaceFrame';
 
 type OwnershipOfflineGuaranteeProps = {
@@ -6,6 +7,7 @@ type OwnershipOfflineGuaranteeProps = {
   items?: string[];
   variant?: 'card' | 'frame';
   className?: string;
+  media?: ReactNode;
 };
 
 const OwnershipOfflineGuarantee = ({
@@ -14,6 +16,7 @@ const OwnershipOfflineGuarantee = ({
   items,
   variant = 'card',
   className = '',
+  media,
 }: OwnershipOfflineGuaranteeProps) => {
   const defaultItems = [
     'You own the equipment, automations, and data (wireless-first and privacy-first by default).',
@@ -24,7 +27,7 @@ const OwnershipOfflineGuarantee = ({
   ];
   const listItems = items ?? defaultItems;
   const content = (
-    <>
+    <div className="ownership-offline-content">
       <div className="badge">Ownership & Offline Guarantee</div>
       <h3 style={{ marginTop: '0.35rem', color: '#fff7e6' }}>{title}</h3>
       <p style={{ marginTop: 0, color: '#c8c0aa' }}>{intro}</p>
@@ -33,14 +36,24 @@ const OwnershipOfflineGuarantee = ({
           <li key={item}>{item}</li>
         ))}
       </ul>
-    </>
+    </div>
   );
 
   if (variant === 'frame') {
-    return <SpaceFrame className={className}>{content}</SpaceFrame>;
+    return (
+      <SpaceFrame className={['ownership-offline', className].filter(Boolean).join(' ')}>
+        {content}
+        {media ? <div className="ownership-offline-media">{media}</div> : null}
+      </SpaceFrame>
+    );
   }
 
-  return <div className={`card ${className}`.trim()}>{content}</div>;
+  return (
+    <div className={['card', 'ownership-offline', className].filter(Boolean).join(' ')}>
+      {content}
+      {media ? <div className="ownership-offline-media">{media}</div> : null}
+    </div>
+  );
 };
 
 export default OwnershipOfflineGuarantee;

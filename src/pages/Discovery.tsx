@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import AccordionSection from '../components/AccordionSection';
 import FitCheck from '../components/FitCheck';
+import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { fitCheckConfigs } from '../content/fitCheckConfigs';
 
@@ -25,6 +27,7 @@ const Discovery = () => {
   });
 
   const config = fitCheckConfigs[resolvedVertical];
+  const isHomeSecurity = resolvedVertical === 'home-security';
   const showUnknownNote = requestedVertical !== resolvedVertical;
 
   return (
@@ -36,7 +39,38 @@ const Discovery = () => {
           </p>
         </div>
       ) : null}
-      <FitCheck config={config} />
+      {isHomeSecurity ? (
+        <div className="container discovery-layout">
+          <div className="discovery-main">
+            <FitCheck config={config} layout="embedded" />
+          </div>
+          <aside className="discovery-aside">
+            <div className="discovery-sticky-panel">
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_badges_trust-grid"
+                alt="Trust and guarantees summary"
+                className="premium-image premium-image--contain"
+              />
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_diagram_local-first-architecture"
+                alt="Local-first architecture diagram"
+                className="premium-image premium-image--contain"
+              />
+            </div>
+            <div className="discovery-mobile-accordion">
+              <AccordionSection title="Why local-first matters" description="Ownership, offline continuity, and no lock-in.">
+                <ResponsivePublicImage
+                  srcBase="/images/home-security/hs_badges_trust-grid"
+                  alt="Trust and guarantees summary"
+                  className="premium-image premium-image--contain"
+                />
+              </AccordionSection>
+            </div>
+          </aside>
+        </div>
+      ) : (
+        <FitCheck config={config} />
+      )}
     </section>
   );
 };
