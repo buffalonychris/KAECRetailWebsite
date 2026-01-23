@@ -41,7 +41,7 @@ const HomeSecurity = () => {
           },
         ],
       }}
-      primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/support?vertical=home-security' }}
+      primaryCTA={{ label: 'Check Fit / Start Discovery', to: '/discovery?vertical=home-security' }}
       secondaryCTA={{ label: 'Explore Packages', to: '/packages?vertical=home-security' }}
       layoutVariant="explainer"
       containerClassName="hub-container"
