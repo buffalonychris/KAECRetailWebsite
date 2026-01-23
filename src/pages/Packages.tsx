@@ -123,22 +123,18 @@ const Packages = () => {
           </button>
         </div>
       )}
-      <h1 style={{ marginTop: 0 }}>Packages</h1>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <p className="badge" style={{ marginBottom: '0.5rem' }}>
-            One-time pricing only
-          </p>
-          <h2 style={{ margin: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gap: '0.5rem' }}>
+          <h1 style={{ margin: 0 }}>
             {vertical === 'home-security' ? 'Choose a Home Security package' : `Choose the ${brandSite} package that fits`}
-          </h2>
-          <p style={{ maxWidth: 640 }}>
+          </h1>
+          <p style={{ margin: 0, color: 'var(--kaec-muted)', maxWidth: 560 }}>
             {vertical === 'home-security'
-              ? 'Home Security packages are built to work locally first, using Home Assistant as the main control screen. We don’t sell monthly subscriptions. If you want professional monitoring, you can add it separately with a provider you choose.'
-              : 'Every tier is delivered with Home Assistant as the single control surface. Pricing is upfront—no subscriptions required for included capabilities.'}
+              ? 'One-time pricing, local-first control, and optional pro install.'
+              : 'One-time pricing, delivered with Home Assistant as your single control surface.'}
           </p>
         </div>
-        <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'end' }}>
+        <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'start' }}>
           <Link
             className="btn btn-primary"
             to={vertical === 'home-security' ? '/quote?vertical=home-security' : '/quote'}
@@ -146,29 +142,10 @@ const Packages = () => {
             Build my quote
           </Link>
           <small style={{ color: '#c8c0aa' }}>
-            Pro install, set up to work even during internet outages, with clear pricing.
+            Clear pricing with pro install, ready for offline resilience.
           </small>
         </div>
       </div>
-      <OwnershipOfflineGuarantee
-        intro={
-          vertical === 'home-security'
-            ? 'Every package follows our “works-without-internet” rule and keeps control with your household.'
-            : 'Every package honors the Offline Dignity Rule and keeps ownership with the household.'
-        }
-        items={
-          vertical === 'home-security'
-            ? [
-                'You own the equipment, the automations, and your data.',
-                'No monthly fees sold by us. Optional third-party services are between you and them.',
-                'Key features still work on your home network even if the internet is down.',
-                'Cloud features are optional (mainly for remote access and sharing).',
-                'Home Assistant is the single dashboard across our products.',
-              ]
-            : undefined
-        }
-        className={isHomeSecurity ? 'motion-fade-up' : 'section motion-fade-up'}
-      />
       <div className="card-grid motion-stagger">
         {packageList.map((pkg) => (
           <PackageCard
@@ -189,20 +166,15 @@ const Packages = () => {
             title="Compare Home Security tiers"
             description="One dashboard for everything. Remote access needs internet, but local control still works on your home network."
           >
-            <HomeSecurityComparisonTable />
+            <div className="compare-stack">
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
+                alt="Typical coverage by package tier"
+                className="premium-image premium-image--contain motion-fade-up"
+              />
+              <HomeSecurityComparisonTable />
+            </div>
           </AccordionSection>
-        </div>
-      )}
-
-      {vertical === 'home-security' && (
-        <div className="section">
-          <div className="home-security-coverage-header">
-            <ResponsivePublicImage
-              srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
-              alt="Typical coverage by package tier"
-              className="premium-image premium-image--contain hover-lift motion-fade-up"
-            />
-          </div>
         </div>
       )}
 
@@ -230,6 +202,23 @@ const Packages = () => {
           </div>
         </div>
       )}
+      <OwnershipOfflineGuarantee
+        intro={
+          vertical === 'home-security'
+            ? 'Local-first control and ownership stay with your household.'
+            : 'Every package honors the Offline Dignity Rule and keeps ownership with the household.'
+        }
+        items={
+          vertical === 'home-security'
+            ? [
+                'You own the equipment, automations, and data.',
+                'Core functions still work on your home network if the internet is down.',
+                'Optional third-party services are contracted directly by you.',
+              ]
+            : undefined
+        }
+        className={isHomeSecurity ? 'section motion-fade-up' : 'section motion-fade-up'}
+      />
     </div>
   );
 };

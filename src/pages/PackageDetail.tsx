@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useMemo, type MouseEvent } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { getPackages } from '../content/packages';
 import TierBadge from '../components/TierBadge';
@@ -26,8 +26,6 @@ const PackageDetail = () => {
         a3: '/images/home-security/tier-gold-960w.png',
       }
     : null;
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const [showStickyCta, setShowStickyCta] = useState(false);
   const packageContent = useMemo(
     () => (isHomeSecurityPdp && pkg ? HOME_SECURITY_PDP_CONTENT[pkg.id as 'a1' | 'a2' | 'a3'] : null),
     [isHomeSecurityPdp, pkg]
@@ -61,20 +59,6 @@ const PackageDetail = () => {
       : [],
   });
 
-  useEffect(() => {
-    if (!isHomeSecurityPdp) return;
-    const heroElement = heroRef.current;
-    if (!heroElement) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowStickyCta(!entry.isIntersecting);
-      },
-      { threshold: 0.1, rootMargin: '-80px 0px 0px 0px' }
-    );
-    observer.observe(heroElement);
-    return () => observer.disconnect();
-  }, [isHomeSecurityPdp]);
-
   if (!pkg) {
     return (
       <div className="container section">
@@ -91,6 +75,27 @@ const PackageDetail = () => {
     const heroStripImage = pkg ? homeSecurityTierStrip?.[pkg.id as keyof typeof homeSecurityTierStrip] : null;
     const isGoldTier = pkg.id === 'a3';
     const showTrustGrid = pkg.id === 'a1' || pkg.id === 'a2';
+    const atGlanceItems = [
+      pkg.typicalCoverage ? `Coverage: ${pkg.typicalCoverage}` : null,
+      packageContent.keyOutcomes[0] ?? null,
+      packageContent.keyOutcomes[1] ?? null,
+    ].filter((item): item is string => Boolean(item));
+    const whatYouGetCards = packageContent.whatYouGet.map((group) => {
+      const summary =
+        group.items.length > 2
+          ? `${group.items[0]} · ${group.items[1]} +${group.items.length - 2} more`
+          : group.items.join(' · ');
+      return {
+        title: group.title,
+        summary,
+      };
+    });
+    const whatYouGetIcons: Record<string, string> = {
+      Core: '◎',
+      'Video & Entry': '◉',
+      Cameras: '◌',
+      'Sensors & Alerts': '◈',
+    };
     const goldCardImages = [
       {
         title: 'Core platform',
@@ -140,7 +145,7 @@ const PackageDetail = () => {
         <Link to={`/packages${verticalQuery}`} className="btn btn-secondary pdp-back">
           Back to packages
         </Link>
-        <section ref={heroRef} className="hero-card pdp-hero motion-fade-up">
+        <section className="hero-card pdp-hero motion-fade-up">
           {heroStripImage ? (
             <div className="pdp-hero-strip" style={{ backgroundImage: `url(${heroStripImage})` }} aria-hidden="true" />
           ) : null}
@@ -173,6 +178,15 @@ const PackageDetail = () => {
               Compare packages
             </Link>
           </div>
+          {atGlanceItems.length > 0 && (
+            <div className="pdp-at-glance" aria-label="At a glance">
+              {atGlanceItems.map((item) => (
+                <span key={item} className="pdp-at-glance-chip">
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="pdp-jump-links" aria-label="Jump to">
             <span>Jump to:</span>
             <a href="#what-you-get" onClick={handleJump('what-you-get')}>
@@ -189,6 +203,17 @@ const PackageDetail = () => {
             </a>
           </div>
         </section>
+
+        <div className="pdp-sticky-cta" aria-label="Quick actions">
+          <div className="pdp-sticky-inner">
+            <Link className="btn btn-primary" to={contactLink}>
+              Request install
+            </Link>
+            <Link className="btn btn-secondary" to={quoteLink}>
+              Build a Quote
+            </Link>
+          </div>
+        </div>
 
         <section id="what-you-get" className="card pdp-what-you-get pdp-section motion-fade-up">
           <div className="pdp-section-header">
@@ -208,17 +233,15 @@ const PackageDetail = () => {
             </div>
           ) : (
             <div className="pdp-what-grid motion-stagger">
-              {packageContent.whatYouGet.map((group) => (
-                <div key={group.title} className="pdp-what-card">
-                  <h3>{group.title}</h3>
-                  <ul className="list">
-                    {group.items.map((item) => (
-                      <li key={item}>
-                        <span />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {whatYouGetCards.map((card) => (
+                <div key={card.title} className="pdp-what-card pdp-what-card--icon">
+                  <span className="pdp-what-icon" aria-hidden="true">
+                    {whatYouGetIcons[card.title] ?? '◍'}
+                  </span>
+                  <div>
+                    <h3>{card.title}</h3>
+                    <p className="pdp-what-summary">{card.summary}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -228,6 +251,15 @@ const PackageDetail = () => {
             <p>Final sensor counts may adjust slightly based on layout and entry points.</p>
           </div>
         </section>
+
+        <div className="pdp-inline-cta">
+          <Link className="btn btn-primary" to={contactLink}>
+            Request install
+          </Link>
+          <Link className="btn btn-secondary" to={quoteLink}>
+            Build a Quote
+          </Link>
+        </div>
 
         <div className="pdp-two-column motion-stagger">
           <section id="key-outcomes" className="card pdp-section motion-fade-up">
@@ -322,20 +354,6 @@ const PackageDetail = () => {
           <Link className="btn btn-link" to="/packages?vertical=home-security">
             Compare packages
           </Link>
-        </div>
-
-        <div className={`pdp-sticky-cta ${showStickyCta ? 'is-visible' : ''}`} aria-hidden={!showStickyCta}>
-          <div className="pdp-sticky-inner">
-            <Link className="btn btn-primary" to={contactLink}>
-              Request install
-            </Link>
-            <Link className="btn btn-secondary" to={quoteLink}>
-              Build a Quote
-            </Link>
-            <Link className="btn btn-link" to="/packages?vertical=home-security">
-              Compare packages
-            </Link>
-          </div>
         </div>
       </div>
     );
