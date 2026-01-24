@@ -12,6 +12,7 @@ import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 
 const Packages = () => {
   const navigate = useNavigate();
@@ -88,6 +89,10 @@ const Packages = () => {
 
   useEffect(() => {
     const guidedParam = searchParams.get('guided') === '1';
+    const pathParam = searchParams.get('path');
+    if (pathParam === 'online' || pathParam === 'onsite') {
+      updateRetailFlow({ homeSecurity: { selectedPath: pathParam } });
+    }
     if (guidedParam) {
       setGuidedMode(true);
       updateRetailFlow({ guidedMode: true, currentStep: 'select' });
@@ -106,6 +111,17 @@ const Packages = () => {
 
   return (
     <div className={`container section ${isHomeSecurity ? 'hub-container' : ''}`}>
+      {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="packages" />}
+      {isHomeSecurity && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <Link className="btn btn-secondary" to="/home-security">
+            Back to overview
+          </Link>
+          <Link className="btn btn-link" to="/home-security#how-you-can-proceed">
+            Edit how you proceed
+          </Link>
+        </div>
+      )}
       {guidedMode && (
         <div
           className="hero-card motion-fade-up"
@@ -137,13 +153,19 @@ const Packages = () => {
         <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'start' }}>
           <Link
             className="btn btn-primary"
-            to={vertical === 'home-security' ? '/quote?vertical=home-security' : '/quote'}
+            to={vertical === 'home-security' ? '/discovery?vertical=home-security' : '/quote'}
           >
-            Build my quote
+            Continue to Fit Check
           </Link>
-          <small style={{ color: '#c8c0aa' }}>
-            Clear pricing with pro install, ready for offline resilience.
-          </small>
+          {vertical === 'home-security' ? (
+            <Link className="btn btn-link" to="/quote?vertical=home-security">
+              Skip to Quote
+            </Link>
+          ) : (
+            <small style={{ color: '#c8c0aa' }}>
+              Clear pricing with pro install, ready for offline resilience.
+            </small>
+          )}
         </div>
       </div>
       <div className="card-grid motion-stagger">
@@ -159,6 +181,11 @@ const Packages = () => {
           />
         ))}
       </div>
+      {vertical === 'home-security' && (
+        <p style={{ marginTop: '1rem', color: 'var(--kaec-muted)' }}>
+          All packages are expandable later. You can add cameras, sensors, or coverage areas as your needs change.
+        </p>
+      )}
 
       {vertical === 'home-security' && (
         <div className="section">

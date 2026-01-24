@@ -33,9 +33,8 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'Install walkthrough and homeowner handoff',
         ],
         ctas: [
-          { label: 'Schedule walkthrough', href: '/schedule?vertical=home-security', variant: 'primary' },
-          { label: 'Request a quote', href: '/quote?vertical=home-security', variant: 'secondary' },
-          { label: 'Email a specialist', href: '/support?vertical=home-security', variant: 'ghost' },
+          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
       Silver: {
@@ -48,9 +47,8 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'System walkthrough and homeowner training',
         ],
         ctas: [
-          { label: 'Schedule walkthrough', href: '/schedule?vertical=home-security', variant: 'primary' },
-          { label: 'Request a quote', href: '/quote?vertical=home-security', variant: 'secondary' },
-          { label: 'Email a specialist', href: '/support?vertical=home-security', variant: 'ghost' },
+          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
       Gold: {
@@ -63,9 +61,8 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'Priority install planning and calibration walkthrough',
         ],
         ctas: [
-          { label: 'Schedule walkthrough', href: '/schedule?vertical=home-security', variant: 'primary' },
-          { label: 'Request a quote', href: '/quote?vertical=home-security', variant: 'secondary' },
-          { label: 'Email a specialist', href: '/support?vertical=home-security', variant: 'ghost' },
+          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
     },

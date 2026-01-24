@@ -7,7 +7,7 @@ export const paymentInstallDaySections: PaymentInstallDaySection[] = [
   {
     title: 'How the deposit works',
     items: [
-      'Deposit reserves your install slot and locks in scheduling.',
+      'Deposit reserves system pricing and equipment availability for 30 days.',
       'Deposit is applied to your total project cost.',
     ],
   },

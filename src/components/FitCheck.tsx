@@ -1,32 +1,29 @@
-import { CSSProperties, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { FitCheckConfig, FitCheckTier } from '../content/fitCheckConfigs';
+import {
+  HomeSecurityFitCheckAnswers,
+  HomeSecurityFitCheckResult,
+  defaultHomeSecurityFitCheckAnswers,
+  entrySummaryLabels,
+  indoorSummaryLabels,
+  perimeterSummaryLabels,
+  buildAssumedCoverage,
+  isHomeSecurityFitCheckComplete,
+  tierToPackageId,
+  PerimeterVideo,
+  LiveView,
+  EntryPoints,
+  ExteriorArea,
+  IndoorAreas,
+  SpecialRoom,
+  HomeSize,
+  Preference,
+} from '../lib/homeSecurityFunnel';
+import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
-type PerimeterVideo = 'none' | 'couple' | 'full';
-type LiveView = 'no' | 'occasionally' | 'regularly';
-type EntryPoints = '1-2' | '3-4' | '5+';
-type ExteriorArea = 'front' | 'driveway' | 'back' | 'side' | 'garage';
-type IndoorAreas = 'none' | '1-2' | '3+';
-type SpecialRoom = 'office' | 'safe_room' | 'mancave' | 'nursery' | 'not_really';
-type HomeSize = 'small' | 'typical' | 'large';
-type Preference = 'simple' | 'balanced' | 'maximum';
-
-type FitCheckAnswers = {
-  perimeterVideo?: PerimeterVideo;
-  liveView?: LiveView;
-  entryPoints?: EntryPoints;
-  exteriorAreas: ExteriorArea[];
-  indoorAreas?: IndoorAreas;
-  specialRooms: SpecialRoom[];
-  homeSize?: HomeSize;
-  preference?: Preference;
-};
-
-type FitCheckResult = {
-  tier: FitCheckTier;
-  summary: string;
-  reasons: string[];
-};
+type FitCheckAnswers = HomeSecurityFitCheckAnswers;
+type FitCheckResult = HomeSecurityFitCheckResult;
 
 const optionCardStyle: CSSProperties = {
   display: 'grid',
@@ -52,10 +49,7 @@ const sectionSpacingStyle: CSSProperties = {
   gap: '1.25rem',
 };
 
-const initialAnswers: FitCheckAnswers = {
-  exteriorAreas: [],
-  specialRooms: [],
-};
+const initialAnswers: FitCheckAnswers = defaultHomeSecurityFitCheckAnswers;
 
 const perimeterOptions: Array<{ value: PerimeterVideo; label: string; helper: string }> = [
   { value: 'none', label: 'No exterior video yet', helper: 'Focus on entry sensors first' },
@@ -109,26 +103,8 @@ const preferenceOptions: Array<{ value: Preference; label: string; helper: strin
   { value: 'maximum', label: 'Maximum coverage', helper: 'Full scope coverage' },
 ];
 
-const perimeterSummaryLabels: Record<PerimeterVideo, string> = {
-  none: 'No exterior video yet',
-  couple: 'A couple of cameras',
-  full: 'Full perimeter video',
-};
-
-const entrySummaryLabels: Record<EntryPoints, string> = {
-  '1-2': '1–2 entry points',
-  '3-4': '3–4 entry points',
-  '5+': '5+ entry points',
-};
-
-const indoorSummaryLabels: Record<IndoorAreas, string> = {
-  none: 'No indoor coverage',
-  '1-2': '1–2 indoor areas',
-  '3+': '3+ indoor areas',
-};
-
-const scopeExteriorAreas: ExteriorArea[] = ['driveway', 'back', 'side'];
-const scopeSpecialRooms: SpecialRoom[] = ['office', 'safe_room', 'mancave', 'nursery'];
+const scopeExteriorAreas: FitCheckAnswers['exteriorAreas'] = ['driveway', 'back', 'side'];
+const scopeSpecialRooms: FitCheckAnswers['specialRooms'] = ['office', 'safe_room', 'mancave', 'nursery'];
 
 const getRecommendationTier = (answers: FitCheckAnswers): FitCheckTier => {
   const isBronze =
@@ -235,18 +211,31 @@ type FitCheckProps = {
 };
 
 const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [answers, setAnswers] = useState<FitCheckAnswers>(initialAnswers);
   const [result, setResult] = useState<FitCheckResult | null>(null);
   const [exteriorLimitWarning, setExteriorLimitWarning] = useState(false);
 
-  const canSubmit: boolean =
-    Boolean(answers.perimeterVideo) &&
-    Boolean(answers.liveView) &&
-    Boolean(answers.entryPoints) &&
-    answers.exteriorAreas.length > 0 &&
-    Boolean(answers.indoorAreas) &&
-    Boolean(answers.homeSize) &&
-    Boolean(answers.preference);
+  const canSubmit: boolean = isHomeSecurityFitCheckComplete(answers);
+
+  useEffect(() => {
+    const stored = loadRetailFlow().homeSecurity;
+    if (stored?.fitCheckAnswers) {
+      setAnswers({ ...initialAnswers, ...stored.fitCheckAnswers });
+    }
+    if (stored?.fitCheckResult) {
+      setResult(stored.fitCheckResult);
+    }
+  }, []);
+
+  useEffect(() => {
+    updateRetailFlow({ homeSecurity: { fitCheckAnswers: answers } });
+    if (canSubmit) {
+      const params = new URLSearchParams(searchParams);
+      params.set('fit', 'complete');
+      setSearchParams(params, { replace: true });
+    }
+  }, [answers, canSubmit, searchParams, setSearchParams]);
 
   const selectedSpecialRooms = useMemo(() => {
     return answers.specialRooms.filter((room) => room !== 'not_really');
@@ -259,7 +248,7 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
     }));
   };
 
-  const toggleExteriorArea = (area: ExteriorArea) => {
+  const toggleExteriorArea = (area: FitCheckAnswers['exteriorAreas'][number]) => {
     setAnswers((prev) => {
       const isSelected = prev.exteriorAreas.includes(area);
       if (isSelected) {
@@ -275,7 +264,7 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
     });
   };
 
-  const toggleSpecialRoom = (room: SpecialRoom) => {
+  const toggleSpecialRoom = (room: FitCheckAnswers['specialRooms'][number]) => {
     setAnswers((prev) => {
       const isSelected = prev.specialRooms.includes(room);
       if (isSelected) {
@@ -288,17 +277,34 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
   const handleSubmit = () => {
     if (!canSubmit) return;
     const tier = getRecommendationTier(answers);
-    setResult({
+    const nextResult: FitCheckResult = {
       tier,
       summary: buildSummary(answers),
       reasons: buildReasons(answers),
+      assumedCoverage: buildAssumedCoverage(answers),
+    };
+    setResult(nextResult);
+    updateRetailFlow({
+      homeSecurity: {
+        fitCheckResult: nextResult,
+        selectedPackageId: tierToPackageId(tier),
+      },
     });
+    const params = new URLSearchParams(searchParams);
+    params.set('fitTier', tier);
+    params.set('package', tierToPackageId(tier));
+    setSearchParams(params, { replace: true });
   };
 
   const handleReset = () => {
     setAnswers(initialAnswers);
     setResult(null);
     setExteriorLimitWarning(false);
+    updateRetailFlow({ homeSecurity: { fitCheckAnswers: initialAnswers, fitCheckResult: undefined } });
+    const params = new URLSearchParams(searchParams);
+    params.delete('fitTier');
+    params.delete('fit');
+    setSearchParams(params, { replace: true });
   };
 
   const questionNumberStyle: CSSProperties = {
@@ -348,7 +354,7 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
             <span style={questionNumberStyle}>Question 1</span>
             <h2 style={sectionTitleStyle}>How much exterior video do you want?</h2>
             <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.85)' }}>
-              This tells us whether to prioritize basic entry sensors or full perimeter visibility.
+              This tells us whether to prioritize basic entry sensors or full perimeter visibility (and how comfortable you are with cameras).
             </p>
           </div>
           <div style={gridStyle}>
@@ -619,6 +625,18 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
           </div>
 
           <div>
+            <h3 style={{ marginBottom: '0.5rem' }}>Assumed coverage (based on your answers)</h3>
+            <ul className="operator-list">
+              {result.assumedCoverage.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <small style={{ color: 'rgba(214, 233, 248, 0.8)' }}>
+              Final quantities may adjust after the walkthrough and layout confirmation.
+            </small>
+          </div>
+
+          <div>
             <h3 style={{ marginBottom: '0.5rem' }}>Included in {result.tier}</h3>
             <ul className="operator-list">
               {config.tiers[result.tier].included.map((item) => (
@@ -627,12 +645,24 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
             </ul>
           </div>
 
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.85)' }}>
+              You can change your answers or package at any time before installation.
+            </p>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.85)' }}>
+              If exterior equipment installation is restricted by an HOA or property manager, the system will be designed for interior-only coverage.
+            </p>
+          </div>
+
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             {config.tiers[result.tier].ctas.map((cta) => (
               <Link key={cta.label} to={cta.href} className={buttonClassByVariant[cta.variant]}>
                 {cta.label}
               </Link>
             ))}
+            <button type="button" className="btn btn-secondary" onClick={() => setResult(null)}>
+              Edit answers
+            </button>
           </div>
         </section>
       ) : null}

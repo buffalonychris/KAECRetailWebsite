@@ -1,4 +1,5 @@
 import { QuoteContext } from './agreement';
+import { HomeSecurityFunnelState } from './homeSecurityFunnel';
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 
@@ -52,6 +53,7 @@ export type RetailFlowState = {
   scheduleRequest?: ScheduleRequest;
   currentStep?: FlowStep;
   guidedMode?: boolean;
+  homeSecurity?: HomeSecurityFunnelState;
 };
 
 export const FLOW_STORAGE_KEY = 'kaecRetailFlow';
@@ -82,6 +84,7 @@ export const updateRetailFlow = (patch: Partial<RetailFlowState>) => {
       : current.agreementAcceptance,
     payment: patch.payment ? { ...current.payment, ...patch.payment } : current.payment,
     scheduleRequest: patch.scheduleRequest ?? current.scheduleRequest,
+    homeSecurity: patch.homeSecurity ? { ...current.homeSecurity, ...patch.homeSecurity } : current.homeSecurity,
   };
   return saveRetailFlow(merged);
 };
