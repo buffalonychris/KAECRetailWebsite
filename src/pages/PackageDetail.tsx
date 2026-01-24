@@ -1,4 +1,4 @@
-import { useMemo, type MouseEvent } from 'react';
+import { useEffect, useMemo, type MouseEvent } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { getPackages } from '../content/packages';
 import TierBadge from '../components/TierBadge';
@@ -9,6 +9,8 @@ import AccordionSection from '../components/AccordionSection';
 import { HOME_SECURITY_PDP_CONTENT } from '../content/homeSecurityPdp';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
+import { updateRetailFlow } from '../lib/retailFlow';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 
 const PackageDetail = () => {
   const { id } = useParams();
@@ -37,7 +39,10 @@ const PackageDetail = () => {
         ? `/contact?vertical=home-security&package=${pkg.id}`
         : '/contact?vertical=home-security'
       : '/contact';
+  const primaryActionLabel = isHomeSecurityPdp ? 'Continue to Fit Check' : 'Request install';
+  const primaryActionLink = isHomeSecurityPdp ? '/discovery?vertical=home-security' : contactLink;
   const tierLabel = pkg?.name ?? 'Package';
+  const selectedTierId = pkg ? (pkg.id.toUpperCase() as PackageTierId) : undefined;
   const handleJump = (targetId: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     const target = document.getElementById(targetId);
@@ -58,6 +63,12 @@ const PackageDetail = () => {
         ]
       : [],
   });
+
+  useEffect(() => {
+    if (isHomeSecurityPdp && selectedTierId) {
+      updateRetailFlow({ homeSecurity: { selectedPackageId: selectedTierId } });
+    }
+  }, [isHomeSecurityPdp, selectedTierId]);
 
   if (!pkg) {
     return (
@@ -142,6 +153,7 @@ const PackageDetail = () => {
 
     return (
       <div className="container section pdp-shell">
+        <HomeSecurityFunnelSteps currentStep="packages" />
         <Link to={`/packages${verticalQuery}`} className="btn btn-secondary pdp-back">
           Back to packages
         </Link>
@@ -157,7 +169,7 @@ const PackageDetail = () => {
                   labelOverride={pkg.badge ?? undefined}
                   vertical={vertical}
                 />
-                {isMostPopular && <span className="popular-pill">Most popular</span>}
+                {isMostPopular && <span className="popular-pill">Recommended</span>}
               </div>
               <h1 className="pdp-title">{pkg.name}</h1>
               <p className="pdp-tagline">{packageContent.heroOneLiner}</p>
@@ -168,8 +180,8 @@ const PackageDetail = () => {
             </div>
           </div>
           <div className="pdp-hero-actions">
-            <Link className="btn btn-primary" to={contactLink}>
-              Request install
+            <Link className="btn btn-primary" to={primaryActionLink}>
+              {primaryActionLabel}
             </Link>
             <Link className="btn btn-secondary" to={quoteLink}>
               Build a Quote
@@ -206,8 +218,8 @@ const PackageDetail = () => {
 
         <div className="pdp-sticky-cta" aria-label="Quick actions">
           <div className="pdp-sticky-inner">
-            <Link className="btn btn-primary" to={contactLink}>
-              Request install
+            <Link className="btn btn-primary" to={primaryActionLink}>
+              {primaryActionLabel}
             </Link>
             <Link className="btn btn-secondary" to={quoteLink}>
               Build a Quote
@@ -253,8 +265,8 @@ const PackageDetail = () => {
         </section>
 
         <div className="pdp-inline-cta">
-          <Link className="btn btn-primary" to={contactLink}>
-            Request install
+          <Link className="btn btn-primary" to={primaryActionLink}>
+            {primaryActionLabel}
           </Link>
           <Link className="btn btn-secondary" to={quoteLink}>
             Build a Quote
@@ -345,8 +357,8 @@ const PackageDetail = () => {
         </div>
 
         <div className="pdp-bottom-cta motion-fade-up">
-          <Link className="btn btn-primary" to={contactLink}>
-            Request install
+          <Link className="btn btn-primary" to={primaryActionLink}>
+            {primaryActionLabel}
           </Link>
           <Link className="btn btn-secondary" to={quoteLink}>
             Build a Quote

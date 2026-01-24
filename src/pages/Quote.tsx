@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import { brandSite } from '../lib/brand';
@@ -12,6 +12,8 @@ import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import { defaultHomeSecurityFitCheckAnswers, isHomeSecurityFitCheckComplete } from '../lib/homeSecurityFunnel';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -32,6 +34,10 @@ const Quote = () => {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const flowState = useMemo(() => loadRetailFlow(), []);
+  const fitCheckComplete = isHomeSecurity
+    ? isHomeSecurityFitCheckComplete(flowState.homeSecurity?.fitCheckAnswers ?? defaultHomeSecurityFitCheckAnswers)
+    : true;
 
   useLayoutConfig({
     layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
@@ -49,12 +55,30 @@ const Quote = () => {
   }, []);
 
   useEffect(() => {
+    const pathParam = searchParams.get('path');
+    if (isHomeSecurity && (pathParam === 'online' || pathParam === 'onsite')) {
+      updateRetailFlow({ homeSecurity: { selectedPath: pathParam } });
+    }
+  }, [isHomeSecurity, searchParams]);
+
+  useEffect(() => {
     const tierParam = searchParams.get('tier') ?? searchParams.get('package');
-    if (!tierParam) return;
-    const normalizedTier = tierParam.toUpperCase();
-    const match = packagePricing.find((pkg) => pkg.id === normalizedTier);
-    if (match) setPackageId(match.id);
-  }, [packagePricing, searchParams]);
+    if (tierParam) {
+      const normalizedTier = tierParam.toUpperCase();
+      const match = packagePricing.find((pkg) => pkg.id === normalizedTier);
+      if (match) setPackageId(match.id);
+      return;
+    }
+    if (isHomeSecurity && flowState.homeSecurity?.selectedPackageId) {
+      setPackageId(flowState.homeSecurity.selectedPackageId);
+    }
+  }, [packagePricing, searchParams, isHomeSecurity, flowState]);
+
+  useEffect(() => {
+    if (isHomeSecurity) {
+      updateRetailFlow({ homeSecurity: { selectedPackageId: packageId } });
+    }
+  }, [isHomeSecurity, packageId]);
 
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],
@@ -128,6 +152,7 @@ const Quote = () => {
   };
 
   const generateQuote = async () => {
+    if (isHomeSecurity && !fitCheckComplete) return;
     await persistQuote();
     navigate('/quoteReview');
   };
@@ -173,6 +198,17 @@ const Quote = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="quote" />}
+      {isHomeSecurity && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/discovery?vertical=home-security">
+            Back to Fit Check
+          </Link>
+          <Link className="btn btn-link" to="/packages?vertical=home-security">
+            Edit package
+          </Link>
+        </div>
+      )}
       <div className="hero-card motion-fade-up" style={{ display: 'grid', gap: '0.75rem' }}>
         <div className="badge">Deterministic quote</div>
         <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a {brandSite} quote</h1>
@@ -185,16 +221,25 @@ const Quote = () => {
             type="button"
             className="btn btn-primary"
             onClick={generateQuote}
-            disabled={!packageId}
+            disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
           >
             Generate Quote
           </button>
           <button type="button" className="btn btn-secondary" onClick={printQuote}>
             Print / Save PDF
           </button>
-          <small style={{ color: '#c8c0aa' }}>
-            Direct navigation safe: /quote works online or offline cache.
-          </small>
+          {isHomeSecurity && !fitCheckComplete ? (
+            <small style={{ color: '#f0b267' }}>
+              Complete the Fit Check before generating a Home Security quote.{' '}
+              <Link to="/discovery?vertical=home-security" style={{ color: 'var(--kaec-gold)' }}>
+                Go to Fit Check
+              </Link>
+            </small>
+          ) : (
+            <small style={{ color: '#c8c0aa' }}>
+              Direct navigation safe: /quote works online or offline cache.
+            </small>
+          )}
         </div>
       </div>
 
@@ -408,7 +453,12 @@ const Quote = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-primary" onClick={generateQuote} disabled={!packageId}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={generateQuote}
+            disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
+          >
             Generate Quote
           </button>
           <button type="button" className="btn btn-secondary" onClick={explainQuote}>

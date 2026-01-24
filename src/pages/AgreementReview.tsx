@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import { getAddOns, getPackagePricing } from '../data/pricing';
 import { getHardwareGroups } from '../data/hardware';
@@ -17,6 +17,7 @@ import FlowGuidePanel from '../components/FlowGuidePanel';
 import TierBadge from '../components/TierBadge';
 import { brandSite } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -414,6 +415,17 @@ const AgreementReview = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {vertical === 'home-security' && <HomeSecurityFunnelSteps currentStep="deposit" />}
+      {vertical === 'home-security' && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/quoteReview">
+            Back to Quote
+          </Link>
+          <Link className="btn btn-link" to="/discovery?vertical=home-security">
+            Edit Fit Check
+          </Link>
+        </div>
+      )}
       {redirectMessage && (
         <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)', color: '#c8c0aa' }}>
           {redirectMessage}
@@ -564,11 +576,28 @@ const AgreementReview = () => {
           </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
-        <div className="badge">Payment terms</div>
+        <div className="badge">Deposit &amp; payment terms</div>
         <p style={{ margin: 0, color: '#c8c0aa' }}>
-          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
-          avoids payment issues after work is complete and keeps your install day on schedule.
+          Deposit reserves system pricing and equipment availability for 30 days. The remaining balance is due when we arrive, before installation begins.
         </p>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className="badge">What happens next</div>
+        <ul className="list" style={{ marginTop: 0 }}>
+          <li>
+            <span />
+            <span>Installation is not scheduled until you select a date.</span>
+          </li>
+          <li>
+            <span />
+            <span>Final placement is confirmed before installation begins.</span>
+          </li>
+          <li>
+            <span />
+            <span>Remaining balance is due on the day of installation.</span>
+          </li>
+        </ul>
       </div>
 
       <div
@@ -625,7 +654,7 @@ const AgreementReview = () => {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" className="btn btn-primary" onClick={handleAccept} disabled={!acceptanceReady}>
-            Accept Agreement
+            Approve Agreement &amp; Pay Deposit
           </button>
           <button
             type="button"
@@ -633,7 +662,7 @@ const AgreementReview = () => {
             onClick={handleProceedToPayment}
             disabled={!storedAcceptance?.accepted}
           >
-            Proceed to Payment
+            Continue to Deposit
           </button>
           {storedAcceptance?.accepted && (
             <small style={{ color: '#c8c0aa' }}>
@@ -991,7 +1020,7 @@ const AgreementReview = () => {
         <FlowGuidePanel
           currentStep="agreement"
           nextDescription="Accept the agreement to unlock deposit/payment, then we schedule installation."
-          ctaLabel={storedAcceptance?.accepted ? 'Continue to deposit' : 'Accept to continue'}
+          ctaLabel={storedAcceptance?.accepted ? 'Continue to Deposit' : 'Approve Agreement & Pay Deposit'}
           onCta={storedAcceptance?.accepted ? handleProceedToPayment : () => handleScrollToSection(acceptanceSectionRef)}
         />
       )}

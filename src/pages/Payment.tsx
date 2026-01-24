@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { siteConfig } from '../config/site';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, PaymentStatus, updateRetailFlow, AcceptanceRecord, markFlowStep } from '../lib/retailFlow';
@@ -11,6 +11,7 @@ import { buildResumeUrl } from '../lib/resumeToken';
 import { buildQuoteReference } from '../lib/quoteUtils';
 import { brandShort } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -182,8 +183,21 @@ const Payment = () => {
     return null;
   }
 
+  const isHomeSecurity = quoteContext?.vertical === 'home-security';
+
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="deposit" />}
+      {isHomeSecurity && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/agreementReview">
+            Back to Agreement
+          </Link>
+          <Link className="btn btn-link" to="/quoteReview">
+            Edit Quote
+          </Link>
+        </div>
+      )}
       <style>{printStyles}</style>
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -315,9 +329,26 @@ const Payment = () => {
       <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
         <div className="badge">Payment terms</div>
         <p style={{ margin: 0, color: '#c8c0aa' }}>
-          A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
-          avoids payment issues after work is complete and keeps your install day on schedule.
+          Deposit reserves system pricing and equipment availability for 30 days. The remaining balance is due when we arrive, before installation begins.
         </p>
+      </div>
+
+      <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+        <div className="badge">What happens next</div>
+        <ul className="list" style={{ marginTop: 0 }}>
+          <li>
+            <span />
+            <span>Installation is not scheduled until you select a date.</span>
+          </li>
+          <li>
+            <span />
+            <span>Final placement is confirmed before installation begins.</span>
+          </li>
+          <li>
+            <span />
+            <span>Remaining balance is due on the day of installation.</span>
+          </li>
+        </ul>
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>

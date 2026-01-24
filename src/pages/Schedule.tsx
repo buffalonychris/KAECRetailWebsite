@@ -5,6 +5,7 @@ import { loadRetailFlow, markFlowStep, ScheduleRequest, updateRetailFlow } from 
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import PaymentInstallDayAccordion from '../components/PaymentInstallDayAccordion';
 import TierBadge from '../components/TierBadge';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -145,7 +146,7 @@ const Schedule = () => {
     {
       condition: !acceptance?.accepted,
       message: 'Acceptance required: Please review and accept the combined agreement before scheduling.',
-      action: () => navigate('/agreement'),
+      action: () => navigate('/agreementReview'),
       actionLabel: 'Review Agreement',
     },
     {
@@ -158,6 +159,17 @@ const Schedule = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>
+      {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="schedule" />}
+      {isHomeSecurity && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/payment">
+            Back to Deposit
+          </Link>
+          <Link className="btn btn-link" to="/agreementReview">
+            Edit Agreement
+          </Link>
+        </div>
+      )}
       <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <div>
@@ -422,7 +434,7 @@ const Schedule = () => {
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="submit" className="btn btn-primary" disabled={!schedulingAllowed}>
-              Request installation
+              Schedule Installation
             </button>
             {!schedulingAllowed && (
               <small style={{ color: '#c8c0aa' }}>

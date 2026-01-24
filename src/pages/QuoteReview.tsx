@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthorityBlock from '../components/AuthorityBlock';
 import FlowGuidePanel from '../components/FlowGuidePanel';
 import HelpContactPanel from '../components/HelpContactPanel';
@@ -21,6 +21,8 @@ import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
 import { calculateDepositDue } from '../lib/paymentTerms';
+import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import { buildAssumedCoverage } from '../lib/homeSecurityFunnel';
 // SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
 
 type AccordionSectionProps = {
@@ -84,6 +86,16 @@ const QuoteReview = () => {
   const [sending, setSending] = useState(false);
   const [emailPayload, setEmailPayload] = useState<Awaited<ReturnType<typeof buildQuoteEmailPayload>> | null>(null);
   const [authorityMeta, setAuthorityMeta] = useState<DocAuthorityMeta | null>(null);
+  const funnelState = useMemo(() => loadRetailFlow().homeSecurity, []);
+  const assumedCoverage = useMemo(() => {
+    if (funnelState?.fitCheckResult?.assumedCoverage?.length) {
+      return funnelState.fitCheckResult.assumedCoverage;
+    }
+    if (funnelState?.fitCheckAnswers) {
+      return buildAssumedCoverage(funnelState.fitCheckAnswers);
+    }
+    return [];
+  }, [funnelState]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -327,6 +339,17 @@ const QuoteReview = () => {
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
+      {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="quote" />}
+      {isHomeSecurity && (
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/quote?vertical=home-security">
+            Back to Quote Builder
+          </Link>
+          <Link className="btn btn-link" to="/discovery?vertical=home-security">
+            Edit Fit Check
+          </Link>
+        </div>
+      )}
       <div className="card-grid" style={{ alignItems: 'start' }}>
         <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -439,6 +462,20 @@ const QuoteReview = () => {
             })}
           </ul>
         </div>
+        {isHomeSecurity && assumedCoverage.length > 0 && (
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Assumed quantities</strong>
+            <ul className="list" style={{ marginTop: 0 }}>
+              {assumedCoverage.map((item) => (
+                <li key={item}>
+                  <span />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <small style={{ color: '#c8c0aa' }}>Final quantities may adjust after on-site confirmation.</small>
+          </div>
+        )}
       </div>
 
       {isHomeSecurity ? (
