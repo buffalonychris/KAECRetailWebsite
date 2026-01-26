@@ -912,6 +912,15 @@ header.hide-when-print {
   background: rgba(8, 12, 20, 0.92);
 }
 
+.funnel-header-muted {
+  border-bottom-color: rgba(125, 211, 252, 0.08);
+  background: rgba(8, 12, 20, 0.75);
+}
+
+.funnel-header-muted .brand {
+  opacity: 0.88;
+}
+
 .funnel-header-inner {
   display: flex;
   align-items: center;
@@ -930,6 +939,19 @@ header.hide-when-print {
 .funnel-header-actions a {
   color: var(--kaec-text-subtle);
   font-weight: 600;
+}
+
+.funnel-header-actions-muted {
+  opacity: 0.7;
+}
+
+.funnel-header-actions-muted a {
+  font-weight: 500;
+  color: rgba(148, 163, 184, 0.7);
+}
+
+.funnel-header-actions-muted a:hover {
+  color: rgba(148, 163, 184, 0.85);
 }
 
 .funnel-header-actions a:hover {

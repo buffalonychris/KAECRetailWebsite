@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Seo from './Seo';
 import { captureUtmParams } from '../lib/utm';
 import { brandLegal, brandPhonePrimary, brandServiceLocation, brandSite } from '../lib/brand';
 import { defaultLayoutConfig, LayoutConfigContext } from './LayoutConfig';
+import { loadRetailFlow } from '../lib/retailFlow';
 
 const Layout = () => {
   const location = useLocation();
@@ -15,6 +16,28 @@ const Layout = () => {
 
   const isHub = location.pathname === '/';
   const isFunnel = layoutConfig.layoutVariant === 'funnel';
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const storedFlow = useMemo(() => loadRetailFlow(), [location.pathname, location.search]);
+  const verticalParam = searchParams.get('vertical');
+  const storedVertical = storedFlow.quote?.vertical ?? (storedFlow.homeSecurity ? 'home-security' : null);
+  const isHomeSecurityVertical =
+    verticalParam === 'home-security' || storedVertical === 'home-security' || location.pathname.startsWith('/home-security');
+  const funnelStepRoutes = useMemo(
+    () =>
+      new Set([
+        '/discovery',
+        '/quote',
+        '/quoteReview',
+        '/quote-review',
+        '/agreement',
+        '/agreementReview',
+        '/agreement-review',
+        '/payment',
+        '/schedule',
+      ]),
+    []
+  );
+  const isHomeSecurityFunnelStep = isHomeSecurityVertical && funnelStepRoutes.has(location.pathname);
   const isHomeSecurityFunnel =
     isFunnel &&
     (location.pathname.startsWith('/home-security') || location.search.includes('vertical=home-security'));
@@ -28,7 +51,7 @@ const Layout = () => {
       <div>
         <Seo />
         {isFunnel ? (
-          <header className="funnel-header hide-when-print">
+          <header className={`funnel-header hide-when-print${isHomeSecurityFunnelStep ? ' funnel-header-muted' : ''}`}>
             <div className="container funnel-header-inner">
               <NavLink to={brandLink} className="brand" aria-label={`${brandSite} home`}>
                 <div className="brand-mark" aria-hidden="true">
@@ -36,7 +59,7 @@ const Layout = () => {
                 </div>
                 <div className="brand-name">{brandSite}</div>
               </NavLink>
-              <div className="funnel-header-actions">
+              <div className={`funnel-header-actions${isHomeSecurityFunnelStep ? ' funnel-header-actions-muted' : ''}`}>
                 <NavLink to={supportLink}>Support</NavLink>
                 {showComparePackages && <NavLink to="/packages?vertical=home-security">Compare packages</NavLink>}
               </div>
