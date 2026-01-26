@@ -27,8 +27,7 @@ const HomeSecurity = () => {
 
   useLayoutConfig({
     layoutVariant: 'funnel',
-    showBreadcrumbs: true,
-    breadcrumb: [{ label: 'Home Security', href: '/home-security' }],
+    showBreadcrumbs: false,
   });
 
   useEffect(() => {
@@ -48,12 +47,11 @@ const HomeSecurity = () => {
   };
 
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
-  const pathQuery = selectedPath ? `?path=${selectedPath}` : '';
   const quickLinks = [
     { id: 'packages', label: 'Packages' },
     { id: 'compare-coverage', label: 'Compare coverage' },
     { id: 'fit-check', label: 'Fit check' },
-    { id: 'quote-payment-scheduling', label: 'What happens next' },
+    { id: 'what-happens-next', label: 'What happens next' },
   ];
 
   return (
@@ -93,12 +91,12 @@ const HomeSecurity = () => {
               Your sensors and alarms still work inside your home even if the internet goes out. Remote access is optional when internet is available.
             </p>
             <div className="space-section-actions">
-              <Link className="btn btn-primary" to={`/packages?vertical=home-security${pathParam}`}>
+              <a className="btn btn-primary" href="#packages">
                 View Packages
-              </Link>
-              <Link className="btn btn-secondary" to={`/home-security${pathQuery}#how-it-works`}>
+              </a>
+              <a className="btn btn-secondary" href="#how-it-works">
                 See How It Works
-              </Link>
+              </a>
             </div>
           </div>
           <div className="vertical-hero-badges" aria-label="Key promises">
@@ -186,7 +184,7 @@ const HomeSecurity = () => {
       <section id="how-you-can-proceed" className="space-grid two-column">
         <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="badge">Option A</div>
-          <small style={{ color: 'var(--kaec-muted)' }}>Most people start here</small>
+          <span className="option-label">Most people start here</span>
           <h3 style={{ marginTop: 0 }}>Online-first (fastest)</h3>
           <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
             Start online, confirm a package, and generate a deterministic quote before scheduling.
@@ -274,7 +272,7 @@ const HomeSecurity = () => {
 
       <div className="section-divider" aria-hidden="true" />
 
-      <section id="quote-payment-scheduling" className="space-grid two-column">
+      <section id="what-happens-next" className="space-grid two-column">
         <div className="card">
           <div className="badge">Quote → Deposit → Scheduling</div>
           <h2 style={{ marginTop: 0 }}>Lock in your quote, then pick a date</h2>

@@ -85,6 +85,11 @@ const Layout = () => {
               <small className="footer-funnel-meta">
                 © 2025 {brandSite} · {brandLegal}. All Rights Reserved.
               </small>
+              {isHomeSecurityLanding && (
+                <small className="footer-funnel-meta">
+                  © 2025 KickAss Inc. All Rights Reserved. Unauthorized use is prohibited.
+                </small>
+              )}
             </div>
           ) : isHub ? (
             <div className="container footer-hub-inner">

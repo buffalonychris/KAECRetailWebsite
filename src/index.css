@@ -2457,6 +2457,20 @@ body.modal-open {
   color: var(--kaec-text-subtle);
 }
 
+.home-security-page .flow-guide-step {
+  cursor: pointer;
+  color: var(--kaec-text-strong);
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.home-security-page .flow-guide-step:hover,
+.home-security-page .flow-guide-step:focus-visible {
+  background: rgba(56, 189, 248, 0.18);
+  text-decoration: underline;
+  text-decoration-color: rgba(56, 189, 248, 0.8);
+}
+
 .flow-guide-step.complete {
   background: rgba(84, 160, 82, 0.12);
   color: #b8e1c2;
@@ -2476,6 +2490,19 @@ body.modal-open {
   border-radius: 50%;
   background: rgba(56, 189, 248, 0.2);
   color: var(--kaec-accent);
+}
+
+.option-label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: rgba(15, 23, 42, 0.4);
+  color: var(--kaec-text-subtle);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 @keyframes sectionFadeUp {
