@@ -114,7 +114,7 @@ const Packages = () => {
       {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="packages" />}
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link className="btn btn-secondary" to="/home-security">
+          <Link className="btn btn-link" to="/home-security">
             Back to overview
           </Link>
           <Link className="btn btn-link" to="/home-security#how-you-can-proceed">
@@ -151,20 +151,19 @@ const Packages = () => {
           </p>
         </div>
         <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'start' }}>
-          <Link
-            className="btn btn-primary"
-            to={vertical === 'home-security' ? '/discovery?vertical=home-security' : '/quote'}
-          >
-            Continue to Fit Check
-          </Link>
           {vertical === 'home-security' ? (
-            <Link className="btn btn-link" to="/quote?vertical=home-security">
-              Skip to Quote
+            <Link className="btn btn-secondary" to="/discovery?vertical=home-security">
+              Not Sure? Start with a Fit Check
             </Link>
           ) : (
-            <small style={{ color: '#c8c0aa' }}>
-              Clear pricing with pro install, ready for offline resilience.
-            </small>
+            <>
+              <Link className="btn btn-primary" to="/quote">
+                Continue to Fit Check
+              </Link>
+              <small style={{ color: '#c8c0aa' }}>
+                Clear pricing with pro install, ready for offline resilience.
+              </small>
+            </>
           )}
         </div>
       </div>

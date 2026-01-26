@@ -163,10 +163,7 @@ const Schedule = () => {
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link className="btn btn-secondary" to="/payment">
-            Back to Deposit
-          </Link>
-          <Link className="btn btn-link" to="/agreementReview">
-            Edit Agreement
+            Change Payment Method
           </Link>
         </div>
       )}
@@ -179,9 +176,11 @@ const Schedule = () => {
               Scheduling opens after agreement acceptance and deposit confirmation. No live calendar booking is performed here.
             </p>
           </div>
-          <button type="button" className="btn btn-primary" onClick={handlePrint}>
-            Print / Save PDF
-          </button>
+          {!isHomeSecurity && (
+            <button type="button" className="btn btn-primary" onClick={handlePrint}>
+              Print / Save PDF
+            </button>
+          )}
         </div>
         <div style={{ display: 'grid', gap: '0.35rem', color: '#c8c0aa' }}>
           <strong>Quote reference</strong>
@@ -434,7 +433,7 @@ const Schedule = () => {
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button type="submit" className="btn btn-primary" disabled={!schedulingAllowed}>
-              Schedule Installation
+              {isHomeSecurity ? 'Confirm Installation' : 'Schedule Installation'}
             </button>
             {!schedulingAllowed && (
               <small style={{ color: '#c8c0aa' }}>
