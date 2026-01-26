@@ -22,6 +22,7 @@ const Layout = () => {
   const storedVertical = storedFlow.quote?.vertical ?? (storedFlow.homeSecurity ? 'home-security' : null);
   const isHomeSecurityVertical =
     verticalParam === 'home-security' || storedVertical === 'home-security' || location.pathname.startsWith('/home-security');
+  const isHomeSecurityLanding = location.pathname === '/home-security';
   const funnelStepRoutes = useMemo(
     () =>
       new Set([
@@ -59,10 +60,12 @@ const Layout = () => {
                 </div>
                 <div className="brand-name">{brandSite}</div>
               </NavLink>
-              <div className={`funnel-header-actions${isHomeSecurityFunnelStep ? ' funnel-header-actions-muted' : ''}`}>
-                <NavLink to={supportLink}>Support</NavLink>
-                {showComparePackages && <NavLink to="/packages?vertical=home-security">Compare packages</NavLink>}
-              </div>
+              {!isHomeSecurityLanding && (
+                <div className={`funnel-header-actions${isHomeSecurityFunnelStep ? ' funnel-header-actions-muted' : ''}`}>
+                  <NavLink to={supportLink}>Support</NavLink>
+                  {showComparePackages && <NavLink to="/packages?vertical=home-security">Compare packages</NavLink>}
+                </div>
+              )}
             </div>
           </header>
         ) : null}
