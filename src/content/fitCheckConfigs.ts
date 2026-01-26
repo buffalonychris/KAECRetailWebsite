@@ -33,7 +33,7 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'Install walkthrough and homeowner handoff',
         ],
         ctas: [
-          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
           { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
@@ -47,7 +47,7 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'System walkthrough and homeowner training',
         ],
         ctas: [
-          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
           { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
@@ -61,7 +61,7 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
           'Priority install planning and calibration walkthrough',
         ],
         ctas: [
-          { label: 'Continue to Quote', href: '/quote?vertical=home-security', variant: 'primary' },
+          { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
           { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },

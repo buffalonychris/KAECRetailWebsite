@@ -419,10 +419,7 @@ const AgreementReview = () => {
       {vertical === 'home-security' && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link className="btn btn-secondary" to="/quoteReview">
-            Back to Quote
-          </Link>
-          <Link className="btn btn-link" to="/discovery?vertical=home-security">
-            Edit Fit Check
+            Review Your Quote
           </Link>
         </div>
       )}
@@ -489,7 +486,7 @@ const AgreementReview = () => {
                     className="btn btn-primary"
                     onClick={() => handleScrollToSection(acceptanceSectionRef)}
                   >
-                    Continue to acceptance
+                    {vertical === 'home-security' ? 'Agree & Continue' : 'Continue to acceptance'}
                   </button>
                   <button type="button" className="btn btn-secondary" onClick={handlePrint}>
                     Print / Save Agreement
@@ -654,7 +651,7 @@ const AgreementReview = () => {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" className="btn btn-primary" onClick={handleAccept} disabled={!acceptanceReady}>
-            Approve Agreement &amp; Pay Deposit
+            {vertical === 'home-security' ? 'Agree & Continue' : 'Approve Agreement & Pay Deposit'}
           </button>
           <button
             type="button"

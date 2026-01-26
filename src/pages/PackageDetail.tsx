@@ -32,14 +32,14 @@ const PackageDetail = () => {
     () => (isHomeSecurityPdp && pkg ? HOME_SECURITY_PDP_CONTENT[pkg.id as 'a1' | 'a2' | 'a3'] : null),
     [isHomeSecurityPdp, pkg]
   );
-  const quoteLink = pkg ? `/quote?vertical=home-security&package=${pkg.id}` : '/quote?vertical=home-security';
   const contactLink =
     vertical === 'home-security'
       ? pkg
         ? `/contact?vertical=home-security&package=${pkg.id}`
         : '/contact?vertical=home-security'
       : '/contact';
-  const primaryActionLabel = isHomeSecurityPdp ? 'Continue to Fit Check' : 'Request install';
+  const homeSecurityTierLabel = pkg?.name ?? 'Package';
+  const primaryActionLabel = isHomeSecurityPdp ? `Continue with ${homeSecurityTierLabel}` : 'Request install';
   const primaryActionLink = isHomeSecurityPdp ? '/discovery?vertical=home-security' : contactLink;
   const tierLabel = pkg?.name ?? 'Package';
   const selectedTierId = pkg ? (pkg.id.toUpperCase() as PackageTierId) : undefined;
@@ -183,11 +183,8 @@ const PackageDetail = () => {
             <Link className="btn btn-primary" to={primaryActionLink}>
               {primaryActionLabel}
             </Link>
-            <Link className="btn btn-secondary" to={quoteLink}>
-              Build a Quote
-            </Link>
-            <Link className="btn btn-link" to="/packages?vertical=home-security">
-              Compare packages
+            <Link className="btn btn-secondary" to="/packages?vertical=home-security">
+              Compare Packages
             </Link>
           </div>
           {atGlanceItems.length > 0 && (
@@ -220,9 +217,6 @@ const PackageDetail = () => {
           <div className="pdp-sticky-inner">
             <Link className="btn btn-primary" to={primaryActionLink}>
               {primaryActionLabel}
-            </Link>
-            <Link className="btn btn-secondary" to={quoteLink}>
-              Build a Quote
             </Link>
           </div>
         </div>
@@ -267,9 +261,6 @@ const PackageDetail = () => {
         <div className="pdp-inline-cta">
           <Link className="btn btn-primary" to={primaryActionLink}>
             {primaryActionLabel}
-          </Link>
-          <Link className="btn btn-secondary" to={quoteLink}>
-            Build a Quote
           </Link>
         </div>
 
@@ -359,12 +350,6 @@ const PackageDetail = () => {
         <div className="pdp-bottom-cta motion-fade-up">
           <Link className="btn btn-primary" to={primaryActionLink}>
             {primaryActionLabel}
-          </Link>
-          <Link className="btn btn-secondary" to={quoteLink}>
-            Build a Quote
-          </Link>
-          <Link className="btn btn-link" to="/packages?vertical=home-security">
-            Compare packages
           </Link>
         </div>
       </div>

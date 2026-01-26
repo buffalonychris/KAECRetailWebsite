@@ -45,6 +45,7 @@ const HomeSecurity = () => {
   };
 
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
+  const pathQuery = selectedPath ? `?path=${selectedPath}` : '';
 
   return (
     <div className="container section home-security-page">
@@ -72,10 +73,10 @@ const HomeSecurity = () => {
             </p>
             <div className="space-section-actions">
               <Link className="btn btn-primary" to={`/packages?vertical=home-security${pathParam}`}>
-                Start with Packages
+                View Packages
               </Link>
-              <Link className="btn btn-secondary" to={`/discovery?vertical=home-security${pathParam}`}>
-                Jump to Fit Check
+              <Link className="btn btn-secondary" to={`/home-security${pathQuery}#how-it-works`}>
+                See How It Works
               </Link>
             </div>
           </div>

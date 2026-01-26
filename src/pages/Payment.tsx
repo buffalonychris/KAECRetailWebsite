@@ -191,10 +191,7 @@ const Payment = () => {
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link className="btn btn-secondary" to="/agreementReview">
-            Back to Agreement
-          </Link>
-          <Link className="btn btn-link" to="/quoteReview">
-            Edit Quote
+            Review Agreement
           </Link>
         </div>
       )}
@@ -211,9 +208,11 @@ const Payment = () => {
               Card data is never stored by {brandShort}; secure provider fields will be used once enabled.
             </small>
           </div>
-          <button type="button" className="btn btn-primary" onClick={handlePrint}>
-            Print / Save PDF
-          </button>
+          {!isHomeSecurity && (
+            <button type="button" className="btn btn-primary" onClick={handlePrint}>
+              Print / Save PDF
+            </button>
+          )}
         </div>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Quote reference</strong>
@@ -241,7 +240,7 @@ const Payment = () => {
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" className="btn btn-primary" onClick={handleRequestNextSteps} disabled={leadRequestStatus === 'sending'}>
-            {leadRequestStatus === 'sending' ? 'Requesting…' : 'Request next steps'}
+            {leadRequestStatus === 'sending' ? 'Requesting…' : isHomeSecurity ? 'Submit Deposit' : 'Request next steps'}
           </button>
           {leadRequestStatus === 'success' && (
             <small style={{ color: '#c8c0aa' }}>Thanks. We received your request and will follow up by email.</small>

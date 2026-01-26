@@ -343,10 +343,7 @@ const QuoteReview = () => {
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <Link className="btn btn-secondary" to="/quote?vertical=home-security">
-            Back to Quote Builder
-          </Link>
-          <Link className="btn btn-link" to="/discovery?vertical=home-security">
-            Edit Fit Check
+            Edit Your Answers
           </Link>
         </div>
       )}
@@ -360,7 +357,7 @@ const QuoteReview = () => {
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
               <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
-                Continue to Agreement
+                {isHomeSecurity ? 'Accept & Continue' : 'Continue to Agreement'}
               </button>
               <button type="button" className="btn btn-secondary" onClick={handlePrint}>
                 Print / Save Quote

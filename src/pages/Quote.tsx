@@ -223,7 +223,7 @@ const Quote = () => {
             onClick={generateQuote}
             disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
           >
-            Generate Quote
+            {isHomeSecurity ? 'Review Your Quote' : 'Generate Quote'}
           </button>
           <button type="button" className="btn btn-secondary" onClick={printQuote}>
             Print / Save PDF
@@ -459,7 +459,7 @@ const Quote = () => {
             onClick={generateQuote}
             disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
           >
-            Generate Quote
+            {isHomeSecurity ? 'Review Your Quote' : 'Generate Quote'}
           </button>
           <button type="button" className="btn btn-secondary" onClick={explainQuote}>
             Explain this quote

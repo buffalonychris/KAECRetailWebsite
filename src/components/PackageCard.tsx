@@ -26,6 +26,7 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
   const verticalQuery = vertical === 'home-security' ? '?vertical=home-security' : '';
   const isMostPopular = vertical === 'home-security' && pkg.id === 'a2';
   const contactLink = vertical === 'home-security' ? `/contact?vertical=home-security&package=${pkg.id}` : '/contact';
+  const primaryLabel = vertical === 'home-security' ? `Choose ${pkg.name}` : `View ${pkg.name}`;
   const handleSelect = () => {
     if (vertical !== 'home-security') return;
     updateRetailFlow({ homeSecurity: { selectedPackageId: tierId } });
@@ -83,18 +84,20 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
         <Link
           className="btn btn-primary"
           to={`/packages/${pkg.id}${verticalQuery}`}
-          aria-label={`View ${pkg.name}`}
+          aria-label={primaryLabel}
           onClick={handleSelect}
         >
-          View {pkg.name}
+          {primaryLabel}
         </Link>
-        <Link
-          className="btn btn-secondary"
-          to={contactLink}
-          aria-label="Talk to us about this package"
-        >
-          Talk to us
-        </Link>
+        {vertical !== 'home-security' && (
+          <Link
+            className="btn btn-secondary"
+            to={contactLink}
+            aria-label="Talk to us about this package"
+          >
+            Talk to us
+          </Link>
+        )}
       </div>
     </div>
   );
