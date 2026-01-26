@@ -4,15 +4,18 @@ import AccordionSection from '../components/AccordionSection';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import PackageCard from '../components/PackageCard';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
-import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { getPackages } from '../content/packages';
 import { verticalContent } from '../content/systemRestoration';
 import { HomeSecurityPathChoice } from '../lib/homeSecurityFunnel';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
-const monitoringCopy =
-  'Professional monitoring is optional and, if selected, is provided directly through third-party monitoring services chosen by the customer.';
+const monitoringCopy = (
+  <>
+    <strong>Professional monitoring is optional</strong> and, if selected, is provided directly through{' '}
+    <strong>third-party</strong> monitoring services chosen by the customer.
+  </>
+);
 
 const HomeSecurity = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,10 +49,28 @@ const HomeSecurity = () => {
 
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
   const pathQuery = selectedPath ? `?path=${selectedPath}` : '';
+  const quickLinks = [
+    { id: 'packages', label: 'Packages' },
+    { id: 'compare-coverage', label: 'Compare coverage' },
+    { id: 'fit-check', label: 'Fit check' },
+    { id: 'quote-payment-scheduling', label: 'What happens next' },
+  ];
 
   return (
     <div className="container section home-security-page">
-      <HomeSecurityFunnelSteps currentStep="packages" />
+      <div className="card flow-guide" style={{ display: 'grid', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <div className="badge">Jump to</div>
+          <strong style={{ color: '#fff7e6' }}>Explore the sections below.</strong>
+        </div>
+        <div className="flow-guide-steps" role="list">
+          {quickLinks.map((link) => (
+            <a key={link.id} href={`#${link.id}`} className="flow-guide-step" role="listitem">
+              <span>{link.label}</span>
+            </a>
+          ))}
+        </div>
+      </div>
 
       <section className="vertical-hero vertical-hero--media vertical-hero--campaign">
         <div className="vertical-hero-media" aria-hidden="true">
@@ -95,7 +116,8 @@ const HomeSecurity = () => {
           <div className="badge">Orientation</div>
           <h2 style={{ marginTop: 0 }}>What this is (and isn’t)</h2>
           <p style={{ color: 'var(--kaec-muted)' }}>
-            Professionally installed home security with a local-first Home Assistant dashboard that stays reliable even when internet access drops.
+            <strong>Professionally installed</strong> home security with a local-first Home Assistant dashboard that stays reliable
+            even when internet access drops.
           </p>
           <p style={{ color: 'var(--kaec-muted)' }}>{monitoringCopy}</p>
           <ul className="list">
@@ -105,7 +127,9 @@ const HomeSecurity = () => {
             </li>
             <li>
               <span />
-              <span>No subscriptions are sold by us.</span>
+              <span>
+                <strong>No subscriptions are sold by us.</strong>
+              </span>
             </li>
             <li>
               <span />
@@ -134,6 +158,7 @@ const HomeSecurity = () => {
             Bronze, Silver (recommended), and Gold tiers are professionally installed and keep Home Assistant as your single dashboard.
           </p>
         </div>
+        <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>Choose a starting point. You can adjust later.</p>
         <div className="card-grid motion-stagger">
           {packages.map((pkg) => (
             <PackageCard key={pkg.id} pkg={pkg} vertical="home-security" />
@@ -142,19 +167,18 @@ const HomeSecurity = () => {
         <p style={{ marginTop: 0, color: 'var(--kaec-muted)' }}>
           All packages are expandable later. You can add cameras, sensors, or coverage areas as your needs change.
         </p>
-        <AccordionSection
-          title="Compare packages"
-          description="See typical coverage by tier after reviewing the package options."
-        >
-          <div className="compare-stack">
-            <ResponsivePublicImage
-              srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
-              alt="Typical coverage by package tier"
-              className="premium-image premium-image--contain motion-fade-up"
-            />
-            <HomeSecurityComparisonTable />
-          </div>
-        </AccordionSection>
+        <div id="compare-coverage">
+          <AccordionSection title="Compare coverage" description="See typical coverage by tier after reviewing the package options.">
+            <div className="compare-stack">
+              <ResponsivePublicImage
+                srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
+                alt="Typical coverage by package tier"
+                className="premium-image premium-image--contain motion-fade-up"
+              />
+              <HomeSecurityComparisonTable />
+            </div>
+          </AccordionSection>
+        </div>
       </section>
 
       <div className="section-divider" aria-hidden="true" />
@@ -162,6 +186,7 @@ const HomeSecurity = () => {
       <section id="how-you-can-proceed" className="space-grid two-column">
         <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
           <div className="badge">Option A</div>
+          <small style={{ color: 'var(--kaec-muted)' }}>Most people start here</small>
           <h3 style={{ marginTop: 0 }}>Online-first (fastest)</h3>
           <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
             Start online, confirm a package, and generate a deterministic quote before scheduling.
@@ -197,7 +222,9 @@ const HomeSecurity = () => {
             </li>
             <li>
               <span />
-              <span>You may switch between paths at any time before installation.</span>
+              <span>
+                <strong>You may switch between paths at any time before installation.</strong>
+              </span>
             </li>
           </ul>
         </div>
