@@ -8,6 +8,12 @@ export type HomeSecurityPdpContent = {
   keyOutcomes: string[];
   idealFor: string[];
   whatYouGet: HomeSecurityPdpGroup[];
+  whatsIncluded: string[];
+  typicalCoverage: {
+    squareFootage: string;
+    entrances: string;
+    cameras: string;
+  };
   capabilities: string[];
   limitations: string[];
   howItWorks: string[];
@@ -15,52 +21,67 @@ export type HomeSecurityPdpContent = {
 
 export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityPdpContent> = {
   a1: {
-    heroOneLiner: 'Start strong: modern doorbell + core sensors + local-first alerts.',
+    heroOneLiner: 'Starter coverage with local-first alerts, entry awareness, and essential cameras.',
     keyOutcomes: [
-      'See who’s at the door and get instant entry alerts.',
-      'Detect motion inside and get notified fast.',
-      'Catch common water leaks early (under-sink / laundry / basement).',
+      'Know when doors/windows open and who approaches the main entry.',
+      'Get indoor motion alerts with a local siren/chime response.',
+      'Catch common leaks or smoke events early.',
       'Automations that still work even when the internet doesn’t.',
       'Single dashboard control in Home Assistant.',
     ],
     idealFor: [
-      'Apartments and small homes.',
-      'First-time security upgrade.',
-      'People who want simple coverage done right.',
+      'Apartments and small homes (~800–1,200 sq ft).',
+      'First-time security setups.',
+      'Households that want local-first alerts without subscriptions.',
     ],
     whatYouGet: [
       {
         title: 'Core',
-        items: ['Home Assistant Hub (1)', 'Zigbee/Thread Radio (1)', 'Z-Wave Radio (1)'],
-      },
-      {
-        title: 'Video & Entry',
-        items: ['Video Doorbell (1)', 'Smart Chime (1)', 'Doorbell Power Supply (1)'],
+        items: [
+          'Mini PC running Home Assistant (1)',
+          'Zigbee USB radio (1)',
+          'Z-Wave USB radio (1)',
+          'CloudKey+ local recording host (1)',
+        ],
       },
       {
         title: 'Cameras',
-        items: ['Indoor Camera (1)'],
+        items: ['Indoor camera (1)', 'Outdoor or doorbell camera (1)'],
       },
       {
         title: 'Sensors & Alerts',
         items: [
-          'Door/Window Sensor (4)',
-          'Motion Sensor (1)',
-          'Water Leak Sensor (1)',
-          'Smart Plug (2)',
-          'Siren / Chime (1)',
+          'Door/window sensors (2–4)',
+          'Motion sensor (1)',
+          'Leak or smoke sensor (1)',
+          'Local siren/chime (1)',
         ],
       },
     ],
+    whatsIncluded: [
+      'Mini PC running Home Assistant (control plane)',
+      'Zigbee + Z-Wave USB radios',
+      'CloudKey+ local recording host',
+      '1 indoor camera',
+      '1 outdoor or doorbell camera',
+      '2–4 door/window sensors',
+      '1 motion sensor',
+      '1 leak or smoke sensor',
+      'Local siren/chime',
+    ],
+    typicalCoverage: {
+      squareFootage: '~800–1,200 sq ft',
+      entrances: '1 main entry + 2–3 doors/windows',
+      cameras: '1 indoor + 1 outdoor/doorbell',
+    },
     capabilities: [
-      'Doorbell video + chime alerts.',
-      'Entry alerts (doors/windows) and indoor motion alerts.',
-      'Water leak alerting.',
+      'Local-first alerts for entry, motion, and leak/smoke events.',
+      'Camera views and recordings stay on your LAN by default.',
       'Local automations inside Home Assistant.',
     ],
     limitations: [
-      'Not a professionally monitored alarm (unless user adds 3rd-party service).',
-      'Outdoor camera coverage limited compared to Silver/Gold.',
+      'Not a professionally monitored alarm unless you add a third-party service.',
+      'Single outdoor/doorbell view versus expanded coverage in Silver/Gold.',
     ],
     howItWorks: [
       'Quick discovery call: goals, layout, and priorities.',
@@ -71,50 +92,66 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
     ],
   },
   a2: {
-    heroOneLiner: 'Balanced coverage: doorbell + indoor + outdoor camera, plus broader sensors.',
+    heroOneLiner: 'Whole-home coverage with more sensors, more indoor views, and a PoE outdoor camera.',
     keyOutcomes: [
-      'Better perimeter visibility with an outdoor camera.',
-      'More entry points covered (doors/windows) and more motion zones.',
-      'Leak detection in multiple risk spots.',
-      'Local recording/control-first approach (privacy-first by default).',
+      'Balanced coverage for most homeowners.',
+      'Expanded entry and motion coverage across main living areas.',
+      'Two indoor views for faster verification.',
+      'Local-first recording and control with optional remote access.',
       'Expandable foundation without subscriptions sold by us.',
     ],
     idealFor: [
-      'Most homes.',
-      'Families who want stronger day-to-day awareness.',
-      'Homes with multiple entrances and a driveway/front yard.',
+      'Most homeowners (~1,200–2,000 sq ft).',
+      'Homes with a main and secondary entry.',
+      'Households that want reliable outdoor visibility.',
     ],
     whatYouGet: [
       {
         title: 'Core',
-        items: ['Home Assistant Hub (1)', 'Zigbee/Thread Radio (1)', 'Z-Wave Radio (1)'],
-      },
-      {
-        title: 'Video & Entry',
-        items: ['Video Doorbell (1)', 'Smart Chime (1)', 'Doorbell Power Supply (1)'],
+        items: [
+          'Mini PC running Home Assistant (1)',
+          'Zigbee USB radio (1)',
+          'Z-Wave USB radio (1)',
+          'CloudKey+ local recording host (1)',
+        ],
       },
       {
         title: 'Cameras',
-        items: ['Indoor Camera (2)', 'Outdoor PoE Camera (1)', 'PoE Adapter / Injector (1)'],
+        items: ['Indoor cameras (2)', 'Outdoor PoE camera (1)', 'PoE adapter/injector (1)'],
       },
       {
         title: 'Sensors & Alerts',
         items: [
-          'Door/Window Sensor (6)',
-          'Motion Sensor (2)',
-          'Water Leak Sensor (2)',
-          'Smart Plug (4)',
-          'Siren / Chime (1)',
+          'Door/window sensors (4–6)',
+          'Motion sensors (2)',
+          'Leak or smoke sensors (2)',
+          'Local siren/chime (1)',
         ],
       },
     ],
+    whatsIncluded: [
+      'Mini PC running Home Assistant (control plane)',
+      'Zigbee + Z-Wave USB radios',
+      'CloudKey+ local recording host',
+      '2 indoor cameras',
+      '1 outdoor PoE camera',
+      '4–6 door/window sensors',
+      '2 motion sensors',
+      '2 leak or smoke sensors',
+      'Local siren/chime',
+    ],
+    typicalCoverage: {
+      squareFootage: '~1,200–2,000 sq ft',
+      entrances: 'Main + secondary entry',
+      cameras: '2 indoor + 1 outdoor (PoE)',
+    },
     capabilities: [
-      'Doorbell + indoor + outdoor camera coverage.',
+      'Indoor + outdoor PoE camera coverage.',
       'More sensors for entry + motion.',
-      'Multiple leak detection zones.',
+      'Multiple leak/smoke detection zones.',
       'Automation scenes (night mode, away mode, etc.).',
     ],
-    limitations: ['Not a full NVR rack-style system like Gold (Gold has dedicated NVR + drives).'],
+    limitations: ['Dedicated NVR recording is only included in Gold.'],
     howItWorks: [
       'Discovery: confirm entrances, camera goals, and notification style.',
       'Placement plan: optimize coverage for day + night.',
@@ -125,49 +162,60 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
   },
   a3: {
     heroOneLiner:
-      'Maximum coverage: dedicated local recording + strongest camera and sensor footprint.',
+      'Maximum coverage with dedicated local recording and the highest camera + sensor footprint.',
     keyOutcomes: [
-      'Dedicated NVR + drives for local recording reliability.',
-      'Outdoor visibility across more angles (more PoE cameras).',
+      'Dedicated UNVR + drives for reliable local recording.',
+      'Two PoE outdoor cameras for multi-angle visibility.',
       'Highest sensor coverage across doors/windows and motion zones.',
       'Fast local alerts + automations that keep working offline.',
       'Built to expand into whole-home automation later.',
     ],
     idealFor: [
-      'Full-property coverage.',
-      'Privacy-first households who want local recording.',
-      'Homes needing maximum reliability and expandability.',
+      'Larger homes (~2,000–3,500+ sq ft).',
+      'Homes with multiple exterior entries.',
+      'Higher risk tolerance and maximum coverage needs.',
     ],
     whatYouGet: [
       {
         title: 'Core',
         items: [
-          'Home Assistant Hub (1)',
-          'Zigbee/Thread Radio (1)',
-          'Z-Wave Radio (1)',
-          'Network Video Recorder (1)',
-          'Surveillance Hard Drive (2)',
+          'Mini PC running Home Assistant (1)',
+          'Zigbee USB radio (1)',
+          'Z-Wave USB radio (1)',
+          'Dedicated UNVR (1)',
+          'Surveillance hard drives (2)',
         ],
       },
       {
-        title: 'Video & Entry',
-        items: ['Video Doorbell (1)', 'Smart Chime (1)', 'Doorbell Power Supply (1)'],
-      },
-      {
         title: 'Cameras',
-        items: ['Indoor Camera (2)', 'Outdoor PoE Camera (2)', 'PoE Adapter / Injector (2)'],
+        items: ['Indoor cameras (2–3)', 'Outdoor PoE cameras (2)', 'PoE adapters/injectors (2)'],
       },
       {
         title: 'Sensors & Alerts',
         items: [
-          'Door/Window Sensor (10)',
-          'Motion Sensor (3)',
-          'Water Leak Sensor (3)',
-          'Smart Plug (6)',
-          'Siren / Chime (1)',
+          'Door/window sensors (6–10)',
+          'Motion sensors (3)',
+          'Leak or smoke sensors (3)',
+          'Local siren/chime (1)',
         ],
       },
     ],
+    whatsIncluded: [
+      'Mini PC running Home Assistant (control plane)',
+      'Zigbee + Z-Wave USB radios',
+      'Dedicated UNVR with surveillance drives',
+      '2–3 indoor cameras',
+      '2 outdoor PoE cameras',
+      '6–10 door/window sensors',
+      '3 motion sensors',
+      '3 leak or smoke sensors',
+      'Local siren/chime',
+    ],
+    typicalCoverage: {
+      squareFootage: '~2,000–3,500+ sq ft',
+      entrances: 'Multiple exterior entries',
+      cameras: '2–3 indoor + 2 outdoor (PoE)',
+    },
     capabilities: [
       'Dedicated local recording + expanded camera coverage.',
       'Highest sensor footprint for doors/windows/motion.',

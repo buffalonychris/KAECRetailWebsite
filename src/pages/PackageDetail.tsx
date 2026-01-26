@@ -131,8 +131,9 @@ const PackageDetail = () => {
     ];
     const trustPolicies = [
       'You own the equipment, automations, and data.',
-      'Optional third-party services connect directly to you; we do not sell subscriptions.',
+      'No subscriptions are sold by us; optional third-party services contract directly with you.',
       'Core functions work without internet for safety and daily routines.',
+      'System is expandable at any time.',
       'Clear support path for troubleshooting and expansions.',
       ...pkg.agreements.map((item) =>
         item
@@ -198,6 +199,12 @@ const PackageDetail = () => {
           )}
           <div className="pdp-jump-links" aria-label="Jump to">
             <span>Jump to:</span>
+            <a href="#whats-included" onClick={handleJump('whats-included')}>
+              What’s included
+            </a>
+            <a href="#typical-coverage" onClick={handleJump('typical-coverage')}>
+              Typical coverage
+            </a>
             <a href="#what-you-get" onClick={handleJump('what-you-get')}>
               What you get
             </a>
@@ -220,6 +227,42 @@ const PackageDetail = () => {
             </Link>
           </div>
         </div>
+
+        <section id="whats-included" className="card pdp-section motion-fade-up">
+          <div className="pdp-section-header">
+            <h2>What’s included</h2>
+            <p>Plain-English hardware list (no SKUs).</p>
+          </div>
+          <ul className="list">
+            {packageContent.whatsIncluded.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="typical-coverage" className="card pdp-section motion-fade-up">
+          <div className="pdp-section-header">
+            <h2>Typical coverage</h2>
+            <p>Typical footprint and entry assumptions for this tier.</p>
+          </div>
+          <ul className="list">
+            <li>
+              <span />
+              <span>Square footage: {packageContent.typicalCoverage.squareFootage}</span>
+            </li>
+            <li>
+              <span />
+              <span>Entrances: {packageContent.typicalCoverage.entrances}</span>
+            </li>
+            <li>
+              <span />
+              <span>Cameras: {packageContent.typicalCoverage.cameras}</span>
+            </li>
+          </ul>
+        </section>
 
         <section id="what-you-get" className="card pdp-what-you-get pdp-section motion-fade-up">
           <div className="pdp-section-header">

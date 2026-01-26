@@ -186,19 +186,19 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$1,699 one-time',
     tagline: 'Starter Security & Awareness',
     oneLiner:
-      'Know when doors/windows open, detect motion, and get leak alerts — with local alerts that still work when the internet drops.',
+      'Entry awareness, one indoor camera, and local-first alerts for apartments and small homes.',
     bio:
-      'Bronze is a wireless-first, privacy-first starter package designed for homeowners who want local control and a clear deterrence response without subscriptions.',
+      'Bronze delivers starter security coverage with local-first alerts, essential sensors, and local recording for apartments or small homes.',
     idealFor:
-      'Smaller homes or households that want ownership, clear entry awareness, and dependable local response cues.',
-    typicalCoverage: '2–3 entry points, key interior zones, and kitchen/bath leak coverage.',
+      'Apartments and small homes that need reliable entry awareness and local control.',
+    typicalCoverage: '~800–1,200 sq ft',
     includes: [
-      'Home Assistant hub set up as your main security dashboard',
-      'Wireless door/window sensors for your main entry points',
-      'Motion sensors for the most-used areas of the home',
-      'Leak sensors for kitchen + bathrooms',
-      'Local siren + “lights on” deterrence scenes',
-      'Arming modes, alerts, and homeowner walk-through/training',
+      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
+      'CloudKey+ local recording host',
+      '1 indoor camera + 1 outdoor/doorbell camera',
+      '2–4 door/window sensors + 1 motion sensor',
+      '1 leak or smoke sensor',
+      'Local siren/chime',
     ],
     billOfMaterials: [],
     automationFlows: [
@@ -232,25 +232,26 @@ export const homeSecurityPackages: PackageTier[] = [
     name: 'Silver',
     badge: 'Silver tier',
     price: '$2,599 one-time',
-    tagline: 'Whole-Home Coverage + Outdoor Camera Reliability',
+    tagline: 'Whole-Home Coverage (Recommended)',
     oneLiner:
-      'Adds a doorbell camera and reliable outdoor PoE cameras, plus more sensors across the home.',
+      'Two indoor views, a PoE outdoor camera, and expanded sensors for most homeowners.',
     bio:
-      'Silver expands coverage to include doorbell visibility and reliable outdoor camera angles while keeping Home Assistant as the single control plane.',
+      'Silver delivers whole-home coverage with more sensors, two indoor views, and reliable outdoor PoE visibility.',
     idealFor:
-      'Homes that want consistent perimeter visibility plus indoor verification without moving to cloud-only tools.',
-    typicalCoverage: 'All primary entries, main-floor motion zones, doorbell, and 1–2 outdoor camera angles.',
+      'Most homeowners who want balanced coverage across main and secondary entries.',
+    typicalCoverage: '~1,200–2,000 sq ft',
     includes: [
-      'Everything in Bronze',
-      'Doorbell camera view available inside Home Assistant',
-      'Outdoor PoE cameras for key angles (streams locally on your network)',
-      'Indoor camera for “check what happened” verification (privacy-first placement)',
-      'More door/window + motion sensor coverage',
+      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
+      'CloudKey+ local recording host',
+      '2 indoor cameras + 1 outdoor PoE camera',
+      '4–6 door/window sensors + 2 motion sensors',
+      '2 leak or smoke sensors',
+      'Local siren/chime',
     ],
     billOfMaterials: [],
     automationFlows: [
-      'Doorbell events surface instantly in Home Assistant with local chimes and lighting cues.',
-      'Outdoor PoE cameras stay reliable on LAN; Home Assistant can trigger recordings or alerts.',
+      'Outdoor PoE camera events surface in Home Assistant with local chimes and lighting cues.',
+      'Indoor and outdoor cameras stay reliable on LAN; Home Assistant can trigger recordings or alerts.',
       'Intrusion, motion, and leak workflows stay local; remote access is optional with internet.',
       'Optional third-party monitoring can be added directly by the homeowner if desired.',
     ],
@@ -281,19 +282,19 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$3,499 one-time',
     tagline: 'Local Recording + Highest Coverage',
     oneLiner:
-      'Adds dedicated local recording plus the most complete camera + sensor coverage for the strongest setup.',
+      'Dedicated UNVR recording, 2–3 indoor cameras, and the highest sensor coverage.',
     bio:
-      'Gold delivers the highest coverage with dedicated local recording, multiple outdoor angles, and expanded interior awareness—without giving up local control.',
+      'Gold delivers the highest coverage with dedicated local recording, multiple PoE outdoor angles, and expanded interior awareness.',
     idealFor:
-      'Larger homes or households that want dedicated local recording and the most comprehensive coverage.',
-    typicalCoverage:
-      'All entry points, expanded interior motion zones, multiple outdoor angles, and dedicated local recording.',
+      'Larger homes and households with higher risk tolerance or maximum coverage needs.',
+    typicalCoverage: '~2,000–3,500+ sq ft',
     includes: [
-      'Everything in Silver',
-      'Dedicated local recording (UniFi Protect NVR) with on-site storage',
-      'More outdoor camera angles for full perimeter visibility',
-      'More indoor camera coverage for verification',
-      'More door/window, motion, and leak sensors',
+      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
+      'Dedicated UNVR + surveillance hard drives',
+      '2–3 indoor cameras + 2 outdoor PoE cameras',
+      '6–10 door/window sensors + 3 motion sensors',
+      '3 leak or smoke sensors',
+      'Local siren/chime',
     ],
     billOfMaterials: [],
     automationFlows: [

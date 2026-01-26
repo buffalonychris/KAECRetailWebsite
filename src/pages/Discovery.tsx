@@ -71,11 +71,18 @@ const Discovery = () => {
                 alt="Trust and guarantees summary"
                 className="premium-image premium-image--contain hover-lift motion-fade-up"
               />
-              <ResponsivePublicImage
-                srcBase="/images/home-security/hs_diagram_local-first-architecture"
-                alt="Local-first architecture diagram"
-                className="premium-image premium-image--contain hover-lift motion-fade-up"
-              />
+              <figure className="motion-fade-up" style={{ display: 'grid', gap: '0.5rem', margin: 0 }}>
+                <ResponsivePublicImage
+                  srcBase="/images/home-security/hs_diagram_local-first-architecture"
+                  alt="Local-first architecture diagram with a local recording host and a single Home Assistant dashboard"
+                  className="premium-image premium-image--contain hover-lift"
+                />
+                <figcaption style={{ color: 'var(--kaec-muted)', fontSize: '0.95rem' }}>
+                  <strong>Local Recording Host (CloudKey+ or NVR by package)</strong>
+                  <br />
+                  Single Home Assistant dashboard for sensors &amp; automations
+                </figcaption>
+              </figure>
             </div>
             <div className="discovery-mobile-accordion">
               <AccordionSection title="Why local-first matters" description="Ownership, offline continuity, and no lock-in.">

@@ -7,7 +7,7 @@ export type HomeSecurityComparisonRow = {
 
 export const homeSecurityComparisonRows: HomeSecurityComparisonRow[] = [
   {
-    feature: 'Hub runs locally (Home Assistant)',
+    feature: 'Local-first operation (LAN required)',
     values: { A1: '✅', A2: '✅', A3: '✅' },
   },
   {
@@ -15,39 +15,35 @@ export const homeSecurityComparisonRows: HomeSecurityComparisonRow[] = [
     values: { A1: '✅', A2: '✅', A3: '✅' },
   },
   {
-    feature: 'Intrusion sensing',
-    values: { A1: '✅', A2: '✅', A3: '✅' },
-  },
-  {
-    feature: 'Motion awareness',
-    values: { A1: '✅', A2: '✅', A3: '✅' },
-  },
-  {
-    feature: 'Leak awareness',
-    values: { A1: '✅', A2: '✅', A3: '✅' },
-  },
-  {
-    feature: 'Local siren response',
-    values: { A1: '✅', A2: '✅', A3: '✅' },
-  },
-  {
-    feature: 'Doorbell coverage',
-    values: { A1: '—', A2: '✅', A3: '✅' },
+    feature: 'Local recording host',
+    values: { A1: 'CloudKey+', A2: 'CloudKey+', A3: 'Dedicated UNVR + HDDs' },
   },
   {
     feature: 'Indoor camera views',
-    values: { A1: '—', A2: '✅', A3: '✅✅' },
+    values: { A1: '1', A2: '2', A3: '2–3' },
   },
   {
-    feature: 'Outdoor PoE reliability',
-    values: { A1: '—', A2: '✅', A3: '✅✅' },
+    feature: 'Outdoor/Doorbell cameras',
+    values: { A1: '1', A2: '1 (PoE)', A3: '2 (PoE)' },
   },
   {
-    feature: 'Dedicated local recording',
-    values: { A1: '—', A2: '—', A3: '✅' },
+    feature: 'Door/Window sensors',
+    values: { A1: '2–4', A2: '4–6', A3: '6–10' },
+  },
+  {
+    feature: 'Motion sensors',
+    values: { A1: '1', A2: '2', A3: '3' },
+  },
+  {
+    feature: 'Leak/Smoke sensors',
+    values: { A1: '1', A2: '2', A3: '3' },
+  },
+  {
+    feature: 'Local siren/chime',
+    values: { A1: '✅', A2: '✅', A3: '✅' },
   },
   {
     feature: 'Expandable for future coverage',
-    values: { A1: '✅', A2: '✅', A3: '✅✅' },
+    values: { A1: '✅', A2: '✅', A3: '✅' },
   },
 ];
