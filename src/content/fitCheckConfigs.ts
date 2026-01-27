@@ -34,7 +34,6 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
         ],
         ctas: [
           { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
-          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
       Silver: {
@@ -48,7 +47,6 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
         ],
         ctas: [
           { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
-          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
       Gold: {
@@ -62,7 +60,6 @@ export const fitCheckConfigs: Record<string, FitCheckConfig> = {
         ],
         ctas: [
           { label: 'Continue to Your Quote', href: '/quote?vertical=home-security', variant: 'primary' },
-          { label: 'Back to Packages', href: '/packages?vertical=home-security', variant: 'secondary' },
         ],
       },
     },

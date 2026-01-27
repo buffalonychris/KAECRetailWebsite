@@ -18,16 +18,6 @@ const HomeSecurityFunnelSteps = ({ currentStep }: { currentStep: HomeSecurityFun
 
   return (
     <div className="card flow-guide" style={{ display: 'grid', gap: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'grid', gap: '0.25rem' }}>
-          <div className="badge">Home Security funnel</div>
-          <strong style={{ color: '#fff7e6' }}>Packages → Fit Check → Quote → Deposit → Schedule</strong>
-          <small style={{ color: '#c8c0aa' }}>
-            {selectedPackage ? `Selected package: ${selectedPackage}. ` : ''}
-            {selectedPath ? `Path: ${selectedPath === 'online' ? 'Online-first' : 'On-site confirmation first'}.` : ''}
-          </small>
-        </div>
-      </div>
       <div className="flow-guide-steps" role="list">
         {steps.map((step) => {
           const currentIndex = steps.findIndex((item) => item.id === currentStep);

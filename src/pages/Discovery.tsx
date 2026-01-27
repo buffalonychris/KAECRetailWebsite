@@ -1,8 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import AccordionSection from '../components/AccordionSection';
 import FitCheck from '../components/FitCheck';
-import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { fitCheckConfigs } from '../content/fitCheckConfigs';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
@@ -44,11 +42,8 @@ const Discovery = () => {
       {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="fit-check" />}
       {isHomeSecurity && (
         <div className="container" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link className="btn btn-secondary" to="/packages?vertical=home-security">
-            Back to Packages
-          </Link>
-          <Link className="btn btn-link" to="/home-security#how-you-can-proceed">
-            Edit how you proceed
+          <Link className="btn btn-link" to="/packages?vertical=home-security">
+            Back to packages
           </Link>
         </div>
       )}
@@ -60,40 +55,8 @@ const Discovery = () => {
         </div>
       ) : null}
       {isHomeSecurity ? (
-        <div className="container discovery-layout">
-          <div className="discovery-main">
-            <FitCheck config={config} layout="embedded" />
-          </div>
-          <aside className="discovery-aside">
-            <div className="discovery-sticky-panel">
-              <ResponsivePublicImage
-                srcBase="/images/home-security/hs_badges_trust-grid"
-                alt="Trust and guarantees summary"
-                className="premium-image premium-image--contain hover-lift motion-fade-up"
-              />
-              <figure className="motion-fade-up" style={{ display: 'grid', gap: '0.5rem', margin: 0 }}>
-                <ResponsivePublicImage
-                  srcBase="/images/home-security/hs_diagram_local-first-architecture"
-                  alt="Local-first architecture diagram with a local recording host and a single Home Assistant dashboard"
-                  className="premium-image premium-image--contain hover-lift"
-                />
-                <figcaption style={{ color: 'var(--kaec-muted)', fontSize: '0.95rem' }}>
-                  <strong>Local Recording Host (CloudKey+ or NVR by package)</strong>
-                  <br />
-                  Single Home Assistant dashboard for sensors &amp; automations
-                </figcaption>
-              </figure>
-            </div>
-            <div className="discovery-mobile-accordion">
-              <AccordionSection title="Why local-first matters" description="Ownership, offline continuity, and no lock-in.">
-                <ResponsivePublicImage
-                  srcBase="/images/home-security/hs_badges_trust-grid"
-                  alt="Trust and guarantees summary"
-                  className="premium-image premium-image--contain hover-lift motion-fade-up"
-                />
-              </AccordionSection>
-            </div>
-          </aside>
+        <div className="container">
+          <FitCheck config={config} layout="embedded" />
         </div>
       ) : (
         <FitCheck config={config} />

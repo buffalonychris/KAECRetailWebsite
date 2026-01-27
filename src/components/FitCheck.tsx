@@ -212,6 +212,7 @@ type FitCheckProps = {
 
 const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const isHomeSecurity = searchParams.get('vertical') === 'home-security';
   const [answers, setAnswers] = useState<FitCheckAnswers>(initialAnswers);
   const [result, setResult] = useState<FitCheckResult | null>(null);
   const [exteriorLimitWarning, setExteriorLimitWarning] = useState(false);
@@ -660,6 +661,11 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
                 {cta.label}
               </Link>
             ))}
+            {isHomeSecurity && (
+              <Link to="/packages?vertical=home-security" className="btn btn-link">
+                Change package
+              </Link>
+            )}
             <button type="button" className="btn btn-secondary" onClick={() => setResult(null)}>
               Edit answers
             </button>

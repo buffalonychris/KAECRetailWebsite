@@ -1,4 +1,11 @@
 import { PackageTierId } from './pricing';
+import { HOME_SECURITY_PACKAGE_SPECS } from '../content/homeSecurityPackageData';
+
+const tiersByPackageId = {
+  A1: HOME_SECURITY_PACKAGE_SPECS.a1,
+  A2: HOME_SECURITY_PACKAGE_SPECS.a2,
+  A3: HOME_SECURITY_PACKAGE_SPECS.a3,
+};
 
 export type HomeSecurityComparisonRow = {
   feature: string;
@@ -11,32 +18,72 @@ export const homeSecurityComparisonRows: HomeSecurityComparisonRow[] = [
     values: { A1: '✅', A2: '✅', A3: '✅' },
   },
   {
+    feature: 'Typical coverage',
+    values: {
+      A1: tiersByPackageId.A1.coverage,
+      A2: tiersByPackageId.A2.coverage,
+      A3: tiersByPackageId.A3.coverage,
+    },
+  },
+  {
     feature: 'One dashboard for arming + alerts',
     values: { A1: '✅', A2: '✅', A3: '✅' },
   },
   {
-    feature: 'Local recording host',
-    values: { A1: 'CloudKey+', A2: 'CloudKey+', A3: 'Dedicated UNVR + HDDs' },
+    feature: 'Recording',
+    values: {
+      A1: tiersByPackageId.A1.hardware.recordingLabel,
+      A2: tiersByPackageId.A2.hardware.recordingLabel,
+      A3: tiersByPackageId.A3.hardware.recordingLabel,
+    },
   },
   {
-    feature: 'Indoor camera views',
-    values: { A1: '1', A2: '2', A3: '2–3' },
+    feature: 'Video doorbell',
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.videoDoorbell}`,
+      A2: `${tiersByPackageId.A2.hardware.videoDoorbell}`,
+      A3: `${tiersByPackageId.A3.hardware.videoDoorbell}`,
+    },
   },
   {
-    feature: 'Outdoor/Doorbell cameras',
-    values: { A1: '1', A2: '1 (PoE)', A3: '2 (PoE)' },
+    feature: 'Indoor cameras',
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.indoorCameras}`,
+      A2: `${tiersByPackageId.A2.hardware.indoorCameras}`,
+      A3: `${tiersByPackageId.A3.hardware.indoorCameras}`,
+    },
+  },
+  {
+    feature: 'Outdoor PoE cameras',
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.outdoorPoECameras}`,
+      A2: `${tiersByPackageId.A2.hardware.outdoorPoECameras}`,
+      A3: `${tiersByPackageId.A3.hardware.outdoorPoECameras}`,
+    },
   },
   {
     feature: 'Door/Window sensors',
-    values: { A1: '2–4', A2: '4–6', A3: '6–10' },
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.doorWindowSensors}`,
+      A2: `${tiersByPackageId.A2.hardware.doorWindowSensors}`,
+      A3: `${tiersByPackageId.A3.hardware.doorWindowSensors}`,
+    },
   },
   {
     feature: 'Motion sensors',
-    values: { A1: '1', A2: '2', A3: '3' },
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.motionSensors}`,
+      A2: `${tiersByPackageId.A2.hardware.motionSensors}`,
+      A3: `${tiersByPackageId.A3.hardware.motionSensors}`,
+    },
   },
   {
     feature: 'Leak/Smoke sensors',
-    values: { A1: '1', A2: '2', A3: '3' },
+    values: {
+      A1: `${tiersByPackageId.A1.hardware.leakSmokeSensors}`,
+      A2: `${tiersByPackageId.A2.hardware.leakSmokeSensors}`,
+      A3: `${tiersByPackageId.A3.hardware.leakSmokeSensors}`,
+    },
   },
   {
     feature: 'Local siren/chime',

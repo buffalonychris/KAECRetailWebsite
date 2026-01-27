@@ -1,3 +1,8 @@
+import {
+  getHomeSecurityHardwareList,
+  getHomeSecurityPackageSpec,
+} from './homeSecurityPackageData';
+
 export type PackageTier = {
   id: string;
   name: string;
@@ -186,20 +191,13 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$1,699 one-time',
     tagline: 'Starter Security & Awareness',
     oneLiner:
-      'Entry awareness, one indoor camera, and local-first alerts for apartments and small homes.',
+      'Entry awareness with a doorbell, one indoor camera, and local-first alerts.',
     bio:
       'Bronze delivers starter security coverage with local-first alerts, essential sensors, and local recording for apartments or small homes.',
     idealFor:
       'Apartments and small homes that need reliable entry awareness and local control.',
-    typicalCoverage: '~800–1,200 sq ft',
-    includes: [
-      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
-      'CloudKey+ local recording host',
-      '1 indoor camera + 1 outdoor/doorbell camera',
-      '2–4 door/window sensors + 1 motion sensor',
-      '1 leak or smoke sensor',
-      'Local siren/chime',
-    ],
+    typicalCoverage: getHomeSecurityPackageSpec('a1').coverage,
+    includes: getHomeSecurityHardwareList('a1'),
     billOfMaterials: [],
     automationFlows: [
       'Arm/disarm locally in Home Assistant with clear modes and status tiles.',
@@ -234,20 +232,13 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$2,599 one-time',
     tagline: 'Whole-Home Coverage (Recommended)',
     oneLiner:
-      'Two indoor views, a PoE outdoor camera, and expanded sensors for most homeowners.',
+      'Two indoor views, a PoE outdoor camera, plus a doorbell for most homeowners.',
     bio:
       'Silver delivers whole-home coverage with more sensors, two indoor views, and reliable outdoor PoE visibility.',
     idealFor:
       'Most homeowners who want balanced coverage across main and secondary entries.',
-    typicalCoverage: '~1,200–2,000 sq ft',
-    includes: [
-      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
-      'CloudKey+ local recording host',
-      '2 indoor cameras + 1 outdoor PoE camera',
-      '4–6 door/window sensors + 2 motion sensors',
-      '2 leak or smoke sensors',
-      'Local siren/chime',
-    ],
+    typicalCoverage: getHomeSecurityPackageSpec('a2').coverage,
+    includes: getHomeSecurityHardwareList('a2'),
     billOfMaterials: [],
     automationFlows: [
       'Outdoor PoE camera events surface in Home Assistant with local chimes and lighting cues.',
@@ -282,20 +273,13 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$3,499 one-time',
     tagline: 'Local Recording + Highest Coverage',
     oneLiner:
-      'Dedicated UNVR recording, 2–3 indoor cameras, and the highest sensor coverage.',
+      'Dedicated NVR recording, three indoor cameras, and the highest sensor coverage.',
     bio:
       'Gold delivers the highest coverage with dedicated local recording, multiple PoE outdoor angles, and expanded interior awareness.',
     idealFor:
       'Larger homes and households with higher risk tolerance or maximum coverage needs.',
-    typicalCoverage: '~2,000–3,500+ sq ft',
-    includes: [
-      'Mini PC running Home Assistant with Zigbee + Z-Wave USB radios',
-      'Dedicated UNVR + surveillance hard drives',
-      '2–3 indoor cameras + 2 outdoor PoE cameras',
-      '6–10 door/window sensors + 3 motion sensors',
-      '3 leak or smoke sensors',
-      'Local siren/chime',
-    ],
+    typicalCoverage: getHomeSecurityPackageSpec('a3').coverage,
+    includes: getHomeSecurityHardwareList('a3'),
     billOfMaterials: [],
     automationFlows: [
       'Dedicated local recording captures events on-site with LAN playback.',

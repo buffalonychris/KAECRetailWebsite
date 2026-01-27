@@ -14,6 +14,10 @@ import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { defaultHomeSecurityFitCheckAnswers, isHomeSecurityFitCheckComplete } from '../lib/homeSecurityFunnel';
+import {
+  HOME_SECURITY_CLARITY_FOOTER,
+  getHomeSecurityHardwareList,
+} from '../content/homeSecurityPackageData';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -201,17 +205,17 @@ const Quote = () => {
       {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="quote" />}
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link className="btn btn-secondary" to="/discovery?vertical=home-security">
+          <Link className="btn btn-link" to="/discovery?vertical=home-security">
             Back to Fit Check
           </Link>
           <Link className="btn btn-link" to="/packages?vertical=home-security">
-            Edit package
+            Change package
           </Link>
         </div>
       )}
       <div className="hero-card motion-fade-up" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="badge">Deterministic quote</div>
-        <h1 style={{ margin: 0, color: '#fff7e6' }}>Build a {brandSite} quote</h1>
+        {!isHomeSecurity && <div className="badge">Deterministic quote</div>}
+        <h1 style={{ margin: 0, color: '#fff7e6' }}>{isHomeSecurity ? 'Your quote' : `Build a ${brandSite} quote`}</h1>
         <p style={{ margin: 0, color: '#e6ddc7' }}>
           Capture the basics, pick a package, and see an upfront one-time estimate. Pricing uses a
           fixed table—no AI, no monthly subscriptions required.
@@ -225,9 +229,11 @@ const Quote = () => {
           >
             {isHomeSecurity ? 'Review Your Quote' : 'Generate Quote'}
           </button>
-          <button type="button" className="btn btn-secondary" onClick={printQuote}>
-            Print / Save PDF
-          </button>
+          {!isHomeSecurity && (
+            <button type="button" className="btn btn-secondary" onClick={printQuote}>
+              Print / Save PDF
+            </button>
+          )}
           {isHomeSecurity && !fitCheckComplete ? (
             <small style={{ color: '#f0b267' }}>
               Complete the Fit Check before generating a Home Security quote.{' '}
@@ -236,9 +242,7 @@ const Quote = () => {
               </Link>
             </small>
           ) : (
-            <small style={{ color: '#c8c0aa' }}>
-              Direct navigation safe: /quote works online or offline cache.
-            </small>
+            !isHomeSecurity && <small style={{ color: '#c8c0aa' }}>Direct navigation safe: /quote works online or offline cache.</small>
           )}
         </div>
       </div>
@@ -453,28 +457,32 @@ const Quote = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={generateQuote}
-            disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
-          >
-            {isHomeSecurity ? 'Review Your Quote' : 'Generate Quote'}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={explainQuote}>
-            Explain this quote
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleCopyExplanation}
-            disabled={!narrative}
-          >
-            Copy explanation
-          </button>
-          <small style={{ color: '#c8c0aa' }}>
-            Advisory narrative only; call 911 for emergencies.
-          </small>
+          {!isHomeSecurity && (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={generateQuote}
+                disabled={!packageId || (isHomeSecurity && !fitCheckComplete)}
+              >
+                Generate Quote
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={explainQuote}>
+                Explain this quote
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCopyExplanation}
+                disabled={!narrative}
+              >
+                Copy explanation
+              </button>
+              <small style={{ color: '#c8c0aa' }}>
+                Advisory narrative only; call 911 for emergencies.
+              </small>
+            </>
+          )}
         </div>
 
         <div style={{ display: 'grid', gap: '0.25rem', color: '#e6ddc7' }}>
@@ -521,6 +529,20 @@ const Quote = () => {
             })}
           </ul>
         </div>
+        {isHomeSecurity && (
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Included hardware</strong>
+            <ul className="list" style={{ marginTop: 0 }}>
+              {getHomeSecurityHardwareList(packageId.toLowerCase() as 'a1' | 'a2' | 'a3').map((item) => (
+                <li key={item}>
+                  <span />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <small style={{ color: '#c8c0aa' }}>{HOME_SECURITY_CLARITY_FOOTER}</small>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Assumptions</strong>
@@ -570,51 +592,53 @@ const Quote = () => {
           </ul>
         </div>
 
-        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div>
-            <div className="badge">AI Explanation (Advisory)</div>
-            <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
-            <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
-              advice; if there is an urgent safety issue, call 911.
-            </p>
-          </div>
-          <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-            {(narrativeLoading || !narrative) && (
-              <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
-                <small style={{ color: '#c8c0aa' }}>
-                  Deterministic templates are used by default; no external AI is required.
-                </small>
-              </div>
-            )}
-            {narrative?.sections.map((section) => (
-              <div
-                key={section.title}
-                className="card"
-                style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
-              >
-                <strong>{section.title}</strong>
-                <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
-              </div>
-            ))}
-          </div>
-          <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-            <strong>Disclaimers</strong>
-            <ul className="list" style={{ marginTop: '0.35rem' }}>
-              {(narrative?.disclaimer ?? [
-                'Informational only. Not medical advice or a diagnosis.',
-                'If you have an urgent safety concern, call 911.',
-                'Final configuration depends on on-site conditions and local code.',
-              ]).map((item) => (
-                <li key={item}>
-                  <span />
-                  <span>{item}</span>
-                </li>
+        {!isHomeSecurity && (
+          <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <div>
+              <div className="badge">AI Explanation (Advisory)</div>
+              <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
+              <p style={{ margin: 0, color: '#c8c0aa' }}>
+                Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
+                advice; if there is an urgent safety issue, call 911.
+              </p>
+            </div>
+            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+              {(narrativeLoading || !narrative) && (
+                <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                  <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
+                  <small style={{ color: '#c8c0aa' }}>
+                    Deterministic templates are used by default; no external AI is required.
+                  </small>
+                </div>
+              )}
+              {narrative?.sections.map((section) => (
+                <div
+                  key={section.title}
+                  className="card"
+                  style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+                >
+                  <strong>{section.title}</strong>
+                  <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
+                </div>
               ))}
-            </ul>
+            </div>
+            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+              <strong>Disclaimers</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                {(narrative?.disclaimer ?? [
+                  'Informational only. Not medical advice or a diagnosis.',
+                  'If you have an urgent safety concern, call 911.',
+                  'Final configuration depends on on-site conditions and local code.',
+                ]).map((item) => (
+                  <li key={item}>
+                    <span />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
