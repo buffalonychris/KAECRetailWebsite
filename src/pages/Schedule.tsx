@@ -6,6 +6,7 @@ import FlowGuidePanel from '../components/FlowGuidePanel';
 import PaymentInstallDayAccordion from '../components/PaymentInstallDayAccordion';
 import TierBadge from '../components/TierBadge';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import { useLayoutConfig } from '../components/LayoutConfig';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -41,6 +42,17 @@ const Schedule = () => {
 
   const vertical = quoteContext?.vertical ?? 'elder-tech';
   const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Schedule' },
+        ]
+      : [],
+  });
   const selectedPackage = useMemo(
     () => getPackagePricing(vertical).find((pkg) => pkg.id === quoteContext?.packageId) ?? getPackagePricing(vertical)[0],
     [quoteContext?.packageId, vertical]
@@ -86,7 +98,7 @@ const Schedule = () => {
     }
 
     if (depositStatus !== 'completed') {
-      setError('Scheduling unlocks after the deposit is marked completed.');
+      setError('Scheduling opens once your deposit is confirmed.');
       return;
     }
 
@@ -151,7 +163,7 @@ const Schedule = () => {
     },
     {
       condition: depositStatus !== 'completed',
-      message: 'Deposit gate: Scheduling unlocks once the deposit is marked completed.',
+      message: 'Scheduling opens once your deposit is confirmed.',
       action: () => navigate('/payment'),
       actionLabel: 'Return to Payment',
     },
@@ -173,7 +185,7 @@ const Schedule = () => {
             <div className="badge">Installation scheduling</div>
             <h1 style={{ margin: 0, color: '#fff7e6' }}>Request your installation window</h1>
             <p style={{ margin: 0, color: '#c8c0aa' }}>
-              Scheduling opens after agreement acceptance and deposit confirmation. No live calendar booking is performed here.
+              Scheduling opens after agreement acceptance and deposit confirmation.
             </p>
           </div>
           {!isHomeSecurity && (
@@ -437,7 +449,7 @@ const Schedule = () => {
             </button>
             {!schedulingAllowed && (
               <small style={{ color: '#c8c0aa' }}>
-                Scheduling unlocks after agreement acceptance and completed deposit.
+                Scheduling opens after agreement acceptance and a confirmed deposit.
               </small>
             )}
           </div>

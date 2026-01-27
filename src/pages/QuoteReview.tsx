@@ -27,6 +27,7 @@ import {
   HOME_SECURITY_CLARITY_FOOTER,
   getHomeSecurityHardwareList,
 } from '../content/homeSecurityPackageData';
+import { useLayoutConfig } from '../components/LayoutConfig';
 // SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
 
 type AccordionSectionProps = {
@@ -123,6 +124,17 @@ const QuoteReview = () => {
 
   const vertical = quote?.vertical ?? 'elder-tech';
   const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Quote Review' },
+        ]
+      : [],
+  });
   const selectedPackage = useMemo(
     () => getPackagePricing(vertical).find((pkg) => pkg.id === quote?.packageId) ?? getPackagePricing(vertical)[0],
     [quote, vertical]
@@ -218,7 +230,10 @@ const QuoteReview = () => {
   const handlePrint = () => {
     if (!quote) return;
     updateRetailFlow({ quote });
-    navigate('/quotePrint', { state: { autoPrint: true } });
+    const printWindow = window.open('/quotePrint', '_blank', 'noopener,noreferrer');
+    if (printWindow) {
+      printWindow.focus();
+    }
   };
 
   const quoteDate = quote ? formatQuoteDate(quote.generatedAt) : formatQuoteDate();
@@ -363,20 +378,18 @@ const QuoteReview = () => {
               <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
                 {isHomeSecurity ? 'Accept & Continue' : 'Continue to Agreement'}
               </button>
+              <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+                Print / Save Quote
+              </button>
               {!isHomeSecurity && (
-                <>
-                  <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-                    Print / Save Quote
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
-                    disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
-                  >
-                    {sending ? 'Sending…' : 'Email this quote'}
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
+                  disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
+                >
+                  {sending ? 'Sending…' : 'Email this quote'}
+                </button>
               )}
             </div>
           </div>
@@ -408,6 +421,7 @@ const QuoteReview = () => {
             <div style={{ display: 'grid', gap: '0.25rem', marginTop: '0.5rem', color: '#c8c0aa' }}>
               <small>Deposit due today: {formatCurrency(depositDue)}</small>
               <small>Remaining balance on arrival: {formatCurrency(balanceDue)}</small>
+              <small>Deposit due today: 50% of the system cost. Remaining balance due on installation day.</small>
             </div>
           </div>
         </div>
@@ -765,7 +779,7 @@ const QuoteReview = () => {
           </div>
         </AccordionSection>
 
-        {isInternalView && (
+        {isInternalView && !isHomeSecurity && (
           <AccordionSection title="Internal support log" description="Internal-only identifiers and delivery metadata." defaultOpen={false}>
             <div className="card" style={{ display: 'grid', gap: '0.35rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
               <div style={{ display: 'grid', gap: '0.25rem', color: '#c8c0aa' }}>

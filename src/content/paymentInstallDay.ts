@@ -7,14 +7,14 @@ export const paymentInstallDaySections: PaymentInstallDaySection[] = [
   {
     title: 'How the deposit works',
     items: [
-      'Deposit reserves system pricing and equipment availability for 30 days.',
+      'Deposit due today: 50% of the system cost.',
       'Deposit is applied to your total project cost.',
     ],
   },
   {
     title: 'When the remaining balance is due',
     items: [
-      'The remaining balance is due when we arrive, before installation begins.',
+      'Remaining balance due on installation day.',
       'This avoids authorization or credit-limit issues after work is complete and keeps install day on schedule.',
     ],
   },

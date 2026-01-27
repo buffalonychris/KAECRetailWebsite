@@ -12,6 +12,9 @@ import { buildQuoteReference } from '../lib/quoteUtils';
 import { brandShort } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import { useLayoutConfig } from '../components/LayoutConfig';
+import { getPackagePricing } from '../data/pricing';
+import { getHomeSecurityPackageSpec } from '../content/homeSecurityPackageData';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -27,6 +30,7 @@ const Payment = () => {
     useState<Awaited<ReturnType<typeof buildAgreementEmailPayload>> | null>(null);
   const [saveSending, setSaveSending] = useState(false);
   const [leadRequestStatus, setLeadRequestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [stripeMessage, setStripeMessage] = useState('');
 
   useEffect(() => {
     markFlowStep('payment');
@@ -179,11 +183,130 @@ const Payment = () => {
     }
   `;
 
+  const isHomeSecurity = quoteContext?.vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Deposit' },
+        ]
+      : [],
+  });
+
   if (!accessGranted) {
     return null;
   }
 
-  const isHomeSecurity = quoteContext?.vertical === 'home-security';
+  const startStripeCheckout = () => {
+    const message = 'Checkout session not configured.';
+    console.info(message);
+    setStripeMessage(message);
+    return { ok: false, message };
+  };
+
+  if (isHomeSecurity) {
+    const packagePricing = getPackagePricing('home-security');
+    const selectedPackage =
+      packagePricing.find((pkg) => pkg.id === quoteContext?.packageId) ?? packagePricing[0];
+    const spec = getHomeSecurityPackageSpec(selectedPackage.id.toLowerCase() as 'a1' | 'a2' | 'a3');
+
+    return (
+      <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '1.5rem' }}>
+        <HomeSecurityFunnelSteps currentStep="deposit" />
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <Link className="btn btn-link" to="/agreementReview">
+            Back
+          </Link>
+        </div>
+
+        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+          <div className="badge">Deposit</div>
+          <h1 style={{ margin: 0, color: '#fff7e6' }}>Pay your deposit to reserve installation</h1>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            Deposit due today: 50% of the system cost. Remaining balance due on installation day.
+          </p>
+        </div>
+
+        <div className="card" style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <div className="badge">Selected package</div>
+              <h2 style={{ margin: '0.35rem 0' }}>{selectedPackage.name}</h2>
+              <p style={{ margin: 0, color: '#c8c0aa' }}>{selectedPackage.summary}</p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ color: '#c8c0aa' }}>Base price</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--kaec-gold)' }}>
+                {formatCurrency(selectedPackage.basePrice)}
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <div>
+              <strong>Coverage range</strong>
+              <p style={{ margin: '0.35rem 0', color: '#c8c0aa' }}>{spec.coverage}</p>
+            </div>
+            <div>
+              <strong>Included hardware summary</strong>
+              <ul className="list" style={{ marginTop: '0.35rem' }}>
+                <li>
+                  <span />
+                  <span>Video doorbell: {spec.hardware.videoDoorbell}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Indoor cameras: {spec.hardware.indoorCameras}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Outdoor PoE cameras: {spec.hardware.outdoorPoECameras}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Door/window sensors: {spec.hardware.doorWindowSensors}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Motion sensors: {spec.hardware.motionSensors}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Leak/smoke sensors: {spec.hardware.leakSmokeSensors}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>{spec.hardware.nvrIncluded ? 'NVR included' : 'No NVR included'}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+          <div className="badge">Deposit summary</div>
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <strong>Deposit due today</strong>
+              <strong style={{ color: 'var(--kaec-gold)' }}>{formatCurrency(depositDue)}</strong>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span style={{ color: '#c8c0aa' }}>Remaining balance on installation day</span>
+              <span style={{ color: '#c8c0aa' }}>{formatCurrency(balanceDue)}</span>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            <button type="button" className="btn btn-primary" onClick={startStripeCheckout}>
+              Pay Deposit
+            </button>
+            {stripeMessage && <small style={{ color: '#c8c0aa' }}>{stripeMessage}</small>}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ padding: '3rem 0', display: 'grid', gap: '2rem' }}>

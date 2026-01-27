@@ -16,8 +16,8 @@ export const siteConfig: SiteConfig = {
   enableMockPayments: true,
   depositPolicy: {
     type: 'percentage',
-    value: 0.3,
-    note: 'Default deposit uses 30% of the deterministic total; swap to flat with type: "flat" and value in USD.',
+    value: 0.5,
+    note: 'Default deposit uses 50% of the system cost; swap to flat with type: "flat" and value in USD.',
   },
   quoteDocVersion: 'v1.0',
   quoteHashAlgorithm: 'SHA-256',

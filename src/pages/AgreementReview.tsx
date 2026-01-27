@@ -18,8 +18,14 @@ import TierBadge from '../components/TierBadge';
 import { brandSite } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import { useLayoutConfig } from '../components/LayoutConfig';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+const formatEmailStatus = (status?: string) => {
+  if (!status) return 'Not sent';
+  if (status === 'mock') return 'Queued';
+  return status.toUpperCase();
+};
 
 const AgreementReview = () => {
   const navigate = useNavigate();
@@ -171,6 +177,18 @@ const AgreementReview = () => {
 
   const agreement = useMemo(() => generateAgreement(quote ?? undefined), [quote]);
   const vertical = quote?.vertical ?? 'elder-tech';
+  const isHomeSecurity = vertical === 'home-security';
+
+  useLayoutConfig({
+    layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
+    showBreadcrumbs: isHomeSecurity,
+    breadcrumb: isHomeSecurity
+      ? [
+          { label: 'Home Security', href: '/home-security' },
+          { label: 'Agreement' },
+        ]
+      : [],
+  });
   const hardwareGroups = useMemo(
     () => (quote && vertical !== 'home-security' ? getHardwareGroups(quote.packageId, quote.selectedAddOns) : []),
     [quote, vertical]
@@ -300,7 +318,7 @@ const AgreementReview = () => {
         status === 'sent'
           ? `A copy has been emailed to ${recipient}.`
           : status === 'mock'
-          ? `Email queued (mock mode) for ${recipient}.`
+          ? `Email queued for ${recipient}.`
           : 'We could not send the email. Please try again.';
       setEmailBanner(banner);
       setEmailError(result.ok ? '' : result.error || 'Unable to send email');
@@ -575,7 +593,7 @@ const AgreementReview = () => {
       <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
         <div className="badge">Deposit &amp; payment terms</div>
         <p style={{ margin: 0, color: '#c8c0aa' }}>
-          Deposit reserves system pricing and equipment availability for 30 days. The remaining balance is due when we arrive, before installation begins.
+          Deposit due today: 50% of the system cost. Remaining balance due on installation day.
         </p>
       </div>
 
@@ -771,7 +789,7 @@ const AgreementReview = () => {
                     agreementEmailStatus === 'failed'
                       ? '1px solid rgba(255, 98, 98, 0.6)'
                       : agreementEmailStatus === 'mock'
-                      ? '1px solid rgba(245, 192, 66, 0.5)'
+                      ? '1px solid rgba(245, 192, 66, 0.35)'
                       : '1px solid rgba(84, 160, 82, 0.5)',
                   color: '#c8c0aa',
                 }}
@@ -781,7 +799,7 @@ const AgreementReview = () => {
                     (agreementEmailStatus === 'sent'
                       ? `A copy has been emailed to ${acceptedRecord.emailRecipients?.[0] ?? acceptedRecord.emailTo ?? email}.`
                       : agreementEmailStatus === 'mock'
-                      ? `Email queued (mock mode) for ${acceptedRecord.emailRecipients?.[0] ?? acceptedRecord.emailTo ?? email}.`
+                      ? `Email queued for ${acceptedRecord.emailRecipients?.[0] ?? acceptedRecord.emailTo ?? email}.`
                       : 'We could not send the email. Please try again.')}
                 </strong>
                 {acceptedRecord.emailProvider && (
@@ -806,12 +824,12 @@ const AgreementReview = () => {
               <strong>Email status</strong>
               <small style={{ color: '#c8c0aa' }}>
                 {acceptedRecord.emailLastStatus
-                  ? `${acceptedRecord.emailLastStatus.toUpperCase()} ${acceptedRecord.emailIssuedAtISO ? `at ${acceptedRecord.emailIssuedAtISO}` : ''}`
+                  ? `${formatEmailStatus(acceptedRecord.emailLastStatus)} ${acceptedRecord.emailIssuedAtISO ? `at ${acceptedRecord.emailIssuedAtISO}` : ''}`
                   : 'Not sent'}
               </small>
             </div>
 
-            {agreementEmailPayload?.links && (
+            {!isHomeSecurity && agreementEmailPayload?.links && (
               <details style={{ color: '#c8c0aa' }}>
                 <summary style={{ cursor: 'pointer', color: '#fff7e6' }}>Email payload links</summary>
                 <ul className="list" style={{ marginTop: '0.5rem' }}>
@@ -839,76 +857,80 @@ const AgreementReview = () => {
           </div>
         ) : null}
 
-        <small style={{ color: '#c8c0aa' }}>Payment unlocks after acceptance. Informational only — not medical advice.</small>
+        <small style={{ color: '#c8c0aa' }}>
+          Payment unlocks after acceptance. Reach out anytime if you need help with the next step.
+        </small>
       </div>
 
-      <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-        <button type="button" className="accordion-toggle" onClick={() => toggleSection('agreement-details')}>
-          <span>Agreement details & hashes</span>
-          <span>{openSections['agreement-details'] ? '−' : '+'}</span>
-        </button>
-        <div className={`accordion-content ${openSections['agreement-details'] ? 'open' : ''}`} style={{ display: 'grid', gap: '0.75rem' }}>
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <strong>Reference</strong>
-            <ul className="list" style={{ marginTop: 0 }}>
-              <li>
-                <span />
-                <span>Date: {agreementDate}</span>
-              </li>
-              <li>
-                <span />
-                <span>Agreement Version: {agreementVersion}</span>
-              </li>
-              <li>
-                <span />
-                <span>Agreement Ref: {agreementReference}</span>
-              </li>
-              <li>
-                <span />
-                <span>
-                  Agreement Hash: <span className="mono-text">{displayedAgreementHash}</span>{' '}
-                  {agreementHash && (
-                    <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementHash}>
-                      {hashCopied ? 'Copied full hash' : 'Copy full hash'}
-                    </button>
-                  )}
-                </span>
-              </li>
-              <li>
-                <span />
-                <span>
-                  Supersedes prior agreement hash: <span className="mono-text">{supersedesAgreement}</span>{' '}
-                  {supersedesAgreement !== 'None' && (
-                    <button type="button" className="btn btn-secondary" onClick={handleCopyPriorAgreementHash}>
-                      {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
-                    </button>
-                  )}
-                </span>
-              </li>
-              <li>
-                <span />
-                <span>
-                  Linked quote reference: {agreement.quoteBinding.reference} (hash {quoteHashDisplay}){' '}
-                  {quote.quoteHash && (
-                    <button type="button" className="btn btn-secondary" onClick={handleCopyQuoteHash}>
-                      {quoteHashCopied ? 'Copied full hash' : 'Copy full hash'}
-                    </button>
-                  )}
-                </span>
-              </li>
-              <li>
-                <span />
-                <span>Supersedes prior quote hash: <span className="mono-text">{supersedesQuote}</span></span>
-              </li>
-            </ul>
-            <small style={{ color: '#c8c0aa' }}>
-              This agreement supersedes prior agreements for the same customer/property context.
-            </small>
+      {!isHomeSecurity && (
+        <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+          <button type="button" className="accordion-toggle" onClick={() => toggleSection('agreement-details')}>
+            <span>Agreement details & hashes</span>
+            <span>{openSections['agreement-details'] ? '−' : '+'}</span>
+          </button>
+          <div className={`accordion-content ${openSections['agreement-details'] ? 'open' : ''}`} style={{ display: 'grid', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <strong>Reference</strong>
+              <ul className="list" style={{ marginTop: 0 }}>
+                <li>
+                  <span />
+                  <span>Date: {agreementDate}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Agreement Version: {agreementVersion}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>Agreement Ref: {agreementReference}</span>
+                </li>
+                <li>
+                  <span />
+                  <span>
+                    Agreement Hash: <span className="mono-text">{displayedAgreementHash}</span>{' '}
+                    {agreementHash && (
+                      <button type="button" className="btn btn-secondary" onClick={handleCopyAgreementHash}>
+                        {hashCopied ? 'Copied full hash' : 'Copy full hash'}
+                      </button>
+                    )}
+                  </span>
+                </li>
+                <li>
+                  <span />
+                  <span>
+                    Supersedes prior agreement hash: <span className="mono-text">{supersedesAgreement}</span>{' '}
+                    {supersedesAgreement !== 'None' && (
+                      <button type="button" className="btn btn-secondary" onClick={handleCopyPriorAgreementHash}>
+                        {priorHashCopied ? 'Copied prior hash' : 'Copy prior hash'}
+                      </button>
+                    )}
+                  </span>
+                </li>
+                <li>
+                  <span />
+                  <span>
+                    Linked quote reference: {agreement.quoteBinding.reference} (hash {quoteHashDisplay}){' '}
+                    {quote.quoteHash && (
+                      <button type="button" className="btn btn-secondary" onClick={handleCopyQuoteHash}>
+                        {quoteHashCopied ? 'Copied full hash' : 'Copy full hash'}
+                      </button>
+                    )}
+                  </span>
+                </li>
+                <li>
+                  <span />
+                  <span>Supersedes prior quote hash: <span className="mono-text">{supersedesQuote}</span></span>
+                </li>
+              </ul>
+              <small style={{ color: '#c8c0aa' }}>
+                This agreement supersedes prior agreements for the same customer/property context.
+              </small>
+            </div>
+
+            <AuthorityBlock meta={authorityMeta} />
           </div>
-
-          <AuthorityBlock meta={authorityMeta} />
         </div>
-      </div>
+      )}
 
       <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
         <button type="button" className="accordion-toggle" onClick={() => toggleSection('scope')}>
