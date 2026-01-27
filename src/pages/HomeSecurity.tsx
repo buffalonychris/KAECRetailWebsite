@@ -113,15 +113,11 @@ const HomeSecurity = () => {
             Bronze, Silver (recommended), and Gold tiers are professionally installed and keep Home Assistant as your single dashboard.
           </p>
         </div>
-        <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>Choose a starting point. You can adjust later.</p>
         <div className="card-grid motion-stagger">
           {packages.map((pkg) => (
             <PackageCard key={pkg.id} pkg={pkg} vertical="home-security" />
           ))}
         </div>
-        <p style={{ marginTop: 0, color: 'var(--kaec-muted)' }}>
-          All packages are expandable later. You can add cameras, sensors, or coverage areas as your needs change.
-        </p>
         <div id="compare-coverage">
           <AccordionSection title="Compare coverage" description="Typical coverage ranges and included hardware by tier.">
             <HomeSecurityComparisonTable />
@@ -142,8 +138,8 @@ const HomeSecurity = () => {
           }}
         >
           <div style={{ display: 'grid', gap: '1rem' }}>
-            <div className="badge">How this works (simple)</div>
-            <h2 style={{ marginTop: 0 }}>How this works (simple)</h2>
+            <div className="badge">How this works</div>
+            <h2 style={{ marginTop: 0 }}>How this works</h2>
             <ol className="operator-list" style={{ margin: 0 }}>
               <li>Choose a package.</li>
               <li>Confirm fit (5 minutes).</li>
@@ -155,7 +151,6 @@ const HomeSecurity = () => {
             <h3 style={{ marginTop: 0 }}>What to expect</h3>
             <ul className="operator-list" style={{ margin: 0 }}>
               <li>Professionally installed.</li>
-              <li>No subscriptions sold by us.</li>
               <li>Optional remote access (requires internet).</li>
               <li>You can change packages or paths before installation.</li>
             </ul>

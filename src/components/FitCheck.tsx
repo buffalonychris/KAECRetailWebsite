@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { FitCheckConfig, FitCheckTier } from '../content/fitCheckConfigs';
 import {
   HomeSecurityFitCheckAnswers,
@@ -211,6 +211,7 @@ type FitCheckProps = {
 };
 
 const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isHomeSecurity = searchParams.get('vertical') === 'home-security';
   const [answers, setAnswers] = useState<FitCheckAnswers>(initialAnswers);
@@ -275,15 +276,22 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
     });
   };
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
+  const buildNextResult = () => {
     const tier = getRecommendationTier(answers);
-    const nextResult: FitCheckResult = {
+    return {
       tier,
-      summary: buildSummary(answers),
-      reasons: buildReasons(answers),
-      assumedCoverage: buildAssumedCoverage(answers),
+      nextResult: {
+        tier,
+        summary: buildSummary(answers),
+        reasons: buildReasons(answers),
+        assumedCoverage: buildAssumedCoverage(answers),
+      },
     };
+  };
+
+  const submitFitCheck = () => {
+    if (!canSubmit) return null;
+    const { tier, nextResult } = buildNextResult();
     setResult(nextResult);
     updateRetailFlow({
       homeSecurity: {
@@ -295,6 +303,20 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
     params.set('fitTier', tier);
     params.set('package', tierToPackageId(tier));
     setSearchParams(params, { replace: true });
+    return tier;
+  };
+
+  const handleSubmit = () => {
+    submitFitCheck();
+  };
+
+  const handleGenerateQuote = () => {
+    const tier = submitFitCheck();
+    if (!tier) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('vertical', 'home-security');
+    params.set('package', tierToPackageId(tier));
+    navigate(`/quote?${params.toString()}`);
   };
 
   const handleReset = () => {
@@ -338,6 +360,7 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
   };
 
   const submitClassName = `btn btn-primary${canSubmit ? '' : ' disabled'}`;
+  const recommendationClassName = isHomeSecurity ? `btn btn-secondary${canSubmit ? '' : ' disabled'}` : submitClassName;
 
   const content = (
     <div
@@ -599,13 +622,20 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
           Answer all required questions and we’ll suggest the best-fit tier instantly.
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button type="button" className={submitClassName} disabled={!canSubmit} onClick={handleSubmit}>
+          <button type="button" className={recommendationClassName} disabled={!canSubmit} onClick={handleSubmit}>
             Show recommendation
           </button>
           <button type="button" className="btn btn-secondary" onClick={handleReset}>
             Start over
           </button>
         </div>
+        {isHomeSecurity && (
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button type="button" className={submitClassName} disabled={!canSubmit} onClick={handleGenerateQuote}>
+              Generate Quote
+            </button>
+          </div>
+        )}
       </section>
 
       {result ? (

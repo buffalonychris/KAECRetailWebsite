@@ -4,6 +4,7 @@ import TierBadge from './TierBadge';
 import { PackageTierId } from '../data/pricing';
 import { VerticalKey } from '../lib/verticals';
 import { updateRetailFlow } from '../lib/retailFlow';
+import AccordionSection from './AccordionSection';
 
 type Props = {
   pkg: PackageTier;
@@ -27,6 +28,8 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
   const isMostPopular = vertical === 'home-security' && pkg.id === 'a2';
   const contactLink = vertical === 'home-security' ? `/contact?vertical=home-security&package=${pkg.id}` : '/contact';
   const primaryLabel = vertical === 'home-security' ? `Choose ${pkg.name}` : `View ${pkg.name}`;
+  const isHomeSecurity = vertical === 'home-security';
+  const includedPreview = isHomeSecurity ? pkg.includes.slice(0, 4) : pkg.includes;
   const handleSelect = () => {
     if (vertical !== 'home-security') return;
     updateRetailFlow({ homeSecurity: { selectedPackageId: tierId } });
@@ -73,13 +76,25 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
       </div>
       <p style={{ marginTop: '1rem', color: '#e6ddc7' }}>{pkg.oneLiner}</p>
       <ul className="list" aria-label="Included features">
-        {pkg.includes.map((item) => (
+        {includedPreview.map((item) => (
           <li key={item}>
             <span />
             <span>{item}</span>
           </li>
         ))}
       </ul>
+      {isHomeSecurity && (
+        <AccordionSection title="What’s included" description="Full hardware counts for this tier.">
+          <ul className="list" aria-label="Full hardware list" style={{ marginTop: 0 }}>
+            {pkg.includes.map((item) => (
+              <li key={item}>
+                <span />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </AccordionSection>
+      )}
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
         <Link
           className="btn btn-primary"

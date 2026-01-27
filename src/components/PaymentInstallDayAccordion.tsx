@@ -8,7 +8,7 @@ const PaymentInstallDayAccordion = () => {
         <div className="badge">Payment &amp; Install Day</div>
         <h3 style={{ margin: 0, color: '#fff7e6' }}>Payment &amp; Install Day</h3>
         <p style={{ margin: 0, color: '#c8c0aa' }}>
-          Premium guidance for how the deposit, balance, and install-day flow work.
+          Clear expectations for deposit timing, remaining balance, and install day logistics.
         </p>
       </div>
       <div style={{ display: 'grid', gap: '0.75rem' }}>

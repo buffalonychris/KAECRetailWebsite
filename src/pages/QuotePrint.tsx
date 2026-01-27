@@ -16,6 +16,7 @@ import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
 import { brandSite } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
+import { HOME_SECURITY_CLARITY_FOOTER, getHomeSecurityHardwareList } from '../content/homeSecurityPackageData';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 
@@ -283,6 +284,7 @@ const QuotePrint = () => {
               <div style={{ marginTop: '0.5rem', color: '#444' }}>
                 <div>Deposit due today: {formatCurrency(depositDue)}</div>
                 <div>Remaining balance on arrival: {formatCurrency(balanceDue)}</div>
+                <div>Deposit due today: 50% of the system cost. Remaining balance due on installation day.</div>
               </div>
             </div>
           </div>
@@ -291,8 +293,7 @@ const QuotePrint = () => {
         <section className="print-section" style={{ marginTop: '1.25rem' }}>
           <h2>Payment terms</h2>
           <p style={{ color: '#444' }}>
-            A deposit reserves your install date. The remaining balance is due when we arrive, before installation begins. This
-            avoids payment issues after work is complete and keeps your install day on schedule.
+            Deposit due today: 50% of the system cost. Remaining balance due on installation day.
           </p>
         </section>
 
@@ -304,6 +305,18 @@ const QuotePrint = () => {
             ))}
           </ul>
         </section>
+
+        {vertical === 'home-security' && (
+          <section className="print-section" style={{ marginTop: '1.25rem' }}>
+            <h2>Included hardware</h2>
+            <ul className="print-list">
+              {getHomeSecurityHardwareList(quote.packageId.toLowerCase() as 'a1' | 'a2' | 'a3').map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <p style={{ color: '#444' }}>{HOME_SECURITY_CLARITY_FOOTER}</p>
+          </section>
+        )}
 
         {vertical !== 'home-security' && (
           <section className="print-section" style={{ marginTop: '1.25rem' }}>
