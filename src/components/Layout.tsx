@@ -45,7 +45,6 @@ const Layout = () => {
   const brandLink = isHomeSecurityFunnel ? '/home-security' : '/';
   const supportLink = isHomeSecurityFunnel ? '/support?vertical=home-security' : '/support';
   const contactLink = isHomeSecurityFunnel ? '/contact?vertical=home-security' : '/contact';
-  const showComparePackages = isHomeSecurityFunnel;
 
   return (
     <LayoutConfigContext.Provider value={{ layoutConfig, setLayoutConfig }}>
@@ -62,8 +61,7 @@ const Layout = () => {
               </NavLink>
               {!isHomeSecurityLanding && (
                 <div className={`funnel-header-actions${isHomeSecurityFunnelStep ? ' funnel-header-actions-muted' : ''}`}>
-                  <NavLink to={supportLink}>Support</NavLink>
-                  {showComparePackages && <NavLink to="/packages?vertical=home-security">Compare packages</NavLink>}
+                  {isHomeSecurityFunnel ? <NavLink to="/">Back to site</NavLink> : <NavLink to={supportLink}>Support</NavLink>}
                 </div>
               )}
             </div>

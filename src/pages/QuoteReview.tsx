@@ -23,6 +23,10 @@ import TierBadge from '../components/TierBadge';
 import { calculateDepositDue } from '../lib/paymentTerms';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { buildAssumedCoverage } from '../lib/homeSecurityFunnel';
+import {
+  HOME_SECURITY_CLARITY_FOOTER,
+  getHomeSecurityHardwareList,
+} from '../content/homeSecurityPackageData';
 // SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
 
 type AccordionSectionProps = {
@@ -342,15 +346,15 @@ const QuoteReview = () => {
       {isHomeSecurity && <HomeSecurityFunnelSteps currentStep="quote" />}
       {isHomeSecurity && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <Link className="btn btn-secondary" to="/quote?vertical=home-security">
-            Edit Your Answers
+          <Link className="btn btn-link" to="/quote?vertical=home-security">
+            Edit answers
           </Link>
         </div>
       )}
       <div className="card-grid" style={{ alignItems: 'start' }}>
         <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <div className="badge">Decision support</div>
+            {!isHomeSecurity && <div className="badge">Decision support</div>}
             <h1 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Quote ready for review</h1>
             <p style={{ margin: 0, color: '#c8c0aa' }}>
               Deterministic one-time estimate. No subscriptions. Save or share with family, then continue to agreement.
@@ -359,17 +363,21 @@ const QuoteReview = () => {
               <button type="button" className="btn btn-primary" onClick={handleContinueToAgreement}>
                 {isHomeSecurity ? 'Accept & Continue' : 'Continue to Agreement'}
               </button>
-              <button type="button" className="btn btn-secondary" onClick={handlePrint}>
-                Print / Save Quote
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
-                disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
-              >
-                {sending ? 'Sending…' : 'Email this quote'}
-              </button>
+              {!isHomeSecurity && (
+                <>
+                  <button type="button" className="btn btn-secondary" onClick={handlePrint}>
+                    Print / Save Quote
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleSendEmail(shareRecipient || email, 'manual')}
+                    disabled={!isValidEmail(shareRecipient || email) || sending || !emailPayload}
+                  >
+                    {sending ? 'Sending…' : 'Email this quote'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -431,6 +439,21 @@ const QuoteReview = () => {
           </ul>
         </div>
 
+        {isHomeSecurity && (
+          <div className="card" style={{ display: 'grid', gap: '0.5rem', background: '#0f0e0d' }}>
+            <strong>Included hardware</strong>
+            <ul className="list" style={{ marginTop: 0 }}>
+              {getHomeSecurityHardwareList(quote.packageId.toLowerCase() as 'a1' | 'a2' | 'a3').map((item) => (
+                <li key={item}>
+                  <span />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <small style={{ color: '#c8c0aa' }}>{HOME_SECURITY_CLARITY_FOOTER}</small>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <strong>Included in selection</strong>
           <ul className="list" style={{ marginTop: 0 }}>
@@ -487,105 +510,111 @@ const QuoteReview = () => {
         </div>
       )}
 
-      <FlowGuidePanel
-        currentStep="quote"
-        nextDescription="Agreement review is next. Save or email this quote, then continue to formal acceptance."
-        ctaLabel="Continue to Agreement"
-        onCta={handleContinueToAgreement}
-      />
+      {!isHomeSecurity && (
+        <FlowGuidePanel
+          currentStep="quote"
+          nextDescription="Agreement review is next. Save or email this quote, then continue to formal acceptance."
+          ctaLabel="Continue to Agreement"
+          onCta={handleContinueToAgreement}
+        />
+      )}
 
-      <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-        <div>
-          <div className="badge">Share &amp; Save</div>
-          <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Share this quote</h3>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Send the quote to yourself or trusted family members. The resume link keeps progress for caregivers or caseworkers.
-          </p>
-        </div>
-
-        <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '520px' }}>
-          <span>Email to send</span>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <input
-              value={shareRecipient}
-              onChange={(e) => {
-                setShareRecipient(e.target.value);
-                handleUpdateEmail(e.target.value);
-              }}
-              placeholder="care@kickassfamily.com"
-              style={{
-                flex: 1,
-                minWidth: '240px',
-                padding: '0.75rem',
-                borderRadius: '10px',
-                border: '1px solid rgba(245,192,66,0.35)',
-                background: '#0f0e0d',
-                color: '#fff7e6',
-              }}
-            />
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => handleSendEmail(shareRecipient, 'manual')}
-              disabled={!isValidEmail(shareRecipient) || sending || !emailPayload}
-            >
-              {sending ? 'Sending…' : 'Send quote'}
-            </button>
+      {!isHomeSecurity && (
+        <div className="card" style={{ display: 'grid', gap: '0.75rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+          <div>
+            <div className="badge">Share &amp; Save</div>
+            <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Share this quote</h3>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Send the quote to yourself or trusted family members. The resume link keeps progress for caregivers or caseworkers.
+            </p>
           </div>
-          {!isValidEmail(shareRecipient) && shareRecipient && (
-            <small style={{ color: '#f0b267' }}>Enter a valid email.</small>
-          )}
-          <small style={{ color: '#c8c0aa' }}>
-            We email the legally binding tokenized copy through KAEC servers without changing pricing or package content.
-          </small>
-        </label>
 
-        {(emailBanner || quote.emailLastStatus) && (
-          <div style={{ color: emailStatus === 'failed' ? '#f0b267' : '#c8c0aa' }}>
-            <strong>
-              {emailBanner ||
-                (emailStatus === 'sent'
-                  ? `Sent to ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
-                  : emailStatus === 'mock'
-                  ? `Email queued (mock mode) for ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
-                  : 'We could not send the email. Please try again.')}
-            </strong>
-            {(emailError || quote.emailLastError) && (
-              <div style={{ marginTop: '0.25rem' }}>
-                <small>{emailError || quote.emailLastError}</small>
-              </div>
-            )}
-            {quote.emailRecipients?.length ? (
-              <div style={{ marginTop: '0.25rem' }}>
-                <small>Recently sent to: {quote.emailRecipients.slice(0, 3).join(', ')}</small>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {resumeUrl && (
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <strong>Resume link</strong>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <a href={resumeUrl} style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>
-                Continue your order
-              </a>
-              <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
-                {linkCopied ? 'Copied resume link' : 'Copy resume link'}
+          <label style={{ display: 'grid', gap: '0.35rem', maxWidth: '520px' }}>
+            <span>Email to send</span>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <input
+                value={shareRecipient}
+                onChange={(e) => {
+                  setShareRecipient(e.target.value);
+                  handleUpdateEmail(e.target.value);
+                }}
+                placeholder="care@kickassfamily.com"
+                style={{
+                  flex: 1,
+                  minWidth: '240px',
+                  padding: '0.75rem',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(245,192,66,0.35)',
+                  background: '#0f0e0d',
+                  color: '#fff7e6',
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleSendEmail(shareRecipient, 'manual')}
+                disabled={!isValidEmail(shareRecipient) || sending || !emailPayload}
+              >
+                {sending ? 'Sending…' : 'Send quote'}
               </button>
             </div>
-            <small className="break-all" style={{ color: '#c8c0aa' }}>{resumeUrl}</small>
-          </div>
-        )}
-      </div>
+            {!isValidEmail(shareRecipient) && shareRecipient && (
+              <small style={{ color: '#f0b267' }}>Enter a valid email.</small>
+            )}
+            <small style={{ color: '#c8c0aa' }}>
+              We email the legally binding tokenized copy through KAEC servers without changing pricing or package content.
+            </small>
+          </label>
+
+          {(emailBanner || quote.emailLastStatus) && (
+            <div style={{ color: emailStatus === 'failed' ? '#f0b267' : '#c8c0aa' }}>
+              <strong>
+                {emailBanner ||
+                  (emailStatus === 'sent'
+                    ? `Sent to ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
+                    : emailStatus === 'mock'
+                    ? `Email queued (mock mode) for ${quote.emailRecipients?.[0] ?? quote.emailTo ?? shareRecipient}.`
+                    : 'We could not send the email. Please try again.')}
+              </strong>
+              {(emailError || quote.emailLastError) && (
+                <div style={{ marginTop: '0.25rem' }}>
+                  <small>{emailError || quote.emailLastError}</small>
+                </div>
+              )}
+              {quote.emailRecipients?.length ? (
+                <div style={{ marginTop: '0.25rem' }}>
+                  <small>Recently sent to: {quote.emailRecipients.slice(0, 3).join(', ')}</small>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {resumeUrl && (
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <strong>Resume link</strong>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <a href={resumeUrl} style={{ color: 'var(--kaec-gold)', fontWeight: 700 }}>
+                  Continue your order
+                </a>
+                <button type="button" className="btn btn-secondary" onClick={handleCopyResumeLink}>
+                  {linkCopied ? 'Copied resume link' : 'Copy resume link'}
+                </button>
+              </div>
+              <small className="break-all" style={{ color: '#c8c0aa' }}>{resumeUrl}</small>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gap: '1rem' }}>
-        <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
-          <div className="badge">Validation &amp; Details</div>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>
-            Expand for hardware, coverage, and advisory narrative details. Internal-only logs stay hidden from customers.
-          </p>
-        </div>
+        {!isHomeSecurity && (
+          <div className="card" style={{ display: 'grid', gap: '0.35rem' }}>
+            <div className="badge">Validation &amp; Details</div>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>
+              Expand for hardware, coverage, and advisory narrative details. Internal-only logs stay hidden from customers.
+            </p>
+          </div>
+        )}
 
         {vertical !== 'home-security' && (
           <AccordionSection title="Hardware included" description="Device counts grouped by location." defaultOpen={false}>
@@ -653,58 +682,60 @@ const QuoteReview = () => {
           </AccordionSection>
         )}
 
-        <AccordionSection title="Narrative / Explanation" description="Advisory explanation and disclaimers." defaultOpen={false}>
-          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div>
-                <div className="badge">AI Explanation (Advisory)</div>
-                <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
-                <p style={{ margin: 0, color: '#c8c0aa' }}>
-                  Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
-                  advice; if there is an urgent safety issue, call 911.
-                </p>
+        {!isHomeSecurity && (
+          <AccordionSection title="Narrative / Explanation" description="Advisory explanation and disclaimers." defaultOpen={false}>
+            <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <div className="badge">AI Explanation (Advisory)</div>
+                  <h3 style={{ margin: '0.25rem 0', color: '#fff7e6' }}>Deterministic narrative</h3>
+                  <p style={{ margin: 0, color: '#c8c0aa' }}>
+                    Explains why this package and add-ons fit, what offline behavior to expect, and the next best step. No medical
+                    advice; if there is an urgent safety issue, call 911.
+                  </p>
+                </div>
+                <button type="button" className="btn btn-secondary" onClick={handleExplainQuote}>
+                  {narrativeLoading ? 'Building explanation…' : 'Explain this quote'}
+                </button>
               </div>
-              <button type="button" className="btn btn-secondary" onClick={handleExplainQuote}>
-                {narrativeLoading ? 'Building explanation…' : 'Explain this quote'}
-              </button>
-            </div>
-            <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
-              {(narrativeLoading || !narrative) && (
-                <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-                  <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
-                  <small style={{ color: '#c8c0aa' }}>
-                    Deterministic templates are used by default; no external AI is required.
-                  </small>
-                </div>
-              )}
-              {narrative?.sections.map((section) => (
-                <div
-                  key={section.title}
-                  className="card"
-                  style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
-                >
-                  <strong>{section.title}</strong>
-                  <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
-                </div>
-              ))}
-            </div>
-            <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
-              <strong>Disclaimers</strong>
-              <ul className="list" style={{ marginTop: '0.35rem' }}>
-                {(narrative?.disclaimer ?? [
-                  'Informational only. Not medical advice or a diagnosis.',
-                  'If you have an urgent safety concern, call 911.',
-                  'Final configuration depends on on-site conditions and local code.',
-                ]).map((item) => (
-                  <li key={item}>
-                    <span />
-                    <span>{item}</span>
-                  </li>
+              <div className="card-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+                {(narrativeLoading || !narrative) && (
+                  <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                    <strong>{narrativeLoading ? 'Building explanation…' : 'Click “Explain this quote” to view the narrative.'}</strong>
+                    <small style={{ color: '#c8c0aa' }}>
+                      Deterministic templates are used by default; no external AI is required.
+                    </small>
+                  </div>
+                )}
+                {narrative?.sections.map((section) => (
+                  <div
+                    key={section.title}
+                    className="card"
+                    style={{ display: 'grid', gap: '0.4rem', border: '1px solid rgba(245, 192, 66, 0.35)' }}
+                  >
+                    <strong>{section.title}</strong>
+                    <p style={{ margin: 0, color: '#c8c0aa' }}>{section.body}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
+              <div className="card" style={{ border: '1px solid rgba(245, 192, 66, 0.35)' }}>
+                <strong>Disclaimers</strong>
+                <ul className="list" style={{ marginTop: '0.35rem' }}>
+                  {(narrative?.disclaimer ?? [
+                    'Informational only. Not medical advice or a diagnosis.',
+                    'If you have an urgent safety concern, call 911.',
+                    'Final configuration depends on on-site conditions and local code.',
+                  ]).map((item) => (
+                    <li key={item}>
+                      <span />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+        )}
 
         <AccordionSection title="Assumptions & Exclusions" description="Context for what is and is not covered." defaultOpen={false}>
           <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>

@@ -37,31 +37,8 @@ const HomeSecurity = () => {
   }, [searchParams]);
 
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
-  const quickLinks = [
-    { id: 'packages', label: 'Packages' },
-    { id: 'compare-coverage', label: 'Compare coverage' },
-    { id: 'how-this-works', label: 'How this works' },
-    { id: 'fit-check', label: 'Fit check' },
-    { id: 'generate-quote', label: 'Generate quote' },
-    { id: 'what-happens-next', label: 'What happens next' },
-  ];
-
   return (
     <div className="container section home-security-page">
-      <div className="card flow-guide" style={{ display: 'grid', gap: '0.75rem' }}>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <div className="badge">Jump to</div>
-          <strong style={{ color: '#fff7e6' }}>Explore the sections below.</strong>
-        </div>
-        <div className="flow-guide-steps" role="list">
-          {quickLinks.map((link) => (
-            <a key={link.id} href={`#${link.id}`} className="flow-guide-step" role="listitem">
-              <span>{link.label}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-
       <section className="vertical-hero vertical-hero--media vertical-hero--campaign">
         <div className="vertical-hero-media" aria-hidden="true">
           <picture>
@@ -85,9 +62,6 @@ const HomeSecurity = () => {
             <div className="space-section-actions">
               <a className="btn btn-primary" href="#packages">
                 View Packages
-              </a>
-              <a className="btn btn-secondary" href="#how-this-works">
-                See How It Works
               </a>
             </div>
           </div>
@@ -127,15 +101,6 @@ const HomeSecurity = () => {
             </li>
           </ul>
         </div>
-        <div className="card">
-          <div className="badge">Trust signals</div>
-          <h3 style={{ marginTop: 0 }}>Local-first guarantees</h3>
-          <ul className="operator-list">
-            <li>Offline Dignity Rule: core functions run on your LAN.</li>
-            <li>Optional monitoring contracts are between you and the provider.</li>
-            <li>Support stays human and hands-on before and after install.</li>
-          </ul>
-        </div>
       </section>
 
       <div className="section-divider" aria-hidden="true" />
@@ -158,15 +123,8 @@ const HomeSecurity = () => {
           All packages are expandable later. You can add cameras, sensors, or coverage areas as your needs change.
         </p>
         <div id="compare-coverage">
-          <AccordionSection title="Compare coverage" description="See typical coverage by tier after reviewing the package options.">
-            <div className="compare-stack">
-              <ResponsivePublicImage
-                srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
-                alt="Typical coverage by package tier"
-                className="premium-image premium-image--contain motion-fade-up"
-              />
-              <HomeSecurityComparisonTable />
-            </div>
+          <AccordionSection title="Compare coverage" description="Typical coverage ranges and included hardware by tier.">
+            <HomeSecurityComparisonTable />
           </AccordionSection>
         </div>
       </section>

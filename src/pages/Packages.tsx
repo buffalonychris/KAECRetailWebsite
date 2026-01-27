@@ -4,10 +4,8 @@ import PackageCard from '../components/PackageCard';
 import ComparisonLadder from '../components/ComparisonLadder';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
-import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import AccordionSection from '../components/AccordionSection';
 import { getPackages } from '../content/packages';
-import { getAddOns } from '../data/pricing';
 import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { resolveVertical } from '../lib/verticals';
@@ -20,7 +18,6 @@ const Packages = () => {
   const [guidedMode, setGuidedMode] = useState<boolean>(() => loadRetailFlow().guidedMode ?? false);
   const vertical = resolveVertical(searchParams.get('vertical'));
   const packageList = getPackages(vertical);
-  const addOns = getAddOns(vertical);
   const isHomeSecurity = vertical === 'home-security';
   const homeSecurityTierCaptions = isHomeSecurity
     ? {
@@ -117,12 +114,9 @@ const Packages = () => {
           <Link className="btn btn-link" to="/home-security">
             Back to overview
           </Link>
-          <Link className="btn btn-link" to="/home-security#how-you-can-proceed">
-            Edit how you proceed
-          </Link>
         </div>
       )}
-      {guidedMode && (
+      {guidedMode && !isHomeSecurity && (
         <div
           className="hero-card motion-fade-up"
           role="status"
@@ -150,22 +144,16 @@ const Packages = () => {
               : 'One-time pricing, delivered with Home Assistant as your single control surface.'}
           </p>
         </div>
-        <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'start' }}>
-          {vertical === 'home-security' ? (
-            <Link className="btn btn-secondary" to="/discovery?vertical=home-security">
-              Not Sure? Start with a Fit Check
+        {!isHomeSecurity && (
+          <div style={{ display: 'grid', gap: '0.35rem', justifyItems: 'start' }}>
+            <Link className="btn btn-primary" to="/quote">
+              Continue to Fit Check
             </Link>
-          ) : (
-            <>
-              <Link className="btn btn-primary" to="/quote">
-                Continue to Fit Check
-              </Link>
-              <small style={{ color: '#c8c0aa' }}>
-                Clear pricing with pro install, ready for offline resilience.
-              </small>
-            </>
-          )}
-        </div>
+            <small style={{ color: '#c8c0aa' }}>
+              Clear pricing with pro install, ready for offline resilience.
+            </small>
+          </div>
+        )}
       </div>
       <div className="card-grid motion-stagger">
         {packageList.map((pkg) => (
@@ -191,60 +179,21 @@ const Packages = () => {
           <AccordionSection
             title="Compare Home Security tiers"
             description="One dashboard for everything. Remote access needs internet, but local control still works on your home network."
+            defaultOpen={false}
           >
-            <div className="compare-stack">
-              <ResponsivePublicImage
-                srcBase="/images/home-security/hs_graphic_typical-coverage-by-package"
-                alt="Typical coverage by package tier"
-                className="premium-image premium-image--contain motion-fade-up"
-              />
-              <HomeSecurityComparisonTable />
-            </div>
+            <HomeSecurityComparisonTable />
           </AccordionSection>
         </div>
       )}
 
       {vertical !== 'home-security' && <ComparisonLadder />}
 
-      {vertical === 'home-security' && (
-        <div className="section">
-          <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-            <div className="badge">Optional add-ons</div>
-            <h2 style={{ margin: 0 }}>Optional add-ons</h2>
-            <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-              Add-ons expand coverage and are quoted separately based on your layout and wiring. Core local control still works without
-              internet.
-            </p>
-            <ul className="list">
-              {addOns.map((addOn) => (
-                <li key={addOn.id}>
-                  <span />
-                  <span>
-                    <strong>{addOn.label}</strong> — {addOn.description}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      {!isHomeSecurity && (
+        <OwnershipOfflineGuarantee
+          intro="Every package honors the Offline Dignity Rule and keeps ownership with the household."
+          className="section motion-fade-up"
+        />
       )}
-      <OwnershipOfflineGuarantee
-        intro={
-          vertical === 'home-security'
-            ? 'Local-first control and ownership stay with your household.'
-            : 'Every package honors the Offline Dignity Rule and keeps ownership with the household.'
-        }
-        items={
-          vertical === 'home-security'
-            ? [
-                'You own the equipment, automations, and data.',
-                'Core functions still work on your home network if the internet is down.',
-                'Optional third-party services are contracted directly by you.',
-              ]
-            : undefined
-        }
-        className={isHomeSecurity ? 'section motion-fade-up' : 'section motion-fade-up'}
-      />
     </div>
   );
 };

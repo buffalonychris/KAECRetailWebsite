@@ -1,3 +1,5 @@
+import { getHomeSecurityHardwareList, HOME_SECURITY_PACKAGE_SPECS } from './homeSecurityPackageData';
+
 export type HomeSecurityPdpGroup = {
   title: string;
   items: string[];
@@ -36,43 +38,15 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
     ],
     whatYouGet: [
       {
-        title: 'Core',
-        items: [
-          'Mini PC running Home Assistant (1)',
-          'Zigbee USB radio (1)',
-          'Z-Wave USB radio (1)',
-          'CloudKey+ local recording host (1)',
-        ],
-      },
-      {
-        title: 'Cameras',
-        items: ['Indoor camera (1)', 'Outdoor or doorbell camera (1)'],
-      },
-      {
-        title: 'Sensors & Alerts',
-        items: [
-          'Door/window sensors (2–4)',
-          'Motion sensor (1)',
-          'Leak or smoke sensor (1)',
-          'Local siren/chime (1)',
-        ],
+        title: 'Hardware',
+        items: getHomeSecurityHardwareList('a1'),
       },
     ],
-    whatsIncluded: [
-      'Mini PC running Home Assistant (control plane)',
-      'Zigbee + Z-Wave USB radios',
-      'CloudKey+ local recording host',
-      '1 indoor camera',
-      '1 outdoor or doorbell camera',
-      '2–4 door/window sensors',
-      '1 motion sensor',
-      '1 leak or smoke sensor',
-      'Local siren/chime',
-    ],
+    whatsIncluded: getHomeSecurityHardwareList('a1'),
     typicalCoverage: {
-      squareFootage: '~800–1,200 sq ft',
-      entrances: '1 main entry + 2–3 doors/windows',
-      cameras: '1 indoor + 1 outdoor/doorbell',
+      squareFootage: HOME_SECURITY_PACKAGE_SPECS.a1.coverage,
+      entrances: HOME_SECURITY_PACKAGE_SPECS.a1.entrances,
+      cameras: HOME_SECURITY_PACKAGE_SPECS.a1.cameras,
     },
     capabilities: [
       'Local-first alerts for entry, motion, and leak/smoke events.',
@@ -107,43 +81,15 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
     ],
     whatYouGet: [
       {
-        title: 'Core',
-        items: [
-          'Mini PC running Home Assistant (1)',
-          'Zigbee USB radio (1)',
-          'Z-Wave USB radio (1)',
-          'CloudKey+ local recording host (1)',
-        ],
-      },
-      {
-        title: 'Cameras',
-        items: ['Indoor cameras (2)', 'Outdoor PoE camera (1)', 'PoE adapter/injector (1)'],
-      },
-      {
-        title: 'Sensors & Alerts',
-        items: [
-          'Door/window sensors (4–6)',
-          'Motion sensors (2)',
-          'Leak or smoke sensors (2)',
-          'Local siren/chime (1)',
-        ],
+        title: 'Hardware',
+        items: getHomeSecurityHardwareList('a2'),
       },
     ],
-    whatsIncluded: [
-      'Mini PC running Home Assistant (control plane)',
-      'Zigbee + Z-Wave USB radios',
-      'CloudKey+ local recording host',
-      '2 indoor cameras',
-      '1 outdoor PoE camera',
-      '4–6 door/window sensors',
-      '2 motion sensors',
-      '2 leak or smoke sensors',
-      'Local siren/chime',
-    ],
+    whatsIncluded: getHomeSecurityHardwareList('a2'),
     typicalCoverage: {
-      squareFootage: '~1,200–2,000 sq ft',
-      entrances: 'Main + secondary entry',
-      cameras: '2 indoor + 1 outdoor (PoE)',
+      squareFootage: HOME_SECURITY_PACKAGE_SPECS.a2.coverage,
+      entrances: HOME_SECURITY_PACKAGE_SPECS.a2.entrances,
+      cameras: HOME_SECURITY_PACKAGE_SPECS.a2.cameras,
     },
     capabilities: [
       'Indoor + outdoor PoE camera coverage.',
@@ -151,7 +97,7 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
       'Multiple leak/smoke detection zones.',
       'Automation scenes (night mode, away mode, etc.).',
     ],
-    limitations: ['Dedicated NVR recording is only included in Gold.'],
+    limitations: ['NVR capacity is sized by tier and finalized after site assessment.'],
     howItWorks: [
       'Discovery: confirm entrances, camera goals, and notification style.',
       'Placement plan: optimize coverage for day + night.',
@@ -177,44 +123,15 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
     ],
     whatYouGet: [
       {
-        title: 'Core',
-        items: [
-          'Mini PC running Home Assistant (1)',
-          'Zigbee USB radio (1)',
-          'Z-Wave USB radio (1)',
-          'Dedicated UNVR (1)',
-          'Surveillance hard drives (2)',
-        ],
-      },
-      {
-        title: 'Cameras',
-        items: ['Indoor cameras (2–3)', 'Outdoor PoE cameras (2)', 'PoE adapters/injectors (2)'],
-      },
-      {
-        title: 'Sensors & Alerts',
-        items: [
-          'Door/window sensors (6–10)',
-          'Motion sensors (3)',
-          'Leak or smoke sensors (3)',
-          'Local siren/chime (1)',
-        ],
+        title: 'Hardware',
+        items: getHomeSecurityHardwareList('a3'),
       },
     ],
-    whatsIncluded: [
-      'Mini PC running Home Assistant (control plane)',
-      'Zigbee + Z-Wave USB radios',
-      'Dedicated UNVR with surveillance drives',
-      '2–3 indoor cameras',
-      '2 outdoor PoE cameras',
-      '6–10 door/window sensors',
-      '3 motion sensors',
-      '3 leak or smoke sensors',
-      'Local siren/chime',
-    ],
+    whatsIncluded: getHomeSecurityHardwareList('a3'),
     typicalCoverage: {
-      squareFootage: '~2,000–3,500+ sq ft',
-      entrances: 'Multiple exterior entries',
-      cameras: '2–3 indoor + 2 outdoor (PoE)',
+      squareFootage: HOME_SECURITY_PACKAGE_SPECS.a3.coverage,
+      entrances: HOME_SECURITY_PACKAGE_SPECS.a3.entrances,
+      cameras: HOME_SECURITY_PACKAGE_SPECS.a3.cameras,
     },
     capabilities: [
       'Dedicated local recording + expanded camera coverage.',
