@@ -6,7 +6,6 @@ import PackageCard from '../components/PackageCard';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { getPackages } from '../content/packages';
-import { verticalContent } from '../content/systemRestoration';
 import { HomeSecurityPathChoice } from '../lib/homeSecurityFunnel';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
@@ -18,8 +17,7 @@ const monitoringCopy = (
 );
 
 const HomeSecurity = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const content = verticalContent.homeSecurity;
+  const [searchParams] = useSearchParams();
   const packages = useMemo(() => getPackages('home-security'), []);
   const [selectedPath, setSelectedPath] = useState<HomeSecurityPathChoice | null>(() => {
     return loadRetailFlow().homeSecurity?.selectedPath ?? null;
@@ -38,19 +36,13 @@ const HomeSecurity = () => {
     }
   }, [searchParams]);
 
-  const handlePathSelect = (path: HomeSecurityPathChoice) => {
-    setSelectedPath(path);
-    updateRetailFlow({ homeSecurity: { selectedPath: path } });
-    const params = new URLSearchParams(searchParams);
-    params.set('path', path);
-    setSearchParams(params, { replace: true });
-  };
-
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
   const quickLinks = [
     { id: 'packages', label: 'Packages' },
     { id: 'compare-coverage', label: 'Compare coverage' },
+    { id: 'how-this-works', label: 'How this works' },
     { id: 'fit-check', label: 'Fit check' },
+    { id: 'generate-quote', label: 'Generate quote' },
     { id: 'what-happens-next', label: 'What happens next' },
   ];
 
@@ -94,7 +86,7 @@ const HomeSecurity = () => {
               <a className="btn btn-primary" href="#packages">
                 View Packages
               </a>
-              <a className="btn btn-secondary" href="#how-it-works">
+              <a className="btn btn-secondary" href="#how-this-works">
                 See How It Works
               </a>
             </div>
@@ -181,128 +173,90 @@ const HomeSecurity = () => {
 
       <div className="section-divider" aria-hidden="true" />
 
-      <section id="how-you-can-proceed" className="space-grid two-column">
-        <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div className="badge">Option A</div>
-          <span className="option-label">Most people start here</span>
-          <h3 style={{ marginTop: 0 }}>Online-first (fastest)</h3>
-          <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-            Start online, confirm a package, and generate a deterministic quote before scheduling.
-          </p>
-          <button type="button" className="btn btn-primary" onClick={() => handlePathSelect('online')}>
-            Continue online-first
-          </button>
-        </div>
-        <div className="card" style={{ display: 'grid', gap: '0.75rem' }}>
-          <div className="badge">Option B</div>
-          <h3 style={{ marginTop: 0 }}>On-site confirmation first</h3>
-          <p style={{ margin: 0, color: 'var(--kaec-muted)' }}>
-            Prefer a walkthrough before finalizing? Start with a confirmation visit and finalize the package after.
-          </p>
-          <Link
-            className="btn btn-secondary"
-            to={`/contact?vertical=home-security&intent=onsite-confirmation${pathParam}`}
-            onClick={() => handlePathSelect('onsite')}
-          >
-            Request on-site confirmation
-          </Link>
-        </div>
-        <div className="card" style={{ gridColumn: '1 / -1' }}>
-          <h4 style={{ marginTop: 0 }}>Guidance</h4>
-          <ul className="list">
-            <li>
-              <span />
-              <span>Gold coverage typically benefits from on-site confirmation.</span>
-            </li>
-            <li>
-              <span />
-              <span>On-site confirmation is never required.</span>
-            </li>
-            <li>
-              <span />
-              <span>
-                <strong>You may switch between paths at any time before installation.</strong>
-              </span>
-            </li>
-          </ul>
+      <section id="how-this-works" className="space-grid">
+        <div
+          className="card"
+          style={{
+            display: 'grid',
+            gap: '1.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            alignItems: 'start',
+          }}
+        >
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <div className="badge">How this works (simple)</div>
+            <h2 style={{ marginTop: 0 }}>How this works (simple)</h2>
+            <ol className="operator-list" style={{ margin: 0 }}>
+              <li>Choose a package.</li>
+              <li>Confirm fit (5 minutes).</li>
+              <li>Lock your quote with a deposit.</li>
+              <li>Pick an installation date.</li>
+            </ol>
+          </div>
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <h3 style={{ marginTop: 0 }}>What to expect</h3>
+            <ul className="operator-list" style={{ margin: 0 }}>
+              <li>Professionally installed.</li>
+              <li>No subscriptions sold by us.</li>
+              <li>Optional remote access (requires internet).</li>
+              <li>You can change packages or paths before installation.</li>
+            </ul>
+            <a className="btn btn-primary" href="#fit-check">
+              Confirm fit in minutes
+            </a>
+          </div>
         </div>
       </section>
 
       <div className="section-divider" aria-hidden="true" />
 
-      <section id="how-it-works" className="space-grid two-column">
-        <div className="card">
-          <div className="badge">How it works</div>
-          <h2 style={{ marginTop: 0 }}>A calm, professional install flow</h2>
-          <p style={{ color: 'var(--kaec-muted)' }}>
-            The goal is predictable coverage and a handoff you can control without subscription lock-in.
-          </p>
-        </div>
-        <div className="card">
-          <ol className="operator-list">
-            {content.journeySteps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <div className="section-divider" aria-hidden="true" />
-
-      <section id="fit-check" className="space-grid two-column">
+      <section id="fit-check" className="space-grid">
         <div className="card">
           <div className="badge">Fit Check</div>
           <h2 style={{ marginTop: 0 }}>Confirm fit in minutes</h2>
           <p style={{ color: 'var(--kaec-muted)' }}>
             Answer a few questions about home size, entry points, outdoor coverage, and camera comfort to receive a recommendation.
           </p>
-          <Link className="btn btn-primary" to={`/discovery?vertical=home-security${pathParam}`}>
+          <Link className="btn btn-secondary" to={`/discovery?vertical=home-security${pathParam}`}>
             Start Fit Check
           </Link>
-        </div>
-        <div className="card">
-          <h3 style={{ marginTop: 0 }}>What you’ll receive</h3>
-          <ul className="operator-list">
-            <li>Recommended tier with assumed coverage.</li>
-            <li>Notes on how to adjust coverage later.</li>
-            <li>Guidance for HOA or interior-only configurations.</li>
-          </ul>
         </div>
       </section>
 
       <div className="section-divider" aria-hidden="true" />
 
-      <section id="what-happens-next" className="space-grid two-column">
+      <section id="generate-quote" className="space-grid" style={{ gap: '1.5rem' }}>
         <div className="card">
           <div className="badge">Quote → Deposit → Scheduling</div>
           <h2 style={{ marginTop: 0 }}>Lock in your quote, then pick a date</h2>
           <p style={{ color: 'var(--kaec-muted)' }}>
             The quote confirms your tier, the deposit reserves pricing and equipment availability, and scheduling only happens after you choose a date.
           </p>
-          <Link className="btn btn-primary" to={`/quote?vertical=home-security${pathParam}`}>
+          <Link className="btn btn-secondary" to={`/quote?vertical=home-security${pathParam}`}>
             Generate Quote
           </Link>
         </div>
-        <div className="card">
-          <h3 style={{ marginTop: 0 }}>What happens next</h3>
-          <ul className="list">
-            <li>
-              <span />
-              <span>Deposit reserves system pricing and equipment availability for 30 days.</span>
-            </li>
-            <li>
-              <span />
-              <span>Installation is not scheduled until you select a date.</span>
-            </li>
-            <li>
-              <span />
-              <span>Final placement is confirmed before installation begins.</span>
-            </li>
-            <li>
-              <span />
-              <span>Remaining balance is due on the day of installation.</span>
-            </li>
-          </ul>
+        <div id="what-happens-next">
+          <AccordionSection title="What happens after you generate a quote?" description="Details on the deposit and scheduling flow.">
+            <ul className="list">
+              <li>
+                <span />
+                <span>Deposit reserves system pricing and equipment availability for 30 days.</span>
+              </li>
+              <li>
+                <span />
+                <span>Installation is not scheduled until you select a date.</span>
+              </li>
+              <li>
+                <span />
+                <span>Final placement is confirmed before installation begins.</span>
+              </li>
+              <li>
+                <span />
+                <span>Remaining balance is due on the day of installation.</span>
+              </li>
+            </ul>
+          </AccordionSection>
         </div>
       </section>
     </div>
