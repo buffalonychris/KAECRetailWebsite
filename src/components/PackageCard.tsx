@@ -36,7 +36,10 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
   };
   return (
     <div
-      className={`card package-card${isMostPopular ? ' card-popular package-card--featured' : ''}`}
+      className={`card package-card${isMostPopular ? ' card-popular package-card--featured' : ''}${
+        isHomeSecurity ? ' package-card--home-security' : ''
+      }`}
+      data-tier={isHomeSecurity ? pkg.id : undefined}
       aria-label={`${pkg.name} package`}
     >
       {image ? (
@@ -97,7 +100,7 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
       )}
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
         <Link
-          className="btn btn-primary"
+          className={`btn btn-primary${isHomeSecurity ? ' package-cta' : ''}`}
           to={`/packages/${pkg.id}${verticalQuery}`}
           aria-label={primaryLabel}
           onClick={handleSelect}
