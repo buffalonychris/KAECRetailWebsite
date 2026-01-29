@@ -32,6 +32,7 @@ const Payment = () => {
   const [saveSending, setSaveSending] = useState(false);
   const [leadRequestStatus, setLeadRequestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [stripeMessage, setStripeMessage] = useState('');
+  const [stripeLoading, setStripeLoading] = useState(false);
 
   useEffect(() => {
     markFlowStep('payment');
@@ -201,11 +202,42 @@ const Payment = () => {
     return null;
   }
 
-  const startStripeCheckout = () => {
-    const message = 'Checkout session not configured.';
-    console.info(message);
-    setStripeMessage(message);
-    return { ok: false, message };
+  const startStripeCheckout = async () => {
+    if (stripeLoading) return;
+    setStripeMessage('');
+
+    if (!quoteContext) {
+      setStripeMessage('Quote details are missing. Please return to the quote step to regenerate your totals.');
+      return;
+    }
+
+    setStripeLoading(true);
+
+    const quoteId = quoteContext.quoteHash ?? buildQuoteReference(quoteContext);
+
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId,
+          vertical: 'home-security',
+          packageId: quoteContext.packageId,
+          selectedAddOns: quoteContext.selectedAddOns,
+        }),
+      });
+
+      const data = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error || 'Unable to start checkout session.');
+      }
+
+      window.location.assign(data.url);
+    } catch (error) {
+      console.error('Stripe checkout failed', error);
+      setStripeMessage('We could not start the secure checkout. Please try again or contact support.');
+      setStripeLoading(false);
+    }
   };
 
   if (isHomeSecurity) {
@@ -300,8 +332,8 @@ const Payment = () => {
             </div>
           </div>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <button type="button" className="btn btn-primary" onClick={startStripeCheckout}>
-              Pay Deposit
+            <button type="button" className="btn btn-primary" onClick={startStripeCheckout} disabled={stripeLoading}>
+              {stripeLoading ? 'Starting checkout…' : 'Pay Deposit (50%)'}
             </button>
             {stripeMessage && <small style={{ color: '#c8c0aa' }}>{stripeMessage}</small>}
           </div>
