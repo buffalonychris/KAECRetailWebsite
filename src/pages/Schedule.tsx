@@ -7,6 +7,7 @@ import PaymentInstallDayAccordion from '../components/PaymentInstallDayAccordion
 import TierBadge from '../components/TierBadge';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
@@ -258,6 +259,7 @@ const Schedule = () => {
               Thanks for submitting. A coordinator will review your windows and reach out to confirm. Reference timestamp:{' '}
               {flowState.scheduleRequest.requestedAt}.
             </p>
+            {isHomeSecurity && <SelfMonitoringDisclosure variant="full" className="ka-disclosure--spaced" />}
             <ul className="list" style={{ marginTop: 0 }}>
               <li>
                 <span />
