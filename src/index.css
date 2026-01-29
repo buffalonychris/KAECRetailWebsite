@@ -279,6 +279,37 @@ header.hide-when-print {
   box-shadow: 0 24px 60px rgba(4, 10, 20, 0.65);
 }
 
+.ka-disclosure {
+  background: linear-gradient(150deg, rgba(18, 27, 40, 0.9), rgba(7, 12, 20, 0.96));
+  border: 1px solid rgba(120, 203, 255, 0.3);
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 18px 40px rgba(4, 9, 18, 0.55);
+  color: var(--kaec-text-muted);
+  backdrop-filter: blur(10px);
+}
+
+.ka-disclosure__title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--kaec-text-strong);
+}
+
+.ka-disclosure__body {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ka-disclosure__body strong {
+  color: var(--kaec-text-strong);
+  font-weight: 700;
+}
+
+.ka-disclosure--spaced {
+  margin-top: 1rem;
+}
+
 .card.card-popular {
   border-color: rgba(148, 163, 184, 0.6);
   box-shadow: 0 18px 45px rgba(148, 163, 184, 0.18);
@@ -1957,6 +1988,15 @@ body.modal-open {
 .home-security-page .vertical-hero--campaign .vertical-hero-content {
   padding-top: clamp(1rem, 3vw, 2.5rem);
   padding-bottom: clamp(1.25rem, 3vw, 3rem);
+}
+
+.home-security-page .space-section-header p {
+  max-width: 640px;
+}
+
+.home-security-disclosure {
+  margin-top: 1rem;
+  max-width: 560px;
 }
 
 .vertical-hero--campaign .space-section-header h1 {

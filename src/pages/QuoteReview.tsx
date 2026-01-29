@@ -28,6 +28,7 @@ import {
   getHomeSecurityHardwareList,
 } from '../content/homeSecurityPackageData';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 // SaveProgressCard intentionally removed from this flow to consolidate share & save actions.
 
 type AccordionSectionProps = {
@@ -393,6 +394,7 @@ const QuoteReview = () => {
               )}
             </div>
           </div>
+          {isHomeSecurity && <SelfMonitoringDisclosure variant="full" className="ka-disclosure--spaced" />}
         </div>
         {isHomeSecurity && <HelpContactPanel />}
       </div>

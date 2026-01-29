@@ -4,6 +4,7 @@ import AccordionSection from '../components/AccordionSection';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import PackageCard from '../components/PackageCard';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { getPackages } from '../content/packages';
 import { HomeSecurityPathChoice } from '../lib/homeSecurityFunnel';
@@ -38,7 +39,7 @@ const HomeSecurity = () => {
 
   const pathParam = selectedPath ? `&path=${selectedPath}` : '';
   return (
-    <div className="container section home-security-page">
+    <div className="container section home-security-page hub-container">
       <section className="vertical-hero vertical-hero--media vertical-hero--campaign">
         <div className="vertical-hero-media" aria-hidden="true">
           <picture>
@@ -64,6 +65,7 @@ const HomeSecurity = () => {
                 View Packages
               </a>
             </div>
+            <SelfMonitoringDisclosure variant="short" className="home-security-disclosure" />
           </div>
           <div className="vertical-hero-badges" aria-label="Key promises">
             <span>Offline-first</span>

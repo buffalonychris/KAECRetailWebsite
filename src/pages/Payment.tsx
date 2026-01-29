@@ -15,6 +15,7 @@ import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { getPackagePricing } from '../data/pricing';
 import { getHomeSecurityPackageSpec } from '../content/homeSecurityPackageData';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -229,6 +230,7 @@ const Payment = () => {
             Deposit due today: 50% of the system cost. Remaining balance due on installation day.
           </p>
         </div>
+        <SelfMonitoringDisclosure variant="full" className="ka-disclosure--spaced" />
 
         <div className="card" style={{ display: 'grid', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>

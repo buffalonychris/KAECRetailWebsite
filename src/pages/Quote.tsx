@@ -14,6 +14,7 @@ import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { defaultHomeSecurityFitCheckAnswers, isHomeSecurityFitCheckComplete } from '../lib/homeSecurityFunnel';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 import {
   HOME_SECURITY_CLARITY_FOOTER,
   getHomeSecurityHardwareList,
@@ -245,6 +246,7 @@ const Quote = () => {
             !isHomeSecurity && <small style={{ color: '#c8c0aa' }}>Direct navigation safe: /quote works online or offline cache.</small>
           )}
         </div>
+        {isHomeSecurity && <SelfMonitoringDisclosure variant="short" className="ka-disclosure--spaced" />}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '1.5rem' }}>

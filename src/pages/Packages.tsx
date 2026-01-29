@@ -11,6 +11,7 @@ import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlo
 import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 
 const Packages = () => {
   const navigate = useNavigate();
@@ -168,6 +169,9 @@ const Packages = () => {
           />
         ))}
       </div>
+      {vertical === 'home-security' && (
+        <SelfMonitoringDisclosure variant="short" className="ka-disclosure--spaced" />
+      )}
       {vertical === 'home-security' && (
         <p style={{ marginTop: '1rem', color: 'var(--kaec-muted)' }}>
           All packages are expandable later. You can add cameras, sensors, or coverage areas as your needs change.

@@ -19,6 +19,7 @@ import { brandSite } from '../lib/brand';
 import { calculateDepositDue } from '../lib/paymentTerms';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 
 const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
 const formatEmailStatus = (status?: string) => {
@@ -37,6 +38,7 @@ const AgreementReview = () => {
   const [quote, setQuote] = useState<QuoteContext | null>(() => initialFlow.quote ?? null);
   const [agreementHash, setAgreementHash] = useState('');
   const [acceptChecked, setAcceptChecked] = useState(false);
+  const [selfMonitoringAcknowledged, setSelfMonitoringAcknowledged] = useState(false);
   const [fullName, setFullName] = useState('');
   const [acceptanceDate, setAcceptanceDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [storedAcceptance, setStoredAcceptance] = useState<AcceptanceRecord | null>(
@@ -627,6 +629,20 @@ const AgreementReview = () => {
             This confirmation is required so we can collect the deposit and schedule your install. Legal wording remains unchanged.
           </p>
         </div>
+        {vertical === 'home-security' && (
+          <SelfMonitoringDisclosure variant="full" className="ka-disclosure--spaced" />
+        )}
+        {vertical === 'home-security' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input
+              type="checkbox"
+              checked={selfMonitoringAcknowledged}
+              onChange={(e) => setSelfMonitoringAcknowledged(e.target.checked)}
+              style={{ width: '18px', height: '18px' }}
+            />
+            <span>I understand this system is self-monitored with no remote monitoring.</span>
+          </label>
+        )}
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <input
             type="checkbox"
