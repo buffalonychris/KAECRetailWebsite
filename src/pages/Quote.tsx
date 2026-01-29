@@ -4,6 +4,7 @@ import { generateNarrative, NarrativeResponse } from '../lib/narrative';
 import { getAddOns, getPackagePricing, PackageTierId } from '../data/pricing';
 import { brandSite } from '../lib/brand';
 import TierBadge from '../components/TierBadge';
+import DemoDashboardLink from '../components/DemoDashboardLink';
 import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { computeQuoteHash } from '../lib/quoteHash';
@@ -247,6 +248,12 @@ const Quote = () => {
           )}
         </div>
         {isHomeSecurity && <SelfMonitoringDisclosure variant="short" className="ka-disclosure--spaced" />}
+        {isHomeSecurity && (
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ color: '#c8c0aa' }}>Want to preview the dashboard?</span>
+            <DemoDashboardLink variant="link" />
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ display: 'grid', gap: '1.5rem' }}>

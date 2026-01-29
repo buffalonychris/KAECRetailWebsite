@@ -20,6 +20,7 @@ import { buildQuoteEmailPayload, isValidEmail } from '../lib/emailPayload';
 import { sendQuoteEmail } from '../lib/emailSend';
 import { buildQuoteAuthorityMeta, DocAuthorityMeta } from '../lib/docAuthority';
 import TierBadge from '../components/TierBadge';
+import DemoDashboardLink from '../components/DemoDashboardLink';
 import { calculateDepositDue } from '../lib/paymentTerms';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { buildAssumedCoverage } from '../lib/homeSecurityFunnel';
@@ -393,6 +394,12 @@ const QuoteReview = () => {
                 </button>
               )}
             </div>
+            {isHomeSecurity && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ color: '#c8c0aa' }}>Want to see the dashboard?</span>
+                <DemoDashboardLink variant="link" />
+              </div>
+            )}
           </div>
           {isHomeSecurity && <SelfMonitoringDisclosure variant="full" className="ka-disclosure--spaced" />}
         </div>

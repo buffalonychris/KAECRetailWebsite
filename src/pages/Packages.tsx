@@ -5,6 +5,7 @@ import ComparisonLadder from '../components/ComparisonLadder';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import AccordionSection from '../components/AccordionSection';
+import DemoDashboardLink from '../components/DemoDashboardLink';
 import { getPackages } from '../content/packages';
 import { HOME_SECURITY_TIER_MEDIA } from '../content/homeSecurityPackageData';
 import { brandSite } from '../lib/brand';
@@ -121,6 +122,12 @@ const Packages = () => {
       </div>
       {vertical === 'home-security' && (
         <SelfMonitoringDisclosure variant="short" className="ka-disclosure--spaced" />
+      )}
+      {vertical === 'home-security' && (
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '0.5rem' }}>
+          <span style={{ color: 'var(--kaec-muted)' }}>Want to preview the interface?</span>
+          <DemoDashboardLink variant="link" />
+        </div>
       )}
       {vertical === 'home-security' && (
         <p style={{ marginTop: '1rem', color: 'var(--kaec-muted)' }}>

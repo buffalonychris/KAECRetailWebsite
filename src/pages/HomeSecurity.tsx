@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import AccordionSection from '../components/AccordionSection';
+import DemoDashboardLink from '../components/DemoDashboardLink';
 import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTable';
 import PackageCard from '../components/PackageCard';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
@@ -134,6 +135,33 @@ const HomeSecurity = () => {
           <AccordionSection title="Compare coverage" description="Typical coverage ranges and included hardware by tier.">
             <HomeSecurityComparisonTable />
           </AccordionSection>
+        </div>
+      </section>
+
+      <div className="section-divider" aria-hidden="true" />
+
+      <section id="dashboard-demo" className="space-grid">
+        <div className="card demo-tile">
+          <div className="badge">Demo</div>
+          <h2 style={{ marginTop: 0 }}>Preview the dashboard</h2>
+          <p style={{ color: 'var(--kaec-muted)', margin: 0 }}>
+            This is the same Home Assistant dashboard you’ll use locally on your phone/tablet.
+          </p>
+          <ul className="list" style={{ margin: 0 }}>
+            <li>
+              <span />
+              <span>Cameras + recordings (local-first)</span>
+            </li>
+            <li>
+              <span />
+              <span>Sensor status + alerts</span>
+            </li>
+            <li>
+              <span />
+              <span>Day/Night camera views</span>
+            </li>
+          </ul>
+          <DemoDashboardLink variant="button" />
         </div>
       </section>
 
