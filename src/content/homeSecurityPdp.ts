@@ -66,7 +66,7 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
     ],
   },
   a2: {
-    heroOneLiner: 'Whole-home coverage with more sensors, more indoor views, and a PoE outdoor camera.',
+    heroOneLiner: 'Whole-home coverage with more sensors, more indoor views, and two PoE outdoor cameras.',
     keyOutcomes: [
       'Balanced coverage for most homeowners.',
       'Expanded entry and motion coverage across main living areas.',
@@ -92,7 +92,7 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
       cameras: HOME_SECURITY_PACKAGE_SPECS.a2.cameras,
     },
     capabilities: [
-      'Indoor + outdoor PoE camera coverage.',
+      'Indoor + dual outdoor PoE camera coverage.',
       'More sensors for entry + motion.',
       'Multiple leak/smoke detection zones.',
       'Automation scenes (night mode, away mode, etc.).',
@@ -111,7 +111,7 @@ export const HOME_SECURITY_PDP_CONTENT: Record<'a1' | 'a2' | 'a3', HomeSecurityP
       'Maximum coverage with dedicated local recording and the highest camera + sensor footprint.',
     keyOutcomes: [
       'Dedicated UNVR + drives for reliable local recording.',
-      'Two PoE outdoor cameras for multi-angle visibility.',
+      'Three PoE outdoor cameras for multi-angle visibility.',
       'Highest sensor coverage across doors/windows and motion zones.',
       'Fast local alerts + automations that keep working offline.',
       'Built to expand into whole-home automation later.',

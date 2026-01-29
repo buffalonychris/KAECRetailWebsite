@@ -7,6 +7,7 @@ import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import SelfMonitoringDisclosure from '../components/disclosures/SelfMonitoringDisclosure';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { getPackages } from '../content/packages';
+import { HOME_SECURITY_TIER_MEDIA } from '../content/homeSecurityPackageData';
 import { HomeSecurityPathChoice } from '../lib/homeSecurityFunnel';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
@@ -116,9 +117,18 @@ const HomeSecurity = () => {
           </p>
         </div>
         <div className="card-grid motion-stagger">
-          {packages.map((pkg) => (
-            <PackageCard key={pkg.id} pkg={pkg} vertical="home-security" />
-          ))}
+          {packages.map((pkg) => {
+            const tierMedia = HOME_SECURITY_TIER_MEDIA[pkg.id as keyof typeof HOME_SECURITY_TIER_MEDIA];
+            return (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                vertical="home-security"
+                imageCaption={tierMedia?.caption}
+                image={tierMedia?.image}
+              />
+            );
+          })}
         </div>
         <div id="compare-coverage">
           <AccordionSection title="Compare coverage" description="Typical coverage ranges and included hardware by tier.">
