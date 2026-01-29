@@ -49,6 +49,23 @@ Optional SMTP fallback (used when Resend is unavailable):
 If no provider variables are present, the API routes return `provider: "mock"` and log payloads so preview deployments do not
 break.
 
+## Stripe Checkout (Home Security)
+
+Set the following environment variables in Vercel (Project Settings → Environment Variables) to enable hosted Stripe
+Checkout for the Home Security deposit step:
+
+- `STRIPE_SECRET_KEY` (server-only, secret key from Stripe)
+- `PUBLIC_SITE_URL` (public base URL, for example `https://reliableeldercare.com`)
+- `STRIPE_WEBHOOK_SECRET` (optional, required to verify webhooks in production)
+
+Local testing notes:
+
+- Run API routes locally with the Vercel CLI (`vercel dev`) so `/api/create-checkout-session` and `/api/stripe-webhook`
+  are available alongside the Vite frontend.
+- Use Stripe test mode keys and card `4242 4242 4242 4242` with any future expiry and any CVC.
+- If validating webhooks locally, run `stripe listen --forward-to localhost:3000/api/stripe-webhook` (adjust the port if
+  your Vercel dev server uses a different one).
+
 ## Notes
 - One-time, upfront pricing only; no subscriptions.
 - Home Assistant is the sole control platform across packages.
