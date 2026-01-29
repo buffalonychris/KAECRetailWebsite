@@ -6,6 +6,7 @@ import HomeSecurityComparisonTable from '../components/HomeSecurityComparisonTab
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import AccordionSection from '../components/AccordionSection';
 import { getPackages } from '../content/packages';
+import { HOME_SECURITY_TIER_MEDIA } from '../content/homeSecurityPackageData';
 import { brandSite } from '../lib/brand';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { resolveVertical } from '../lib/verticals';
@@ -20,59 +21,7 @@ const Packages = () => {
   const vertical = resolveVertical(searchParams.get('vertical'));
   const packageList = getPackages(vertical);
   const isHomeSecurity = vertical === 'home-security';
-  const homeSecurityTierCaptions = isHomeSecurity
-    ? {
-        a1: 'Essential indoor visibility',
-        a2: 'Balanced indoor + outdoor',
-        a3: 'Maximum coverage + deterrence',
-      }
-    : null;
-  const homeSecurityTierImages = isHomeSecurity
-    ? {
-        a1: {
-          alt: 'Apartment entry with discreet doorbell and indoor camera',
-          src: '/images/home-security/tier-bronze-960w.png',
-          srcSet:
-            '/images/home-security/tier-bronze-512w.png 512w, /images/home-security/tier-bronze-640w.png 640w, /images/home-security/tier-bronze-960w.png 960w',
-          sizes: '(max-width: 720px) 100vw, 360px',
-          sources: [
-            {
-              type: 'image/webp',
-              srcSet:
-                '/images/home-security/tier-bronze-512w.webp 512w, /images/home-security/tier-bronze-640w.webp 640w, /images/home-security/tier-bronze-960w.webp 960w',
-            },
-          ],
-        },
-        a2: {
-          alt: 'Suburban home exterior with outdoor camera coverage',
-          src: '/images/home-security/tier-silver-960w.png',
-          srcSet:
-            '/images/home-security/tier-silver-512w.png 512w, /images/home-security/tier-silver-640w.png 640w, /images/home-security/tier-silver-960w.png 960w',
-          sizes: '(max-width: 720px) 100vw, 360px',
-          sources: [
-            {
-              type: 'image/webp',
-              srcSet:
-                '/images/home-security/tier-silver-512w.webp 512w, /images/home-security/tier-silver-640w.webp 640w, /images/home-security/tier-silver-960w.webp 960w',
-            },
-          ],
-        },
-        a3: {
-          alt: 'Large home exterior with multi-angle camera coverage',
-          src: '/images/home-security/tier-gold-960w.png',
-          srcSet:
-            '/images/home-security/tier-gold-512w.png 512w, /images/home-security/tier-gold-640w.png 640w, /images/home-security/tier-gold-960w.png 960w',
-          sizes: '(max-width: 720px) 100vw, 360px',
-          sources: [
-            {
-              type: 'image/webp',
-              srcSet:
-                '/images/home-security/tier-gold-512w.webp 512w, /images/home-security/tier-gold-640w.webp 640w, /images/home-security/tier-gold-960w.webp 960w',
-            },
-          ],
-        },
-      }
-    : null;
+  const homeSecurityTierMedia = isHomeSecurity ? HOME_SECURITY_TIER_MEDIA : null;
 
   useLayoutConfig({
     layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
@@ -157,17 +106,18 @@ const Packages = () => {
         )}
       </div>
       <div className="card-grid motion-stagger">
-        {packageList.map((pkg) => (
-          <PackageCard
-            key={pkg.id}
-            pkg={pkg}
-            vertical={vertical}
-            imageCaption={
-              homeSecurityTierCaptions ? homeSecurityTierCaptions[pkg.id as keyof typeof homeSecurityTierCaptions] : undefined
-            }
-            image={homeSecurityTierImages ? homeSecurityTierImages[pkg.id as keyof typeof homeSecurityTierImages] : undefined}
-          />
-        ))}
+        {packageList.map((pkg) => {
+          const tierMedia = homeSecurityTierMedia?.[pkg.id as keyof typeof HOME_SECURITY_TIER_MEDIA];
+          return (
+            <PackageCard
+              key={pkg.id}
+              pkg={pkg}
+              vertical={vertical}
+              imageCaption={tierMedia?.caption}
+              image={tierMedia?.image}
+            />
+          );
+        })}
       </div>
       {vertical === 'home-security' && (
         <SelfMonitoringDisclosure variant="short" className="ka-disclosure--spaced" />

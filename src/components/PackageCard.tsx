@@ -29,7 +29,9 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
   const contactLink = vertical === 'home-security' ? `/contact?vertical=home-security&package=${pkg.id}` : '/contact';
   const primaryLabel = vertical === 'home-security' ? `Choose ${pkg.name}` : `View ${pkg.name}`;
   const isHomeSecurity = vertical === 'home-security';
-  const includedPreview = isHomeSecurity ? pkg.includes.slice(0, 4) : pkg.includes;
+  const featureList = isHomeSecurity ? pkg.features ?? [] : pkg.includes;
+  const featurePreview = isHomeSecurity ? featureList.slice(0, 4) : featureList;
+  const hardwareList = isHomeSecurity ? pkg.hardware ?? [] : [];
   const handleSelect = () => {
     if (vertical !== 'home-security') return;
     updateRetailFlow({ homeSecurity: { selectedPackageId: tierId } });
@@ -79,7 +81,7 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
       </div>
       <p style={{ marginTop: '1rem', color: '#e6ddc7' }}>{pkg.oneLiner}</p>
       <ul className="list" aria-label="Included features">
-        {includedPreview.map((item) => (
+        {featurePreview.map((item) => (
           <li key={item}>
             <span />
             <span>{item}</span>
@@ -89,10 +91,12 @@ const PackageCard = ({ pkg, vertical, imageCaption, image }: Props) => {
       {isHomeSecurity && (
         <AccordionSection title="What’s included" description="Full hardware counts for this tier.">
           <ul className="list" aria-label="Full hardware list" style={{ marginTop: 0 }}>
-            {pkg.includes.map((item) => (
-              <li key={item}>
+            {hardwareList.map((item) => (
+              <li key={item.label}>
                 <span />
-                <span>{item}</span>
+                <span>
+                  {item.label} ({item.qty})
+                </span>
               </li>
             ))}
           </ul>

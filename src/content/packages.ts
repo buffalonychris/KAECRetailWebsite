@@ -1,6 +1,7 @@
 import {
-  getHomeSecurityHardwareList,
+  getHomeSecurityHardwareItems,
   getHomeSecurityPackageSpec,
+  HomeSecurityHardwareItem,
 } from './homeSecurityPackageData';
 
 export type PackageTier = {
@@ -12,6 +13,8 @@ export type PackageTier = {
   oneLiner: string;
   bio: string;
   includes: string[];
+  features?: string[];
+  hardware?: HomeSecurityHardwareItem[];
   billOfMaterials: string[];
   automationFlows: string[];
   journeyFlow: string[];
@@ -197,7 +200,9 @@ export const homeSecurityPackages: PackageTier[] = [
     idealFor:
       'Apartments and small homes that need reliable entry awareness and local control.',
     typicalCoverage: getHomeSecurityPackageSpec('a1').coverage,
-    includes: getHomeSecurityHardwareList('a1'),
+    includes: getHomeSecurityPackageSpec('a1').capabilities,
+    features: getHomeSecurityPackageSpec('a1').capabilities,
+    hardware: getHomeSecurityHardwareItems('a1'),
     billOfMaterials: [],
     automationFlows: [
       'Arm/disarm locally in Home Assistant with clear modes and status tiles.',
@@ -232,13 +237,15 @@ export const homeSecurityPackages: PackageTier[] = [
     price: '$2,599 one-time',
     tagline: 'Whole-Home Coverage (Recommended)',
     oneLiner:
-      'Two indoor views, a PoE outdoor camera, plus a doorbell for most homeowners.',
+      'Two indoor views, two PoE outdoor cameras, plus a doorbell for most homeowners.',
     bio:
       'Silver delivers whole-home coverage with more sensors, two indoor views, and reliable outdoor PoE visibility.',
     idealFor:
       'Most homeowners who want balanced coverage across main and secondary entries.',
     typicalCoverage: getHomeSecurityPackageSpec('a2').coverage,
-    includes: getHomeSecurityHardwareList('a2'),
+    includes: getHomeSecurityPackageSpec('a2').capabilities,
+    features: getHomeSecurityPackageSpec('a2').capabilities,
+    hardware: getHomeSecurityHardwareItems('a2'),
     billOfMaterials: [],
     automationFlows: [
       'Outdoor PoE camera events surface in Home Assistant with local chimes and lighting cues.',
@@ -279,7 +286,9 @@ export const homeSecurityPackages: PackageTier[] = [
     idealFor:
       'Larger homes and households with higher risk tolerance or maximum coverage needs.',
     typicalCoverage: getHomeSecurityPackageSpec('a3').coverage,
-    includes: getHomeSecurityHardwareList('a3'),
+    includes: getHomeSecurityPackageSpec('a3').capabilities,
+    features: getHomeSecurityPackageSpec('a3').capabilities,
+    hardware: getHomeSecurityHardwareItems('a3'),
     billOfMaterials: [],
     automationFlows: [
       'Dedicated local recording captures events on-site with LAN playback.',
