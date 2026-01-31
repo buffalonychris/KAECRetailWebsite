@@ -39,6 +39,7 @@ export type PrecisionPlannerDraft = {
   pets?: boolean;
   elders?: boolean;
   priorities?: string[];
+  selectedTier?: 'bronze' | 'silver' | 'gold';
 };
 
 export type HomeSecurityFunnelState = {

@@ -1,8 +1,13 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import type { EntryPoints, HomeSecurityFitCheckAnswers, PrecisionPlannerDraft } from '../lib/homeSecurityFunnel';
+import {
+  buildHomeSecurityPlannerPlan,
+  type PlannerPlan,
+  type PlannerTierKey,
+} from '../lib/homeSecurityPlannerEngine';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
 const priorityOptions = ['Security', 'Packages', 'Water'] as const;
@@ -39,16 +44,23 @@ const HomeSecurityPlanner = () => {
     ],
   });
 
+  const storedFlow = loadRetailFlow();
+  const storedDraft = storedFlow.homeSecurity?.precisionPlannerDraft;
+  const fitCheckTier = storedFlow.homeSecurity?.fitCheckResult?.tier;
+  const defaultTier: PlannerTierKey =
+    fitCheckTier === 'Bronze' ? 'bronze' : fitCheckTier === 'Silver' ? 'silver' : fitCheckTier === 'Gold' ? 'gold' : 'silver';
+
   const initialDraft = (() => {
-    const stored = loadRetailFlow().homeSecurity?.precisionPlannerDraft;
-    if (stored && Object.keys(stored).length > 0) {
-      return stored;
+    if (storedDraft && Object.keys(storedDraft).length > 0) {
+      return { ...storedDraft, selectedTier: storedDraft.selectedTier ?? defaultTier };
     }
-    return deriveDraftFromFitCheck(loadRetailFlow().homeSecurity?.fitCheckAnswers);
+    return { ...deriveDraftFromFitCheck(storedFlow.homeSecurity?.fitCheckAnswers), selectedTier: defaultTier };
   })();
 
   const [draft, setDraft] = useState<PrecisionPlannerDraft>(initialDraft);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
+  const [plan, setPlan] = useState<PlannerPlan | null>(null);
 
   const exteriorDoors = draft.exteriorDoors ?? [];
   const priorities = draft.priorities ?? [];
@@ -93,8 +105,27 @@ const HomeSecurityPlanner = () => {
   };
 
   const handleContinue = () => {
+    const nextPlan = buildHomeSecurityPlannerPlan(draft, selectedTier);
+    setPlan(nextPlan);
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  const handleTierChange = (value: PlannerTierKey) => {
+    setSelectedTier(value);
+    setDraft((prev) => ({ ...prev, selectedTier: value }));
+  };
+
+  const tierComparisonNote = useMemo(() => {
+    if (!plan || plan.coverage.status !== 'gap') return null;
+    const order: PlannerTierKey[] = ['bronze', 'silver', 'gold'];
+    const currentIndex = order.indexOf(selectedTier);
+    const higherTier = plan.bundles.find(
+      (bundle) => order.indexOf(bundle.tier) > currentIndex && bundle.coverage_status === 'complete',
+    );
+    if (!higherTier) return null;
+    const label = higherTier.tier.charAt(0).toUpperCase() + higherTier.tier.slice(1);
+    return `${label} covers your doors without add-ons.`;
+  }, [plan, selectedTier]);
 
   return (
     <section className="section">
@@ -261,6 +292,18 @@ const HomeSecurityPlanner = () => {
             </div>
           </div>
 
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            <label style={{ fontWeight: 600 }}>Compare tier</label>
+            <select value={selectedTier} onChange={(event) => handleTierChange(event.target.value as PlannerTierKey)}>
+              <option value="bronze">Bronze</option>
+              <option value="silver">Silver</option>
+              <option value="gold">Gold</option>
+            </select>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+              This only affects the planner comparison, not your checkout flow.
+            </p>
+          </div>
+
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-primary" onClick={handleSaveDraft}>
               Save draft
@@ -278,10 +321,102 @@ const HomeSecurityPlanner = () => {
         </div>
 
         <div ref={resultsRef} className="card" style={{ display: 'grid', gap: '0.5rem' }}>
-          <h3 style={{ margin: 0 }}>Planner results will appear here next.</h3>
-          <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.8)' }}>
-            Next step: device placement and coverage check vs Bronze / Silver / Gold.
-          </p>
+          <h3 style={{ margin: 0 }}>Planner results</h3>
+          {plan ? (
+            <>
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background:
+                    plan.coverage.status === 'gap'
+                      ? 'rgba(255, 107, 107, 0.12)'
+                      : plan.coverage.status === 'complete_with_addons'
+                        ? 'rgba(255, 206, 86, 0.12)'
+                        : 'rgba(46, 204, 113, 0.12)',
+                }}
+              >
+                <strong>
+                  {plan.coverage.status === 'gap'
+                    ? '❌ Gap — fix required items first'
+                    : plan.coverage.status === 'complete_with_addons'
+                      ? '⚠️ Covered + optional add-ons'
+                      : '✅ Covered'}
+                </strong>
+              </div>
+
+              <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                {plan.coverage.summary.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              {plan.coverage.gaps.length > 0 ? (
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <strong>Coverage gaps</strong>
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                    {plan.coverage.gaps.map((gap) => (
+                      <li key={`${gap.key}-${gap.missing}`}>
+                        {gap.impact}: missing {gap.missing}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <strong>Required placements</strong>
+                {plan.placements.length === 0 ? (
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
+                ) : (
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                    {plan.placements.map((placement) => (
+                      <li key={`${placement.key}-${placement.label}`}>
+                        {placement.label} — {placement.quantity}
+                        {placement.zones && placement.zones.length > 0 ? ` (${placement.zones.join(', ')})` : ''}
+                        {placement.notes && placement.notes.length > 0 ? ` — ${placement.notes.join(' ')}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <strong>Optional add-ons</strong>
+                {plan.optionalAddons.length === 0 ? (
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No optional add-ons suggested.</p>
+                ) : (
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+                    {plan.optionalAddons.map((addon) => (
+                      <li key={`${addon.key}-${addon.label}`}>
+                        {addon.label} — {addon.quantity}
+                        {addon.zones && addon.zones.length > 0 ? ` (${addon.zones.join(', ')})` : ''}
+                        {addon.notes && addon.notes.length > 0 ? ` — ${addon.notes.join(' ')}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gap: '0.5rem' }}>
+                <strong>Tier comparison</strong>
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  {plan.bundles.map((bundle) => (
+                    <div key={bundle.tier} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
+                      {bundle.top_line}
+                    </div>
+                  ))}
+                </div>
+                {tierComparisonNote ? (
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.85)' }}>{tierComparisonNote}</p>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.8)' }}>
+              Run the planner to see placements, coverage, and tier comparisons.
+            </p>
+          )}
         </div>
       </div>
     </section>
