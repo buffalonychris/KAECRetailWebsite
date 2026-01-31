@@ -9,6 +9,7 @@ import { QuoteContext } from '../lib/agreement';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { computeQuoteHash } from '../lib/quoteHash';
 import { siteConfig } from '../config/site';
+import { track } from '../lib/analytics';
 import OwnershipOfflineGuarantee from '../components/OwnershipOfflineGuarantee';
 import ResponsivePublicImage from '../components/ResponsivePublicImage';
 import { resolveVertical } from '../lib/verticals';
@@ -112,6 +113,7 @@ const Quote = () => {
 
   const clearPlannerSuggestions = () => {
     updateRetailFlow({ homeSecurity: { plannerRecommendation: undefined } });
+    track('hs_planner_cleared');
     if (plannerSelectionsApplied) {
       setSelectedAddOns([]);
       setPlannerSelectionsApplied(false);

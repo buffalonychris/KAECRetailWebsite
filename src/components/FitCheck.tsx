@@ -20,6 +20,7 @@ import {
   HomeSize,
   Preference,
 } from '../lib/homeSecurityFunnel';
+import { track } from '../lib/analytics';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
 type FitCheckAnswers = HomeSecurityFitCheckAnswers;
@@ -224,6 +225,9 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
   const [exteriorLimitWarning, setExteriorLimitWarning] = useState(false);
 
   const canSubmit: boolean = isHomeSecurityFitCheckComplete(answers);
+  const handlePlannerOpen = () => {
+    track('hs_planner_opened', { source: 'fit_check' });
+  };
 
   useEffect(() => {
     const stored = loadRetailFlow().homeSecurity;
@@ -702,7 +706,7 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
               </Link>
             )}
             {isHomeSecurity && (
-              <Link to={plannerHref} className="btn btn-secondary">
+              <Link to={plannerHref} className="btn btn-secondary" onClick={handlePlannerOpen}>
                 Precision Planner (optional)
               </Link>
             )}

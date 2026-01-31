@@ -101,3 +101,16 @@ export const trackLandingCtaClick = (audienceType: AudienceType, landingPath?: s
   const payload = buildPayload(audienceType, landing_path);
   emitEvent('rec_click_cta', payload);
 };
+
+export const track = (eventName: string, props?: Record<string, string | number | boolean>) => {
+  const payload = props ?? {};
+
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    window.gtag('event', eventName, payload);
+    return;
+  }
+
+  if (import.meta.env.DEV) {
+    console.info(`[${eventName}]`, payload);
+  }
+};
