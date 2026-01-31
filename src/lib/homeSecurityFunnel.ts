@@ -1,4 +1,5 @@
 import { PackageTierId } from '../data/pricing';
+import { isFloorplanDeviceType, type FloorplanDeviceType } from '../components/floorplan/deviceCatalog';
 
 export type HomeSecurityPathChoice = 'online' | 'onsite';
 
@@ -72,12 +73,13 @@ export type FloorplanFloor = {
 
 export type FloorplanPlacement = {
   id: string;
-  deviceKey: string;
+  deviceKey: FloorplanDeviceType;
   label: string;
   floorId: string;
   roomId?: string;
   position: { x: number; y: number };
   wallSnap?: { wall: FloorplanWall; offset: number };
+  rotation?: number;
   required: boolean;
   source: 'suggested' | 'user_added';
 };
@@ -96,6 +98,20 @@ export type HomeSecurityFunnelState = {
   precisionPlannerDraft?: PrecisionPlannerDraft;
   plannerRecommendation?: HomeSecurityPlannerRecommendation;
   floorplan?: HomeSecurityFloorplan;
+};
+
+export const migrateFloorplanPlacements = (floorplan: HomeSecurityFloorplan): HomeSecurityFloorplan => {
+  if (!floorplan.placements.length) return floorplan;
+  let changed = false;
+  const placements = floorplan.placements.map((placement) => {
+    const nextKey = isFloorplanDeviceType(placement.deviceKey as string) ? placement.deviceKey : 'door_sensor';
+    if (nextKey === placement.deviceKey) {
+      return placement;
+    }
+    changed = true;
+    return { ...placement, deviceKey: nextKey };
+  });
+  return changed ? { ...floorplan, placements } : floorplan;
 };
 
 export const defaultHomeSecurityFitCheckAnswers: HomeSecurityFitCheckAnswers = {
