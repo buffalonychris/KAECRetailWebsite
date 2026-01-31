@@ -4,10 +4,12 @@ import AccordionSection from '../components/AccordionSection';
 import FloorplanCanvas from '../components/floorplan/FloorplanCanvas';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import { DEVICE_CATALOG, DEVICE_KEYS, type FloorplanDeviceType } from '../components/floorplan/deviceCatalog';
 import { track } from '../lib/analytics';
 import type {
   EntryPoints,
   FloorplanFloor,
+  FloorplanPlacement,
   FloorplanRoom,
   FloorplanRoomKind,
   FloorplanWall,
@@ -21,6 +23,7 @@ import {
   type PlannerPlan,
   type PlannerTierKey,
 } from '../lib/homeSecurityPlannerEngine';
+import { migrateFloorplanPlacements } from '../lib/homeSecurityFunnel';
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
 const priorityOptions = ['Security', 'Packages', 'Water'] as const;
@@ -94,6 +97,40 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
   floors: Array.from({ length: count }, (_, index) => createFloor(index)),
   placements: [],
 });
+
+const GRID_SIZE = 10;
+
+const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
+
+const clampUnit = (value: number) => Math.min(Math.max(value, 0), 1);
+
+const findRoomAtPoint = (floor: FloorplanFloor | undefined, point: { x: number; y: number }) => {
+  if (!floor) return undefined;
+  return floor.rooms.find(
+    (room) =>
+      point.x >= room.rect.x &&
+      point.x <= room.rect.x + room.rect.w &&
+      point.y >= room.rect.y &&
+      point.y <= room.rect.y + room.rect.h,
+  );
+};
+
+const getWallSnapForPoint = (room: FloorplanRoom, point: { x: number; y: number }) => {
+  const distances: Record<FloorplanWall, number> = {
+    n: Math.abs(point.y - room.rect.y),
+    s: Math.abs(room.rect.y + room.rect.h - point.y),
+    w: Math.abs(point.x - room.rect.x),
+    e: Math.abs(room.rect.x + room.rect.w - point.x),
+  };
+  const nearestWall = (Object.keys(distances) as FloorplanWall[]).reduce((closest, wall) =>
+    distances[wall] < distances[closest] ? wall : closest,
+  );
+  const offset =
+    nearestWall === 'n' || nearestWall === 's'
+      ? clampUnit((point.x - room.rect.x) / room.rect.w)
+      : clampUnit((point.y - room.rect.y) / room.rect.h);
+  return { wall: nearestWall, offset };
+};
 
 const roomKindOptions: Array<{ value: FloorplanRoomKind; label: string }> = [
   { value: 'bedroom', label: 'Bedroom' },
@@ -256,10 +293,13 @@ const HomeSecurityPlanner = () => {
   const [draft, setDraft] = useState<PrecisionPlannerDraft>(initialDraft);
   const defaultFloorCount = (initialDraft.floors ?? 1) as 1 | 2 | 3;
   const [floorplan, setFloorplan] = useState<HomeSecurityFloorplan>(() => {
-    return storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
+    const storedFloorplan = storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
+    return migrateFloorplanPlacements(storedFloorplan);
   });
   const [selectedFloorId, setSelectedFloorId] = useState<string>(() => floorplan.floors[0]?.id ?? 'floor-1');
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
+  const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
+  const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
@@ -270,6 +310,11 @@ const HomeSecurityPlanner = () => {
   const wizardFloors = (draft.floors ?? 1) as 1 | 2 | 3;
   const selectedFloor = floorplan.floors.find((floor) => floor.id === selectedFloorId) ?? floorplan.floors[0];
   const selectedRoom = selectedFloor?.rooms.find((room) => room.id === selectedRoomId);
+  const floorPlacements = useMemo(
+    () => floorplan.placements.filter((placement) => placement.floorId === selectedFloor?.id),
+    [floorplan.placements, selectedFloor?.id],
+  );
+  const activeCatalogItem = activeDeviceKey ? DEVICE_CATALOG[activeDeviceKey] : null;
 
   const mapExteriorDoors = useMemo(() => {
     return floorplan.floors.flatMap((floor) =>
@@ -356,6 +401,12 @@ const HomeSecurityPlanner = () => {
   }, [floorplan.floors, selectedFloorId]);
 
   useEffect(() => {
+    if (selectedPlacementId && !floorPlacements.find((placement) => placement.id === selectedPlacementId)) {
+      setSelectedPlacementId(null);
+    }
+  }, [floorPlacements, selectedPlacementId]);
+
+  useEffect(() => {
     updateRetailFlow({ homeSecurity: { floorplan } });
   }, [floorplan]);
 
@@ -406,6 +457,27 @@ const HomeSecurityPlanner = () => {
   const handleSelectFloor = (floorId: string) => {
     setSelectedFloorId(floorId);
     setSelectedRoomId(undefined);
+  };
+
+  const handleCanvasClick = (point: { x: number; y: number }) => {
+    if (!activeDeviceKey || !selectedFloor) return;
+    const item = DEVICE_CATALOG[activeDeviceKey];
+    const snappedPoint = { x: snapToGrid(point.x), y: snapToGrid(point.y) };
+    const targetRoom = findRoomAtPoint(selectedFloor, snappedPoint);
+    const wallSnap = item.wallAnchored && targetRoom ? getWallSnapForPoint(targetRoom, snappedPoint) : undefined;
+    const placement: FloorplanPlacement = {
+      id: `placement-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      deviceKey: activeDeviceKey,
+      label: item.label,
+      floorId: selectedFloor.id,
+      roomId: targetRoom?.id,
+      position: snappedPoint,
+      wallSnap,
+      required: false,
+      source: 'user_added',
+    };
+    setFloorplan((prev) => ({ ...prev, placements: [...prev.placements, placement] }));
+    setSelectedPlacementId(placement.id);
   };
 
   const updateRoom = (roomId: string, updates: Partial<FloorplanRoom>) => {
@@ -502,11 +574,23 @@ const HomeSecurityPlanner = () => {
     }
   };
 
+  const handleRemovePlacement = (placementId: string) => {
+    setFloorplan((prev) => ({
+      ...prev,
+      placements: prev.placements.filter((placement) => placement.id !== placementId),
+    }));
+    if (selectedPlacementId === placementId) {
+      setSelectedPlacementId(null);
+    }
+  };
+
   const handleResetMap = () => {
     const reset = createEmptyFloorplan(wizardFloors);
     setFloorplan(reset);
     setSelectedFloorId(reset.floors[0]?.id ?? 'floor-1');
     setSelectedRoomId(undefined);
+    setSelectedPlacementId(null);
+    setActiveDeviceKey(null);
   };
 
   const tierComparisonNote = useMemo(() => {
@@ -985,13 +1069,151 @@ const HomeSecurityPlanner = () => {
               </div>
             </div>
 
-            {selectedFloor ? (
-              <FloorplanCanvas
-                floor={selectedFloor}
-                selectedRoomId={selectedRoomId}
-                onSelectRoom={setSelectedRoomId}
-              />
-            ) : null}
+            <div
+              style={{
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                alignItems: 'start',
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                {selectedFloor ? (
+                  <FloorplanCanvas
+                    floor={selectedFloor}
+                    placements={floorPlacements}
+                    selectedRoomId={selectedRoomId}
+                    selectedPlacementId={selectedPlacementId}
+                    onSelectRoom={setSelectedRoomId}
+                    onSelectPlacement={setSelectedPlacementId}
+                    onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
+                  />
+                ) : null}
+              </div>
+              <div
+                style={{
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  padding: '1rem',
+                  background: 'rgba(15, 19, 32, 0.6)',
+                  display: 'grid',
+                  gap: '1rem',
+                }}
+              >
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                    Device placements help us visualize coverage zones later.
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <strong>Device legend</strong>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    {DEVICE_KEYS.map((deviceKey) => {
+                      const item = DEVICE_CATALOG[deviceKey];
+                      const Icon = item.icon;
+                      const isActive = activeDeviceKey === deviceKey;
+                      return (
+                        <button
+                          key={deviceKey}
+                          type="button"
+                          onClick={() => setActiveDeviceKey(deviceKey)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.4rem 0.6rem',
+                            borderRadius: '0.5rem',
+                            border: isActive ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
+                            background: isActive ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
+                            color: 'inherit',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                        >
+                          <Icon width={20} height={20} />
+                          <span>{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activeCatalogItem ? (
+                    <div style={{ display: 'grid', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                        Click on the map to place this item.
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={() => setActiveDeviceKey(null)}
+                        style={{ justifySelf: 'start' }}
+                      >
+                        Clear tool
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <strong>Placements on {selectedFloor?.label ?? 'this floor'}</strong>
+                  {floorPlacements.length === 0 ? (
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      {floorPlacements.map((placement) => {
+                        const item = DEVICE_CATALOG[placement.deviceKey];
+                        const Icon = item.icon;
+                        const needsWall = item.wallAnchored && !placement.wallSnap;
+                        return (
+                          <div
+                            key={placement.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.45rem 0.6rem',
+                              borderRadius: '0.5rem',
+                              border:
+                                placement.id === selectedPlacementId
+                                  ? '1px solid #6cf6ff'
+                                  : '1px solid rgba(255, 255, 255, 0.12)',
+                              background:
+                                placement.id === selectedPlacementId
+                                  ? 'rgba(108, 246, 255, 0.12)'
+                                  : 'transparent',
+                            }}
+                          >
+                            <Icon width={18} height={18} />
+                            <span style={{ flex: 1 }}>{placement.label}</span>
+                            {needsWall ? (
+                              <span
+                                style={{
+                                  fontSize: '0.7rem',
+                                  padding: '0.1rem 0.35rem',
+                                  borderRadius: '999px',
+                                  border: '1px solid rgba(255, 107, 107, 0.6)',
+                                  color: 'rgba(255, 107, 107, 0.9)',
+                                }}
+                              >
+                                Needs wall
+                              </span>
+                            ) : null}
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => handleRemovePlacement(placement.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,7 @@
-import type { FloorplanFloor } from '../../lib/homeSecurityFunnel';
+import { useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
+import { DEVICE_CATALOG } from './deviceCatalog';
+import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../lib/homeSecurityFunnel';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -22,8 +25,12 @@ const surfaceStyles = {
 
 type FloorplanCanvasProps = {
   floor: FloorplanFloor;
+  placements?: FloorplanPlacement[];
   selectedRoomId?: string;
+  selectedPlacementId?: string | null;
   onSelectRoom: (id: string) => void;
+  onSelectPlacement?: (id: string) => void;
+  onCanvasClick?: (point: { x: number; y: number }) => void;
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
   width?: number | string;
   height?: number;
@@ -50,15 +57,45 @@ const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: 'n' | 's
   }
 };
 
+const getWallRotation = (wall: FloorplanWall) => {
+  switch (wall) {
+    case 'n':
+      return 180;
+    case 'e':
+      return 270;
+    case 'w':
+      return 90;
+    case 's':
+    default:
+      return 0;
+  }
+};
+
 const FloorplanCanvas = ({
   floor,
+  placements = [],
   selectedRoomId,
+  selectedPlacementId,
   onSelectRoom,
+  onSelectPlacement,
+  onCanvasClick,
   onUpdateRoomRect,
   width = '100%',
   height = 320,
 }: FloorplanCanvasProps) => {
   const selectedRoom = floor.rooms.find((room) => room.id === selectedRoomId);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
+
+  const handleSurfaceClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (!onCanvasClick) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const rect = viewport.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    onCanvasClick({ x, y });
+  };
 
   return (
     <div style={canvasStyles}>
@@ -69,7 +106,7 @@ const FloorplanCanvas = ({
         </span>
       </div>
       <div style={{ marginTop: '0.75rem', ...viewportStyles, height, width }}>
-        <div style={surfaceStyles}>
+        <div ref={viewportRef} style={surfaceStyles} onClick={handleSurfaceClick}>
           {floor.rooms.map((room) => {
             const isSelected = room.id === selectedRoomId;
             const roomStyles = {
@@ -135,6 +172,69 @@ const FloorplanCanvas = ({
                     />
                   );
                 })}
+              </button>
+            );
+          })}
+          {placements.map((placement) => {
+            const item = DEVICE_CATALOG[placement.deviceKey];
+            const Icon = item.icon;
+            const invalid = item.wallAnchored && !placement.wallSnap;
+            const isSelected = placement.id === selectedPlacementId;
+            const isHovered = placement.id === hoveredPlacementId;
+            const rotation =
+              placement.rotation ?? (placement.wallSnap ? getWallRotation(placement.wallSnap.wall) : 0);
+            return (
+              <button
+                key={placement.id}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelectPlacement?.(placement.id);
+                }}
+                onMouseEnter={() => setHoveredPlacementId(placement.id)}
+                onMouseLeave={() => setHoveredPlacementId((prev) => (prev === placement.id ? null : prev))}
+                title={invalid ? 'Place on a wall.' : item.label}
+                style={{
+                  position: 'absolute',
+                  left: placement.position.x,
+                  top: placement.position.y,
+                  transform: 'translate(-50%, -50%)',
+                  borderRadius: '0.75rem',
+                  padding: '0.35rem',
+                  border: invalid
+                    ? '1px solid rgba(255, 107, 107, 0.85)'
+                    : isSelected
+                      ? '1px solid #6cf6ff'
+                      : '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(15, 19, 32, 0.85)',
+                  color: invalid ? 'rgba(255, 107, 107, 0.95)' : '#d8f5ff',
+                  boxShadow: isSelected
+                    ? '0 0 12px rgba(108, 246, 255, 0.6)'
+                    : isHovered
+                      ? '0 0 10px rgba(108, 246, 255, 0.35)'
+                      : 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {item.showsCone ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      width: 50,
+                      height: 50,
+                      background: 'rgba(108, 246, 255, 0.18)',
+                      clipPath: 'polygon(50% 10%, 0% 100%, 100% 100%)',
+                      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                      transformOrigin: '50% 50%',
+                      pointerEvents: 'none',
+                      filter: 'blur(0.5px)',
+                    }}
+                  />
+                ) : null}
+                <Icon width={24} height={24} />
               </button>
             );
           })}
