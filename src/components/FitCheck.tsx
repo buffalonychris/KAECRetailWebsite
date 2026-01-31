@@ -214,6 +214,11 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isHomeSecurity = searchParams.get('vertical') === 'home-security';
+  const plannerParams = new URLSearchParams(searchParams);
+  if (!plannerParams.get('vertical')) {
+    plannerParams.set('vertical', 'home-security');
+  }
+  const plannerHref = `/home-security/planner?${plannerParams.toString()}`;
   const [answers, setAnswers] = useState<FitCheckAnswers>(initialAnswers);
   const [result, setResult] = useState<FitCheckResult | null>(null);
   const [exteriorLimitWarning, setExteriorLimitWarning] = useState(false);
@@ -694,6 +699,11 @@ const FitCheck = ({ config, layout = 'standalone', className }: FitCheckProps) =
             {isHomeSecurity && (
               <Link to="/packages?vertical=home-security" className="btn btn-link">
                 Change package
+              </Link>
+            )}
+            {isHomeSecurity && (
+              <Link to={plannerHref} className="btn btn-secondary">
+                Precision Planner (optional)
               </Link>
             )}
             <button type="button" className="btn btn-secondary" onClick={() => setResult(null)}>

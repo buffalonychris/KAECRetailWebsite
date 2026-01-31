@@ -29,11 +29,24 @@ export type HomeSecurityFitCheckResult = {
   assumedCoverage: string[];
 };
 
+export type PrecisionPlannerDraft = {
+  propertyType?: 'house' | 'apartment' | 'condo' | 'rental';
+  floors?: 1 | 2 | 3;
+  sizeBand?: 'small' | 'medium' | 'large';
+  garage?: 'none' | 'attached' | 'detached';
+  exteriorDoors?: string[];
+  groundWindows?: 'no' | 'some' | 'yes';
+  pets?: boolean;
+  elders?: boolean;
+  priorities?: string[];
+};
+
 export type HomeSecurityFunnelState = {
   selectedPackageId?: PackageTierId;
   selectedPath?: HomeSecurityPathChoice;
   fitCheckAnswers?: HomeSecurityFitCheckAnswers;
   fitCheckResult?: HomeSecurityFitCheckResult;
+  precisionPlannerDraft?: PrecisionPlannerDraft;
 };
 
 export const defaultHomeSecurityFitCheckAnswers: HomeSecurityFitCheckAnswers = {
