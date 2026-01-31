@@ -60,7 +60,7 @@ export type FloorplanRoom = {
   kind?: FloorplanRoomKind;
   sizeBand?: FloorplanRoomSizeBand;
   rect: { x: number; y: number; w: number; h: number };
-  doors: Array<{ id: string; label: string; wall: FloorplanWall; offset: number }>;
+  doors: Array<{ id: string; label: string; wall: FloorplanWall; offset: number; exterior?: boolean }>;
   windows: Array<{ id: string; label?: string; wall: FloorplanWall; offset: number }>;
 };
 

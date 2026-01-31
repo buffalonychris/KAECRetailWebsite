@@ -29,6 +29,27 @@ type FloorplanCanvasProps = {
   height?: number;
 };
 
+const markerBaseStyles = {
+  position: 'absolute' as const,
+  transform: 'translate(-50%, -50%)',
+  borderRadius: '999px',
+} as const;
+
+const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: 'n' | 's' | 'e' | 'w', offset: number) => {
+  const clampedOffset = Math.min(Math.max(offset, 0), 1);
+  switch (wall) {
+    case 'n':
+      return { x: room.rect.w * clampedOffset, y: 0 };
+    case 's':
+      return { x: room.rect.w * clampedOffset, y: room.rect.h };
+    case 'e':
+      return { x: room.rect.w, y: room.rect.h * clampedOffset };
+    case 'w':
+    default:
+      return { x: 0, y: room.rect.h * clampedOffset };
+  }
+};
+
 const FloorplanCanvas = ({
   floor,
   selectedRoomId,
@@ -67,6 +88,7 @@ const FloorplanCanvas = ({
               fontSize: '0.85rem',
               fontWeight: 600,
               cursor: 'pointer',
+              overflow: 'visible',
             } as const;
 
             return (
@@ -78,6 +100,41 @@ const FloorplanCanvas = ({
                 style={roomStyles}
               >
                 {room.name}
+                {room.doors.map((door) => {
+                  const position = getMarkerPosition(room, door.wall, door.offset);
+                  const isHorizontal = door.wall === 'n' || door.wall === 's';
+                  return (
+                    <span
+                      key={door.id}
+                      style={{
+                        ...markerBaseStyles,
+                        left: position.x,
+                        top: position.y,
+                        width: isHorizontal ? 18 : 6,
+                        height: isHorizontal ? 6 : 18,
+                        background: '#6cf6ff',
+                        boxShadow: '0 0 6px rgba(108, 246, 255, 0.6)',
+                      }}
+                    />
+                  );
+                })}
+                {room.windows.map((window) => {
+                  const position = getMarkerPosition(room, window.wall, window.offset);
+                  const isHorizontal = window.wall === 'n' || window.wall === 's';
+                  return (
+                    <span
+                      key={window.id}
+                      style={{
+                        ...markerBaseStyles,
+                        left: position.x,
+                        top: position.y,
+                        width: isHorizontal ? 16 : 2,
+                        height: isHorizontal ? 2 : 16,
+                        background: 'rgba(255, 255, 255, 0.9)',
+                      }}
+                    />
+                  );
+                })}
               </button>
             );
           })}
