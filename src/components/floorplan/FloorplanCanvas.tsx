@@ -306,6 +306,10 @@ const FloorplanCanvas = ({
                       ? '0 0 10px rgba(108, 246, 255, 0.35)'
                       : 'none',
                   cursor: 'pointer',
+                  display: 'grid',
+                  justifyItems: 'center',
+                  gap: '0.2rem',
+                  textAlign: 'center',
                   zIndex: 3,
                 }}
               >
@@ -328,6 +332,18 @@ const FloorplanCanvas = ({
                   />
                 ) : null}
                 <Icon width={24} height={24} />
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    lineHeight: 1.1,
+                    maxWidth: 90,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {placement.label}
+                </span>
               </button>
             );
           })}
