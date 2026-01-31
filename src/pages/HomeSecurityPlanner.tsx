@@ -4,8 +4,11 @@ import AccordionSection from '../components/AccordionSection';
 import FloorplanCanvas from '../components/floorplan/FloorplanCanvas';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import { deviceCatalog } from '../components/floorplan/deviceCatalog';
+import { FloorplanIconShell } from '../components/floorplan/icons';
 import { track } from '../lib/analytics';
 import type {
+  DevicePlacement,
   EntryPoints,
   FloorplanFloor,
   FloorplanRoom,
@@ -93,6 +96,7 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
   version: 'v1',
   floors: Array.from({ length: count }, (_, index) => createFloor(index)),
   placements: [],
+  devicePlacements: [],
 });
 
 const roomKindOptions: Array<{ value: FloorplanRoomKind; label: string }> = [
@@ -230,6 +234,67 @@ const applyTemplateToFloors = (
   return { ...floorplan, floors: nextFloors };
 };
 
+const getWallCoordinate = (room: FloorplanRoom, wall: FloorplanWall, offset: number) => {
+  const clampedOffset = Math.min(Math.max(offset, 0), 1);
+  switch (wall) {
+    case 'n':
+      return { x: room.rect.x + room.rect.w * clampedOffset, y: room.rect.y };
+    case 's':
+      return { x: room.rect.x + room.rect.w * clampedOffset, y: room.rect.y + room.rect.h };
+    case 'e':
+      return { x: room.rect.x + room.rect.w, y: room.rect.y + room.rect.h * clampedOffset };
+    case 'w':
+    default:
+      return { x: room.rect.x, y: room.rect.y + room.rect.h * clampedOffset };
+  }
+};
+
+const createSuggestedPlacement = (
+  type: DevicePlacement['type'],
+  floorIndex: number,
+  room: FloorplanRoom,
+  options?: { wall?: FloorplanWall; offset?: number; rotation?: number },
+): DevicePlacement => {
+  const wall = options?.wall ?? 's';
+  const offset = options?.offset ?? 0.5;
+  const wallPosition = getWallCoordinate(room, wall, offset);
+  const interiorPosition = {
+    x: room.rect.x + room.rect.w * 0.5,
+    y: room.rect.y + room.rect.h * 0.5,
+  };
+  const cornerPosition = {
+    x: room.rect.x + room.rect.w - 12,
+    y: room.rect.y + 12,
+  };
+  const isWallPlacement = ['doorSensor', 'windowSensor', 'doorbell', 'outdoorCamera', 'indoorCamera'].includes(type);
+  const isCornerPlacement = ['motion'].includes(type);
+
+  return {
+    id: `device-${type}-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    type,
+    floor: floorIndex + 1,
+    roomId: room.id,
+    wallId: isWallPlacement ? `${room.id}-${wall}` : undefined,
+    x: isWallPlacement ? wallPosition.x : isCornerPlacement ? cornerPosition.x : interiorPosition.x,
+    y: isWallPlacement ? wallPosition.y : isCornerPlacement ? cornerPosition.y : interiorPosition.y,
+    rotation: options?.rotation,
+  };
+};
+
+const rotationForWall = (wall: FloorplanWall) => {
+  switch (wall) {
+    case 'n':
+      return 180;
+    case 's':
+      return 0;
+    case 'e':
+      return 270;
+    case 'w':
+    default:
+      return 90;
+  }
+};
+
 const HomeSecurityPlanner = () => {
   useLayoutConfig({
     layoutVariant: 'funnel',
@@ -256,10 +321,16 @@ const HomeSecurityPlanner = () => {
   const [draft, setDraft] = useState<PrecisionPlannerDraft>(initialDraft);
   const defaultFloorCount = (initialDraft.floors ?? 1) as 1 | 2 | 3;
   const [floorplan, setFloorplan] = useState<HomeSecurityFloorplan>(() => {
-    return storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
+    const storedFloorplan = storedFlow.homeSecurity?.floorplan;
+    if (!storedFloorplan) return createEmptyFloorplan(defaultFloorCount);
+    return {
+      ...storedFloorplan,
+      devicePlacements: storedFloorplan.devicePlacements ?? [],
+    };
   });
   const [selectedFloorId, setSelectedFloorId] = useState<string>(() => floorplan.floors[0]?.id ?? 'floor-1');
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>();
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
@@ -268,7 +339,14 @@ const HomeSecurityPlanner = () => {
   const exteriorDoors = draft.exteriorDoors ?? [];
   const priorities = draft.priorities ?? [];
   const wizardFloors = (draft.floors ?? 1) as 1 | 2 | 3;
-  const selectedFloor = floorplan.floors.find((floor) => floor.id === selectedFloorId) ?? floorplan.floors[0];
+  const selectedFloorIndex = Math.max(
+    0,
+    floorplan.floors.findIndex((floor) => floor.id === selectedFloorId),
+  );
+  const selectedFloor = floorplan.floors[selectedFloorIndex] ?? floorplan.floors[0];
+  const selectedFloorDevicePlacements = floorplan.devicePlacements.filter(
+    (placement) => placement.floor === selectedFloorIndex + 1,
+  );
   const selectedRoom = selectedFloor?.rooms.find((room) => room.id === selectedRoomId);
 
   const mapExteriorDoors = useMemo(() => {
@@ -344,7 +422,8 @@ const HomeSecurityPlanner = () => {
       } else if (nextFloors.length > wizardFloors) {
         nextFloors = nextFloors.slice(0, wizardFloors);
       }
-      return { ...prev, floors: nextFloors };
+      const filteredPlacements = (prev.devicePlacements ?? []).filter((placement) => placement.floor <= wizardFloors);
+      return { ...prev, floors: nextFloors, devicePlacements: filteredPlacements };
     });
   }, [wizardFloors]);
 
@@ -377,6 +456,88 @@ const HomeSecurityPlanner = () => {
     setDraft((prev) => ({ ...prev, selectedTier: value }));
   };
 
+  const handleApplySuggestedLayout = () => {
+    const nextPlacements: DevicePlacement[] = [];
+    const allFloors = floorplan.floors;
+    const allRooms = allFloors.flatMap((floor, index) =>
+      floor.rooms.map((room) => ({ room, floorIndex: index })),
+    );
+    const firstRoom = allRooms[0];
+
+    allRooms.forEach(({ room, floorIndex }) => {
+      room.doors.forEach((door) => {
+        nextPlacements.push(
+          createSuggestedPlacement('doorSensor', floorIndex, room, {
+            wall: door.wall,
+            offset: door.offset,
+            rotation: rotationForWall(door.wall),
+          }),
+        );
+      });
+      room.windows.forEach((window) => {
+        nextPlacements.push(
+          createSuggestedPlacement('windowSensor', floorIndex, room, {
+            wall: window.wall,
+            offset: window.offset,
+            rotation: rotationForWall(window.wall),
+          }),
+        );
+      });
+    });
+
+    const firstExteriorDoor = allRooms
+      .flatMap(({ room, floorIndex }) =>
+        room.doors.filter((door) => door.exterior).map((door) => ({ door, room, floorIndex })),
+      )
+      .shift();
+
+    if (firstExteriorDoor) {
+      nextPlacements.push(
+        createSuggestedPlacement('doorbell', firstExteriorDoor.floorIndex, firstExteriorDoor.room, {
+          wall: firstExteriorDoor.door.wall,
+          offset: firstExteriorDoor.door.offset,
+          rotation: rotationForWall(firstExteriorDoor.door.wall),
+        }),
+      );
+      nextPlacements.push(
+        createSuggestedPlacement('outdoorCamera', firstExteriorDoor.floorIndex, firstExteriorDoor.room, {
+          wall: firstExteriorDoor.door.wall,
+          offset: Math.min(0.9, firstExteriorDoor.door.offset + 0.15),
+          rotation: rotationForWall(firstExteriorDoor.door.wall),
+        }),
+      );
+    }
+
+    const interiorRoom =
+      allRooms.find(({ room }) => room.kind === 'living') ??
+      allRooms.find(({ room }) => room.kind === 'kitchen') ??
+      firstRoom;
+    const kitchenRoom = allRooms.find(({ room }) => room.kind === 'kitchen') ?? firstRoom;
+    const windowRoom = allRooms.find(({ room }) => room.windows.length > 0) ?? firstRoom;
+
+    if (interiorRoom) {
+      nextPlacements.push(createSuggestedPlacement('motion', interiorRoom.floorIndex, interiorRoom.room));
+      nextPlacements.push(createSuggestedPlacement('indoorCamera', interiorRoom.floorIndex, interiorRoom.room));
+      nextPlacements.push(createSuggestedPlacement('siren', interiorRoom.floorIndex, interiorRoom.room));
+      nextPlacements.push(createSuggestedPlacement('securityHub', interiorRoom.floorIndex, interiorRoom.room));
+      nextPlacements.push(createSuggestedPlacement('recordingHost', interiorRoom.floorIndex, interiorRoom.room));
+    }
+
+    if (kitchenRoom) {
+      nextPlacements.push(createSuggestedPlacement('leak', kitchenRoom.floorIndex, kitchenRoom.room));
+    }
+
+    if (windowRoom) {
+      nextPlacements.push(createSuggestedPlacement('glassBreak', windowRoom.floorIndex, windowRoom.room));
+    }
+
+    setFloorplan((prev) => ({
+      ...prev,
+      devicePlacements: nextPlacements,
+    }));
+    setSelectedDeviceId(undefined);
+  };
+
   const handleApplyToQuote = () => {
     const nextPlan = plan ?? buildHomeSecurityPlannerPlan(plannerDraft, selectedTier);
     if (!plan) {
@@ -406,6 +567,7 @@ const HomeSecurityPlanner = () => {
   const handleSelectFloor = (floorId: string) => {
     setSelectedFloorId(floorId);
     setSelectedRoomId(undefined);
+    setSelectedDeviceId(undefined);
   };
 
   const updateRoom = (roomId: string, updates: Partial<FloorplanRoom>) => {
@@ -420,6 +582,17 @@ const HomeSecurityPlanner = () => {
           : floor,
       ),
     }));
+  };
+
+  const handlePlaceDevice = (placement: DevicePlacement) => {
+    setFloorplan((prev) => {
+      const nextPlacements = prev.devicePlacements.filter((item) => item.id !== placement.id);
+      return {
+        ...prev,
+        devicePlacements: [...nextPlacements, placement],
+      };
+    });
+    setSelectedDeviceId(placement.id);
   };
 
   const handleAddRoom = () => {
@@ -985,14 +1158,78 @@ const HomeSecurityPlanner = () => {
               </div>
             </div>
 
-            {selectedFloor ? (
-              <FloorplanCanvas
-                floor={selectedFloor}
-                selectedRoomId={selectedRoomId}
-                onSelectRoom={setSelectedRoomId}
-              />
-            ) : null}
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                <strong>Place devices on your home map (optional)</strong>
+                <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                  Drag devices onto the map to visualize placement. This does not change your package unless you apply it.
+                </p>
+              </div>
+              <div
+                style={{
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  padding: '0.75rem',
+                  background: 'rgba(15, 19, 32, 0.6)',
+                  display: 'grid',
+                  gap: '0.75rem',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong>Device legend</strong>
+                  <button type="button" className="btn btn-secondary" onClick={handleApplySuggestedLayout}>
+                    Apply suggested layout
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {deviceCatalog.map((entry) => {
+                    const Icon = entry.icon;
+                    return (
+                      <div
+                        key={entry.type}
+                        draggable
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData(
+                            'application/json',
+                            JSON.stringify({ type: entry.type }),
+                          );
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.35rem 0.5rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          background: entry.subtle ? 'rgba(15, 19, 32, 0.4)' : 'rgba(15, 19, 32, 0.7)',
+                          color: 'rgba(214, 233, 248, 0.9)',
+                          cursor: 'grab',
+                        }}
+                      >
+                        <FloorplanIconShell size={26}>
+                          <Icon size={18} />
+                        </FloorplanIconShell>
+                        <span>{entry.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {selectedFloor ? (
+            <FloorplanCanvas
+              floor={selectedFloor}
+              floorIndex={selectedFloorIndex}
+              devicePlacements={selectedFloorDevicePlacements}
+              selectedDeviceId={selectedDeviceId}
+              selectedRoomId={selectedRoomId}
+              onSelectRoom={setSelectedRoomId}
+              onPlaceDevice={handlePlaceDevice}
+              onSelectDevice={setSelectedDeviceId}
+            />
+          ) : null}
         </div>
 
         <div ref={resultsRef} className="card" style={{ display: 'grid', gap: '0.5rem' }}>
