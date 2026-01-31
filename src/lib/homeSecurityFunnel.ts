@@ -54,6 +54,19 @@ export type FloorplanRoomKind = 'bedroom' | 'bathroom' | 'kitchen' | 'living' | 
 export type FloorplanRoomSizeBand = 'small' | 'medium' | 'large';
 export type FloorplanWall = 'n' | 's' | 'e' | 'w';
 
+export type FloorplanDeviceType =
+  | 'doorSensor'
+  | 'windowSensor'
+  | 'glassBreak'
+  | 'motion'
+  | 'indoorCamera'
+  | 'outdoorCamera'
+  | 'doorbell'
+  | 'leak'
+  | 'siren'
+  | 'securityHub'
+  | 'recordingHost';
+
 export type FloorplanRoom = {
   id: string;
   name: string;
@@ -82,10 +95,22 @@ export type FloorplanPlacement = {
   source: 'suggested' | 'user_added';
 };
 
+export type DevicePlacement = {
+  id: string;
+  type: FloorplanDeviceType;
+  floor: number;
+  roomId?: string;
+  wallId?: string;
+  x: number;
+  y: number;
+  rotation?: number;
+};
+
 export type HomeSecurityFloorplan = {
   version: 'v1';
   floors: FloorplanFloor[];
   placements: FloorplanPlacement[];
+  devicePlacements: DevicePlacement[];
 };
 
 export type HomeSecurityFunnelState = {
