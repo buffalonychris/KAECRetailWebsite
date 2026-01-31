@@ -29,7 +29,7 @@ import type {
   HomeSecurityFitCheckAnswers,
   HomeSecurityFloorplan,
   PrecisionPlannerDraft,
-} from '../lib/homeSecurityFunnel';
+} from '@/lib/homeSecurityFunnel';
 import {
   buildHomeSecurityPlannerPlan,
   deriveHomeSecurityQuoteAddOns,
@@ -112,6 +112,25 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
 });
 
 const clampRotation = (value: number) => Math.min(Math.max(value, 0), 360);
+
+type PlacementInput = Omit<FloorplanPlacement, 'id' | 'source'> & { id?: string };
+
+const userPlacementSource: FloorplanPlacement['source'] = 'user_added';
+const suggestedPlacementSource: FloorplanPlacement['source'] = 'suggested';
+
+export const createUserPlacement = (input: PlacementInput): FloorplanPlacement => ({
+  id: input.id ?? `placement-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+  ...input,
+  source: userPlacementSource,
+});
+
+export const generateSuggestedPlacements = (inputs: PlacementInput[]): FloorplanPlacement[] => {
+  return inputs.map((input, index) => ({
+    id: input.id ?? `suggested-${index + 1}`,
+    ...input,
+    source: suggestedPlacementSource,
+  }));
+};
 
 const roomKindOptions: Array<{ value: FloorplanRoomKind; label: string }> = [
   { value: 'bedroom', label: 'Bedroom' },
@@ -455,8 +474,7 @@ const HomeSecurityPlanner = () => {
     const wallSnap = item.wallAnchored && targetRoom ? autoSnapToNearestWall(targetRoom.rect, snappedPoint) : undefined;
     const position =
       item.wallAnchored && wallSnap && targetRoom ? getWallInsetPosition(targetRoom.rect, wallSnap) : snappedPoint;
-    const placement: FloorplanPlacement = {
-      id: `placement-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+    const placement = createUserPlacement({
       deviceKey: activeDeviceKey,
       label: item.label,
       floorId: selectedFloor.id,
@@ -464,8 +482,7 @@ const HomeSecurityPlanner = () => {
       position,
       wallSnap,
       required: false,
-      source: 'user_added',
-    };
+    });
     setFloorplan((prev) => ({ ...prev, placements: [...prev.placements, placement] }));
     setSelectedPlacementId(placement.id);
   };
