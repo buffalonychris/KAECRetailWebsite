@@ -10,6 +10,7 @@ import type {
   FloorplanFloor,
   FloorplanRoom,
   FloorplanRoomKind,
+  FloorplanWall,
   HomeSecurityFitCheckAnswers,
   HomeSecurityFloorplan,
   PrecisionPlannerDraft,
@@ -23,6 +24,40 @@ import {
 import { loadRetailFlow, updateRetailFlow } from '../lib/retailFlow';
 
 const priorityOptions = ['Security', 'Packages', 'Water'] as const;
+const wallOptions: Array<{ value: FloorplanWall; label: string }> = [
+  { value: 'n', label: 'North' },
+  { value: 's', label: 'South' },
+  { value: 'e', label: 'East' },
+  { value: 'w', label: 'West' },
+];
+
+const exteriorDoorLabelKeywords = ['front', 'back', 'side', 'patio', 'garage entry', 'slider'];
+
+const isExteriorDoorLabel = (label: string) => {
+  const normalized = label.toLowerCase();
+  return exteriorDoorLabelKeywords.some((keyword) => normalized.includes(keyword));
+};
+
+const createDoor = (
+  label: string,
+  options?: { wall?: FloorplanWall; offset?: number; exterior?: boolean },
+): FloorplanRoom['doors'][number] => ({
+  id: `door-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+  label,
+  wall: options?.wall ?? 's',
+  offset: options?.offset ?? 0.5,
+  exterior: options?.exterior ?? isExteriorDoorLabel(label),
+});
+
+const createWindow = (
+  label: string,
+  options?: { wall?: FloorplanWall; offset?: number },
+): FloorplanRoom['windows'][number] => ({
+  id: `window-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+  label,
+  wall: options?.wall ?? 's',
+  offset: options?.offset ?? 0.5,
+});
 
 const deriveExteriorDoors = (entryPoints?: EntryPoints): string[] | undefined => {
   if (!entryPoints) return undefined;
@@ -83,8 +118,67 @@ const createRoom = (name: string, index: number, rectOverride?: FloorplanRoom['r
 const applyTemplateToFloors = (
   template: 'apartment' | 'ranch' | '2-story',
   floorplan: HomeSecurityFloorplan,
+  garage: PrecisionPlannerDraft['garage'],
 ): HomeSecurityFloorplan => {
   const nextFloors = floorplan.floors.map((floor) => ({ ...floor, rooms: [...floor.rooms] }));
+  const addDefaultDoors = (rooms: FloorplanRoom[], options: { includeBackDoor?: boolean; includeGarageEntry?: boolean }) => {
+    if (rooms.length === 0) return rooms;
+    const livingRoom = rooms.find((room) => room.name.toLowerCase().includes('living'));
+    const hallRoom = rooms.find((room) => room.name.toLowerCase().includes('hall'));
+    const fallbackRoom = livingRoom ?? hallRoom ?? rooms[0];
+    const nextRooms = rooms.map((room) => ({ ...room }));
+
+    const addDoorToRoom = (room: FloorplanRoom, door: FloorplanRoom['doors'][number]) => {
+      room.doors = [...room.doors, door];
+    };
+
+    if (fallbackRoom) {
+      const target = nextRooms.find((room) => room.id === fallbackRoom.id);
+      if (target) {
+        addDoorToRoom(
+          target,
+          createDoor('Front door', {
+            wall: 's',
+            offset: 0.5,
+            exterior: true,
+          }),
+        );
+      }
+    }
+
+    if (options.includeBackDoor && fallbackRoom) {
+      const target = nextRooms.find((room) => room.id === fallbackRoom.id);
+      if (target) {
+        addDoorToRoom(
+          target,
+          createDoor('Back door', {
+            wall: 'n',
+            offset: 0.5,
+            exterior: true,
+          }),
+        );
+      }
+    }
+
+    if (options.includeGarageEntry && garage && garage !== 'none') {
+      const garageRoom =
+        nextRooms.find((room) => room.name.toLowerCase().includes('garage')) ??
+        nextRooms.find((room) => room.name.toLowerCase().includes('hall')) ??
+        fallbackRoom;
+      if (garageRoom) {
+        addDoorToRoom(
+          garageRoom,
+          createDoor('Garage entry', {
+            wall: 'e',
+            offset: 0.5,
+            exterior: true,
+          }),
+        );
+      }
+    }
+
+    return nextRooms;
+  };
 
   if (template === 'apartment') {
     const target = nextFloors[0];
@@ -95,6 +189,7 @@ const applyTemplateToFloors = (
         createRoom('Bedroom', 2, { x: 24, y: 140, w: 180, h: 80 }),
         createRoom('Bath', 3, { x: 220, y: 140, w: 120, h: 80 }),
       ];
+      target.rooms = addDefaultDoors(target.rooms, { includeGarageEntry: true });
     }
   }
 
@@ -108,6 +203,7 @@ const applyTemplateToFloors = (
         createRoom('Bath', 3, { x: 240, y: 120, w: 120, h: 80 }),
         createRoom('Hall', 4, { x: 24, y: 210, w: 200, h: 60 }),
       ];
+      target.rooms = addDefaultDoors(target.rooms, { includeBackDoor: true, includeGarageEntry: true });
     }
   }
 
@@ -120,6 +216,7 @@ const applyTemplateToFloors = (
         createRoom('Kitchen', 1, { x: 260, y: 24, w: 160, h: 90 }),
         createRoom('Hall', 2, { x: 24, y: 140, w: 180, h: 70 }),
       ];
+      first.rooms = addDefaultDoors(first.rooms, { includeBackDoor: true, includeGarageEntry: true });
     }
     if (second) {
       second.rooms = [
@@ -172,6 +269,27 @@ const HomeSecurityPlanner = () => {
   const priorities = draft.priorities ?? [];
   const wizardFloors = (draft.floors ?? 1) as 1 | 2 | 3;
   const selectedFloor = floorplan.floors.find((floor) => floor.id === selectedFloorId) ?? floorplan.floors[0];
+  const selectedRoom = selectedFloor?.rooms.find((room) => room.id === selectedRoomId);
+
+  const mapExteriorDoors = useMemo(() => {
+    return floorplan.floors.flatMap((floor) =>
+      floor.rooms.flatMap((room) =>
+        room.doors
+          .filter((door) => door.exterior)
+          .map((door) => (door.label?.trim() ? door.label.trim() : 'Exterior door')),
+      ),
+    );
+  }, [floorplan]);
+
+  const usingMapExteriorDoors = mapExteriorDoors.length > 0;
+  const plannerExteriorDoors = usingMapExteriorDoors ? mapExteriorDoors : exteriorDoors;
+  const plannerDraft = useMemo(
+    () => ({
+      ...draft,
+      exteriorDoors: plannerExteriorDoors,
+    }),
+    [draft, plannerExteriorDoors],
+  );
 
   const handleDoorLabelChange = (index: number, value: string) => {
     setDraft((prev) => {
@@ -244,12 +362,12 @@ const HomeSecurityPlanner = () => {
   const handleContinue = () => {
     track('hs_planner_results_generated', {
       tier: selectedTier,
-      doors_count: exteriorDoors.length,
-      pets: Boolean(draft.pets),
-      elders: Boolean(draft.elders),
-      ground_windows: draft.groundWindows ?? 'unknown',
+      doors_count: plannerExteriorDoors.length,
+      pets: Boolean(plannerDraft.pets),
+      elders: Boolean(plannerDraft.elders),
+      ground_windows: plannerDraft.groundWindows ?? 'unknown',
     });
-    const nextPlan = buildHomeSecurityPlannerPlan(draft, selectedTier);
+    const nextPlan = buildHomeSecurityPlannerPlan(plannerDraft, selectedTier);
     setPlan(nextPlan);
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -260,13 +378,13 @@ const HomeSecurityPlanner = () => {
   };
 
   const handleApplyToQuote = () => {
-    const nextPlan = plan ?? buildHomeSecurityPlannerPlan(draft, selectedTier);
+    const nextPlan = plan ?? buildHomeSecurityPlannerPlan(plannerDraft, selectedTier);
     if (!plan) {
       setPlan(nextPlan);
     }
     const recommendedTierKey = nextPlan.selectedTier;
     const recommendedPackageId = recommendedTierKey === 'bronze' ? 'A1' : recommendedTierKey === 'silver' ? 'A2' : 'A3';
-    const derivedAddOns = deriveHomeSecurityQuoteAddOns(nextPlan, draft);
+    const derivedAddOns = deriveHomeSecurityQuoteAddOns(nextPlan, plannerDraft);
     track('hs_planner_applied_to_quote', {
       recommendedTier: recommendedTierKey,
       add_ons_count: derivedAddOns.ids.length,
@@ -321,6 +439,55 @@ const HomeSecurityPlanner = () => {
       targetFloor.rooms = [...targetFloor.rooms, newRoom];
       return { ...prev, floors: nextFloors };
     });
+  };
+
+  const handleAddDoorMarker = () => {
+    if (!selectedRoom) return;
+    const nextDoors = [
+      ...selectedRoom.doors,
+      createDoor('Door', {
+        wall: 's',
+        offset: 0.5,
+        exterior: true,
+      }),
+    ];
+    updateRoom(selectedRoom.id, { doors: nextDoors });
+  };
+
+  const handleUpdateDoorMarker = (doorId: string, updates: Partial<FloorplanRoom['doors'][number]>) => {
+    if (!selectedRoom) return;
+    updateRoom(selectedRoom.id, {
+      doors: selectedRoom.doors.map((door) => (door.id === doorId ? { ...door, ...updates } : door)),
+    });
+  };
+
+  const handleRemoveDoorMarker = (doorId: string) => {
+    if (!selectedRoom) return;
+    updateRoom(selectedRoom.id, { doors: selectedRoom.doors.filter((door) => door.id !== doorId) });
+  };
+
+  const handleAddWindowMarker = () => {
+    if (!selectedRoom) return;
+    const nextWindows = [
+      ...selectedRoom.windows,
+      createWindow('Window', {
+        wall: 's',
+        offset: 0.5,
+      }),
+    ];
+    updateRoom(selectedRoom.id, { windows: nextWindows });
+  };
+
+  const handleUpdateWindowMarker = (windowId: string, updates: Partial<FloorplanRoom['windows'][number]>) => {
+    if (!selectedRoom) return;
+    updateRoom(selectedRoom.id, {
+      windows: selectedRoom.windows.map((window) => (window.id === windowId ? { ...window, ...updates } : window)),
+    });
+  };
+
+  const handleRemoveWindowMarker = (windowId: string) => {
+    if (!selectedRoom) return;
+    updateRoom(selectedRoom.id, { windows: selectedRoom.windows.filter((window) => window.id !== windowId) });
   };
 
   const handleDeleteRoom = (roomId: string) => {
@@ -451,6 +618,9 @@ const HomeSecurityPlanner = () => {
             <label style={{ fontWeight: 600 }}>Exterior doors</label>
             <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
               Tip: count any door that leads outside, including garage entry doors.
+            </p>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+              If you add exterior doors to the map below, the planner will use the map.
             </p>
             {exteriorDoors.length === 0 ? (
               <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors added yet.</p>
@@ -596,21 +766,21 @@ const HomeSecurityPlanner = () => {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('apartment', prev))}
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('apartment', prev, draft.garage))}
               >
                 Apartment
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('ranch', prev))}
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('ranch', prev, draft.garage))}
               >
                 Ranch
               </button>
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('2-story', prev))}
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('2-story', prev, draft.garage))}
               >
                 2-Story
               </button>
@@ -668,6 +838,151 @@ const HomeSecurityPlanner = () => {
               <button type="button" className="btn btn-secondary" onClick={handleAddRoom}>
                 Add room
               </button>
+              <div
+                style={{
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  padding: '0.75rem',
+                  background: 'rgba(15, 19, 32, 0.6)',
+                  display: 'grid',
+                  gap: '0.75rem',
+                }}
+              >
+                <div>
+                  <strong>Room details</strong>
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                    {selectedRoom ? selectedRoom.name : 'Select a room to edit doors and windows.'}
+                  </p>
+                </div>
+                {selectedRoom ? (
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Doors</strong>
+                      {selectedRoom.doors.length === 0 ? (
+                        <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors yet.</p>
+                      ) : null}
+                      {selectedRoom.doors.map((door) => (
+                        <div key={door.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                          <input
+                            type="text"
+                            value={door.label}
+                            placeholder="Door label"
+                            onChange={(event) => handleUpdateDoorMarker(door.id, { label: event.target.value })}
+                          />
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                              <select
+                                value={door.wall}
+                                onChange={(event) =>
+                                  handleUpdateDoorMarker(door.id, { wall: event.target.value as FloorplanWall })
+                                }
+                              >
+                                {wallOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
+                              <input
+                                type="range"
+                                min={0}
+                                max={1}
+                                step={0.05}
+                                value={door.offset}
+                                onChange={(event) =>
+                                  handleUpdateDoorMarker(door.id, { offset: Number(event.target.value) })
+                                }
+                              />
+                            </label>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Exterior</span>
+                              <input
+                                type="checkbox"
+                                checked={Boolean(door.exterior)}
+                                onChange={(event) => handleUpdateDoorMarker(door.id, { exterior: event.target.checked })}
+                              />
+                            </label>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Exterior doors are doors that lead outside.
+                          </p>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => handleRemoveDoorMarker(door.id)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" className="btn btn-secondary" onClick={handleAddDoorMarker}>
+                        Add door
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Windows</strong>
+                      {selectedRoom.windows.length === 0 ? (
+                        <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No windows yet.</p>
+                      ) : null}
+                      {selectedRoom.windows.map((window) => (
+                        <div key={window.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                          <input
+                            type="text"
+                            value={window.label ?? ''}
+                            placeholder="Window label (optional)"
+                            onChange={(event) => handleUpdateWindowMarker(window.id, { label: event.target.value })}
+                          />
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                              <select
+                                value={window.wall}
+                                onChange={(event) =>
+                                  handleUpdateWindowMarker(window.id, { wall: event.target.value as FloorplanWall })
+                                }
+                              >
+                                {wallOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
+                              <input
+                                type="range"
+                                min={0}
+                                max={1}
+                                step={0.05}
+                                value={window.offset}
+                                onChange={(event) =>
+                                  handleUpdateWindowMarker(window.id, { offset: Number(event.target.value) })
+                                }
+                              />
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => handleRemoveWindowMarker(window.id)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button type="button" className="btn btn-secondary" onClick={handleAddWindowMarker}>
+                        Add window
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {selectedFloor ? (
@@ -707,8 +1022,12 @@ const HomeSecurityPlanner = () => {
               </div>
 
               <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'rgba(214, 233, 248, 0.85)' }}>
-                {plan.coverage.summary.map((item) => (
-                  <li key={item}>{item}</li>
+                {plan.coverage.summary.map((item, index) => (
+                  <li key={item}>
+                    {index === 0 && usingMapExteriorDoors
+                      ? `${item} Based on your map, we counted ${plannerExteriorDoors.length} exterior doors.`
+                      : item}
+                  </li>
                 ))}
               </ul>
               {plan.coverage.gaps.length > 0 ? (
