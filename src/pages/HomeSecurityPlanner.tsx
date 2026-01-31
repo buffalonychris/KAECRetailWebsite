@@ -18,6 +18,8 @@ import {
   getWallInsetPosition,
   snapToGrid,
 } from '../components/floorplan/floorplanUtils';
+import { COVERAGE_STATE_COLORS, COVERAGE_TOOLTIPS } from '../lib/homeSecurityPlanner/coverageConstants';
+import { computeFloorplanCoverageOverlay } from '../lib/homeSecurityPlanner/coverageModel';
 import { track } from '../lib/analytics';
 import type {
   EntryPoints,
@@ -300,6 +302,7 @@ const HomeSecurityPlanner = () => {
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
+  const [showCoverage, setShowCoverage] = useState(false);
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
@@ -314,6 +317,10 @@ const HomeSecurityPlanner = () => {
     () => floorplan.placements.filter((placement) => placement.floorId === selectedFloor?.id),
     [floorplan.placements, selectedFloor?.id],
   );
+  const coverageOverlay = useMemo(() => {
+    if (!showCoverage || !selectedFloor) return null;
+    return computeFloorplanCoverageOverlay(selectedFloor, floorPlacements);
+  }, [floorPlacements, selectedFloor, showCoverage]);
   const selectedPlacement = floorPlacements.find((placement) => placement.id === selectedPlacementId);
   const selectedPlacementItem = selectedPlacement ? DEVICE_CATALOG[selectedPlacement.deviceKey] : null;
   const selectedPlacementRoom =
@@ -1138,6 +1145,7 @@ const HomeSecurityPlanner = () => {
                     onSelectPlacement={setSelectedPlacementId}
                     onUpdatePlacement={updatePlacement}
                     onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
+                    coverageOverlay={coverageOverlay}
                   />
                 ) : null}
               </div>
@@ -1150,12 +1158,55 @@ const HomeSecurityPlanner = () => {
                   display: 'grid',
                   gap: '1rem',
                 }}
-              >
+                >
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
                   <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
                   <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
                     Device placements help us visualize coverage zones later.
                   </p>
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.6rem' }}>
+                  <label
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    title={COVERAGE_TOOLTIPS.toggle}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={showCoverage}
+                      onChange={(event) => setShowCoverage(event.target.checked)}
+                    />
+                    <span>Show coverage</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Coverage uses your placements and room layout to show approximate detection areas.
+                  </span>
+                  {showCoverage ? (
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Coverage legend</strong>
+                      <div style={{ display: 'grid', gap: '0.35rem' }}>
+                        {(['green', 'yellow', 'red'] as const).map((state) => (
+                          <div
+                            key={state}
+                            title={COVERAGE_TOOLTIPS.room[state]}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                          >
+                            <span
+                              aria-hidden="true"
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: '0.25rem',
+                                background: COVERAGE_STATE_COLORS[state].fill,
+                                border: `1px solid ${COVERAGE_STATE_COLORS[state].stroke}`,
+                              }}
+                            />
+                            <span style={{ textTransform: 'capitalize' }}>{state}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.75rem' }}>

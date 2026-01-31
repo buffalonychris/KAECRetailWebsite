@@ -10,6 +10,8 @@ import {
   getWallInsetPosition,
   snapToGrid,
 } from './floorplanUtils';
+import CoverageOverlay from './CoverageOverlay';
+import type { FloorplanCoverageOverlay } from '../../lib/homeSecurityPlanner/coverageModel';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -41,6 +43,7 @@ type FloorplanCanvasProps = {
   onCanvasClick?: (point: { x: number; y: number }) => void;
   onUpdatePlacement?: (placementId: string, updates: Partial<FloorplanPlacement>) => void;
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
+  coverageOverlay?: FloorplanCoverageOverlay | null;
   width?: number | string;
   height?: number;
 };
@@ -78,6 +81,7 @@ const FloorplanCanvas = ({
   onCanvasClick,
   onUpdatePlacement,
   onUpdateRoomRect,
+  coverageOverlay,
   width = '100%',
   height = 320,
 }: FloorplanCanvasProps) => {
@@ -116,6 +120,7 @@ const FloorplanCanvas = ({
       </div>
       <div style={{ marginTop: '0.75rem', ...viewportStyles, height, width }}>
         <div ref={viewportRef} style={surfaceStyles} onClick={handleSurfaceClick}>
+          {coverageOverlay ? <CoverageOverlay floor={floor} overlay={coverageOverlay} /> : null}
           {floor.rooms.map((room) => {
             const isSelected = room.id === selectedRoomId;
             const roomStyles = {
@@ -135,6 +140,7 @@ const FloorplanCanvas = ({
               fontWeight: 600,
               cursor: 'pointer',
               overflow: 'visible',
+              zIndex: 2,
             } as const;
 
             return (
@@ -300,6 +306,7 @@ const FloorplanCanvas = ({
                       ? '0 0 10px rgba(108, 246, 255, 0.35)'
                       : 'none',
                   cursor: 'pointer',
+                  zIndex: 3,
                 }}
               >
                 {item.showsCone ? (
