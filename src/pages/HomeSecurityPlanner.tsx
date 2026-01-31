@@ -13,6 +13,7 @@ import {
 } from '../components/floorplan/deviceCatalog';
 import {
   autoSnapToNearestWall,
+  clampPointToRect,
   findRoomAtPoint,
   getPlacementRotation,
   getWallInsetPosition,
@@ -98,6 +99,335 @@ const deriveDraftFromFitCheck = (answers?: HomeSecurityFitCheckAnswers): Precisi
 };
 
 const floorLabels = ['Floor 1', 'Floor 2', 'Floor 3'] as const;
+
+const frontDoorKeywords = ['front', 'main', 'entry'] as const;
+const backDoorKeywords = ['back', 'patio', 'deck', 'slider'] as const;
+const garageDoorKeywords = ['garage'] as const;
+
+const isDoorLabelMatch = (label: string, keywords: readonly string[]) => {
+  const normalized = label.toLowerCase();
+  return keywords.some((keyword) => normalized.includes(keyword));
+};
+
+const createPlacementId = (prefix: string) => `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+const createRoomMatch = (room: FloorplanRoom, keywords: readonly string[], kinds: FloorplanRoomKind[]) => {
+  const name = room.name.toLowerCase();
+  return keywords.some((keyword) => name.includes(keyword)) || (room.kind ? kinds.includes(room.kind) : false);
+};
+
+const findRoomMatch = (floor: FloorplanFloor, keywords: readonly string[], kinds: FloorplanRoomKind[]) =>
+  floor.rooms.find((room) => createRoomMatch(room, keywords, kinds));
+
+const fallbackRoomForFloor = (floor: FloorplanFloor) =>
+  findRoomMatch(floor, ['hall', 'living'], ['hall', 'living']) ?? floor.rooms[0];
+
+const placementOffsets = [
+  { x: 0, y: 0 },
+  { x: 18, y: -10 },
+  { x: -18, y: 10 },
+  { x: 12, y: 18 },
+  { x: -12, y: -18 },
+];
+
+const placeInRoom = (room: FloorplanRoom, offsetIndex = 0) => {
+  const offset = placementOffsets[offsetIndex % placementOffsets.length];
+  const centered = {
+    x: room.rect.x + room.rect.w / 2 + offset.x,
+    y: room.rect.y + room.rect.h / 2 + offset.y,
+  };
+  const clamped = clampPointToRect(centered, room.rect);
+  return { x: snapToGrid(clamped.x), y: snapToGrid(clamped.y) };
+};
+
+const placeOnWall = (room: FloorplanRoom, wallSnap: { wall: FloorplanWall; offset: number }) => {
+  const position = getWallInsetPosition(room.rect, wallSnap);
+  return { x: snapToGrid(position.x), y: snapToGrid(position.y) };
+};
+
+const buildSuggestedPlacements = (options: {
+  floorplan: HomeSecurityFloorplan;
+  exteriorDoorLabels: string[];
+  selectedTier: PlannerTierKey;
+  pets: boolean;
+  elders: boolean;
+  groundWindows?: PrecisionPlannerDraft['groundWindows'];
+}): FloorplanPlacement[] => {
+  const { floorplan, exteriorDoorLabels, selectedTier, pets, elders, groundWindows } = options;
+  if (floorplan.floors.length === 0) return [];
+  const placements: FloorplanPlacement[] = [];
+  const pushPlacement = (placement: Omit<FloorplanPlacement, 'id' | 'label' | 'source' | 'required'>) => {
+    const item = DEVICE_CATALOG[placement.deviceKey];
+    placements.push({
+      ...placement,
+      id: createPlacementId('suggested'),
+      label: item.label,
+      source: 'suggested',
+      required: false,
+    });
+  };
+
+  const doorEntries = floorplan.floors.flatMap((floor) =>
+    floor.rooms.flatMap((room) =>
+      room.doors
+        .filter((door) => door.exterior)
+        .map((door) => ({
+          floor,
+          room,
+          door,
+          label: door.label?.trim() || 'Exterior door',
+        })),
+    ),
+  );
+
+  let doorbellPlaced = false;
+  let outdoorCameraCount = 0;
+  const outdoorCameraLimit = selectedTier === 'gold' ? 2 : selectedTier === 'silver' ? 1 : 0;
+  const usingDoorMarkers = doorEntries.length > 0;
+  const targetDoorLabels = usingDoorMarkers ? doorEntries.map((entry) => entry.label) : exteriorDoorLabels;
+
+  if (usingDoorMarkers) {
+    doorEntries.forEach((entry, index) => {
+      const wallSnap = { wall: entry.door.wall, offset: entry.door.offset };
+      const position = placeOnWall(entry.room, wallSnap);
+      pushPlacement({
+        deviceKey: 'door_sensor',
+        floorId: entry.floor.id,
+        roomId: entry.room.id,
+        position,
+        wallSnap,
+      });
+      const label = entry.label ?? targetDoorLabels[index] ?? 'Exterior door';
+      if (!doorbellPlaced && isDoorLabelMatch(label, frontDoorKeywords)) {
+        pushPlacement({
+          deviceKey: 'video_doorbell',
+          floorId: entry.floor.id,
+          roomId: entry.room.id,
+          position,
+          wallSnap,
+        });
+        doorbellPlaced = true;
+      }
+      if (
+        outdoorCameraCount < outdoorCameraLimit &&
+        (isDoorLabelMatch(label, backDoorKeywords) || isDoorLabelMatch(label, garageDoorKeywords))
+      ) {
+        pushPlacement({
+          deviceKey: 'outdoor_camera_poe',
+          floorId: entry.floor.id,
+          roomId: entry.room.id,
+          position,
+          wallSnap,
+        });
+        outdoorCameraCount += 1;
+      }
+    });
+  }
+
+  if (!doorbellPlaced && doorEntries.length > 0) {
+    const entry = doorEntries[0];
+    const wallSnap = { wall: entry.door.wall, offset: entry.door.offset };
+    pushPlacement({
+      deviceKey: 'video_doorbell',
+      floorId: entry.floor.id,
+      roomId: entry.room.id,
+      position: placeOnWall(entry.room, wallSnap),
+      wallSnap,
+    });
+    doorbellPlaced = true;
+  }
+
+  if (!usingDoorMarkers && targetDoorLabels.length > 0) {
+    const primaryFloor = floorplan.floors[0];
+    if (primaryFloor) {
+      const fallbackRooms = [
+        findRoomMatch(primaryFloor, ['hall', 'living'], ['hall', 'living']),
+        findRoomMatch(primaryFloor, ['kitchen'], ['kitchen']),
+        findRoomMatch(primaryFloor, ['garage'], ['garage']),
+        ...primaryFloor.rooms,
+      ].filter(Boolean) as FloorplanRoom[];
+      targetDoorLabels.forEach((label, index) => {
+        const room = fallbackRooms[index % fallbackRooms.length];
+        if (!room) return;
+        const offset = targetDoorLabels.length > 1 ? (index + 1) / (targetDoorLabels.length + 1) : 0.5;
+        const wallSnap = { wall: 's' as FloorplanWall, offset };
+        const position = placeOnWall(room, wallSnap);
+        pushPlacement({
+          deviceKey: 'door_sensor',
+          floorId: primaryFloor.id,
+          roomId: room.id,
+          position,
+          wallSnap,
+        });
+        if (!doorbellPlaced && isDoorLabelMatch(label, frontDoorKeywords)) {
+          pushPlacement({
+            deviceKey: 'video_doorbell',
+            floorId: primaryFloor.id,
+            roomId: room.id,
+            position,
+            wallSnap,
+          });
+          doorbellPlaced = true;
+        }
+      });
+      if (!doorbellPlaced) {
+        const room = fallbackRooms[0];
+        if (room) {
+          const wallSnap = { wall: 's' as FloorplanWall, offset: 0.5 };
+          pushPlacement({
+            deviceKey: 'video_doorbell',
+            floorId: primaryFloor.id,
+            roomId: room.id,
+            position: placeOnWall(room, wallSnap),
+            wallSnap,
+          });
+        }
+      }
+    }
+  }
+
+  const primaryFloor = floorplan.floors[0];
+  if (!primaryFloor) return placements;
+  const livingRoom =
+    findRoomMatch(primaryFloor, ['living', 'family'], ['living']) ?? fallbackRoomForFloor(primaryFloor);
+  const hallRoom = findRoomMatch(primaryFloor, ['hall'], ['hall']) ?? livingRoom;
+  const kitchenRoom = findRoomMatch(primaryFloor, ['kitchen'], ['kitchen']);
+  const bathRoom = findRoomMatch(primaryFloor, ['bath'], ['bathroom']);
+  const garageRoom = findRoomMatch(primaryFloor, ['garage'], ['garage']);
+
+  if (livingRoom) {
+    pushPlacement({
+      deviceKey: 'security_hub',
+      floorId: primaryFloor.id,
+      roomId: livingRoom.id,
+      position: placeInRoom(livingRoom, 0),
+    });
+    pushPlacement({
+      deviceKey: 'siren_chime',
+      floorId: primaryFloor.id,
+      roomId: livingRoom.id,
+      position: placeOnWall(livingRoom, { wall: 'n', offset: 0.5 }),
+      wallSnap: { wall: 'n', offset: 0.5 },
+    });
+  }
+
+  if (selectedTier !== 'bronze' && livingRoom) {
+    pushPlacement({
+      deviceKey: 'indoor_camera',
+      floorId: primaryFloor.id,
+      roomId: livingRoom.id,
+      position: placeInRoom(livingRoom, 1),
+    });
+  }
+
+  if (selectedTier === 'gold' && (hallRoom ?? livingRoom)) {
+    const target = hallRoom ?? livingRoom;
+    if (target) {
+      pushPlacement({
+        deviceKey: 'indoor_camera',
+        floorId: primaryFloor.id,
+        roomId: target.id,
+        position: placeInRoom(target, 2),
+      });
+    }
+  }
+
+  if (selectedTier !== 'bronze' && kitchenRoom) {
+    pushPlacement({
+      deviceKey: 'leak_sensor',
+      floorId: primaryFloor.id,
+      roomId: kitchenRoom.id,
+      position: placeInRoom(kitchenRoom, 1),
+    });
+  }
+
+  if (selectedTier === 'gold' && bathRoom) {
+    pushPlacement({
+      deviceKey: 'leak_sensor',
+      floorId: primaryFloor.id,
+      roomId: bathRoom.id,
+      position: placeInRoom(bathRoom, 2),
+    });
+  }
+
+  const motionRoom = hallRoom ?? livingRoom;
+  if (motionRoom) {
+    pushPlacement({
+      deviceKey: 'motion_sensor',
+      floorId: primaryFloor.id,
+      roomId: motionRoom.id,
+      position: placeInRoom(motionRoom, 3),
+    });
+  }
+
+  if (selectedTier === 'gold' || elders) {
+    const target = hallRoom ?? livingRoom;
+    if (target) {
+      pushPlacement({
+        deviceKey: 'motion_sensor',
+        floorId: primaryFloor.id,
+        roomId: target.id,
+        position: placeInRoom(target, 4),
+      });
+    }
+  }
+
+  if ((selectedTier === 'gold' || pets) && livingRoom) {
+    pushPlacement({
+      deviceKey: 'glass_break_sensor',
+      floorId: primaryFloor.id,
+      roomId: livingRoom.id,
+      position: placeInRoom(livingRoom, 2),
+    });
+  }
+
+  if (selectedTier !== 'bronze' && garageRoom) {
+    pushPlacement({
+      deviceKey: 'motion_sensor',
+      floorId: primaryFloor.id,
+      roomId: garageRoom.id,
+      position: placeInRoom(garageRoom, 1),
+    });
+  }
+
+  if (selectedTier !== 'bronze' && groundWindows !== 'no') {
+    const windows = primaryFloor.rooms.flatMap((room) =>
+      room.windows.map((window) => ({ room, window, floorId: primaryFloor.id })),
+    );
+    const windowLimit = selectedTier === 'gold' ? 6 : 3;
+    windows.slice(0, windowLimit).forEach((entry, index) => {
+      const wallSnap = { wall: entry.window.wall, offset: entry.window.offset };
+      pushPlacement({
+        deviceKey: 'window_sensor',
+        floorId: entry.floorId,
+        roomId: entry.room.id,
+        position: placeOnWall(entry.room, wallSnap),
+        wallSnap,
+      });
+      if (index === 0 && selectedTier === 'gold' && outdoorCameraCount < outdoorCameraLimit) {
+        pushPlacement({
+          deviceKey: 'outdoor_camera_poe',
+          floorId: entry.floorId,
+          roomId: entry.room.id,
+          position: placeOnWall(entry.room, wallSnap),
+          wallSnap,
+        });
+        outdoorCameraCount += 1;
+      }
+    });
+  }
+
+  if (selectedTier !== 'bronze' && livingRoom) {
+    pushPlacement({
+      deviceKey: 'recording_host',
+      floorId: primaryFloor.id,
+      roomId: livingRoom.id,
+      position: placeInRoom(livingRoom, 4),
+    });
+  }
+
+  return placements;
+};
 
 const createFloor = (index: number): FloorplanFloor => ({
   id: `floor-${index + 1}`,
@@ -277,6 +607,7 @@ const HomeSecurityPlanner = () => {
     const storedFloorplan = storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
     return migrateFloorplanPlacements(storedFloorplan);
   });
+  const [suggestedPlacements, setSuggestedPlacements] = useState<FloorplanPlacement[]>([]);
   const [selectedFloorId, setSelectedFloorId] = useState<string>(() => floorplan.floors[0]?.id ?? 'floor-1');
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
@@ -294,6 +625,10 @@ const HomeSecurityPlanner = () => {
   const floorPlacements = useMemo(
     () => floorplan.placements.filter((placement) => placement.floorId === selectedFloor?.id),
     [floorplan.placements, selectedFloor?.id],
+  );
+  const floorSuggestions = useMemo(
+    () => suggestedPlacements.filter((placement) => placement.floorId === selectedFloor?.id),
+    [suggestedPlacements, selectedFloor?.id],
   );
   const selectedPlacement = floorPlacements.find((placement) => placement.id === selectedPlacementId);
   const selectedPlacementItem = selectedPlacement ? DEVICE_CATALOG[selectedPlacement.deviceKey] : null;
@@ -617,6 +952,46 @@ const HomeSecurityPlanner = () => {
     }
   };
 
+  const handleGenerateSuggestedLayout = () => {
+    const placements = buildSuggestedPlacements({
+      floorplan,
+      exteriorDoorLabels: plannerExteriorDoors,
+      selectedTier,
+      pets: Boolean(draft.pets),
+      elders: Boolean(draft.elders),
+      groundWindows: draft.groundWindows,
+    });
+    setSuggestedPlacements(placements);
+  };
+
+  const handleClearSuggestions = () => {
+    setSuggestedPlacements([]);
+  };
+
+  const handleApplySuggestedLayout = () => {
+    if (suggestedPlacements.length === 0) return;
+    setFloorplan((prev) => {
+      const placementsToAdd = suggestedPlacements
+        .filter(
+          (placement) =>
+            !prev.placements.some(
+              (existing) =>
+                existing.deviceKey === placement.deviceKey &&
+                existing.floorId === placement.floorId &&
+                existing.position.x === placement.position.x &&
+                existing.position.y === placement.position.y,
+            ),
+        )
+        .map((placement) => ({
+          ...placement,
+          id: createPlacementId('placement'),
+          source: 'suggested',
+        }));
+      return placementsToAdd.length > 0 ? { ...prev, placements: [...prev.placements, ...placementsToAdd] } : prev;
+    });
+    setSuggestedPlacements([]);
+  };
+
   const handleResetMap = () => {
     const reset = createEmptyFloorplan(wizardFloors);
     setFloorplan(reset);
@@ -624,6 +999,7 @@ const HomeSecurityPlanner = () => {
     setSelectedRoomId(undefined);
     setSelectedPlacementId(null);
     setActiveDeviceKey(null);
+    setSuggestedPlacements([]);
   };
 
   const tierComparisonNote = useMemo(() => {
@@ -1115,6 +1491,7 @@ const HomeSecurityPlanner = () => {
                   <FloorplanCanvas
                     floor={selectedFloor}
                     placements={floorPlacements}
+                    suggestedPlacements={floorSuggestions}
                     selectedRoomId={selectedRoomId}
                     selectedPlacementId={selectedPlacementId}
                     onSelectRoom={setSelectedRoomId}
@@ -1138,6 +1515,41 @@ const HomeSecurityPlanner = () => {
                   <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
                   <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
                     Device placements help us visualize coverage zones later.
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <strong>Suggested layout</strong>
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                    Generate a ghost layout based on your doors, rooms, tier, and pet/elder needs.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-secondary" onClick={handleGenerateSuggestedLayout}>
+                      Generate suggested layout
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleApplySuggestedLayout}
+                      disabled={suggestedPlacements.length === 0}
+                    >
+                      Apply suggested layout
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-link"
+                      onClick={handleClearSuggestions}
+                      disabled={suggestedPlacements.length === 0}
+                    >
+                      Clear suggestions
+                    </button>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                    {suggestedPlacements.length > 0
+                      ? `${floorSuggestions.length} suggestion${floorSuggestions.length === 1 ? '' : 's'} on ${
+                          selectedFloor?.label ?? 'this floor'
+                        } (${suggestedPlacements.length} total).`
+                      : 'No suggestions generated yet.'}
                   </p>
                 </div>
 

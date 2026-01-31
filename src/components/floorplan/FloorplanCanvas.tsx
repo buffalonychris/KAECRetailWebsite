@@ -34,6 +34,7 @@ const surfaceStyles = {
 type FloorplanCanvasProps = {
   floor: FloorplanFloor;
   placements?: FloorplanPlacement[];
+  suggestedPlacements?: FloorplanPlacement[];
   selectedRoomId?: string;
   selectedPlacementId?: string | null;
   onSelectRoom: (id: string) => void;
@@ -71,6 +72,7 @@ const DRAG_THRESHOLD = 4;
 const FloorplanCanvas = ({
   floor,
   placements = [],
+  suggestedPlacements = [],
   selectedRoomId,
   selectedPlacementId,
   onSelectRoom,
@@ -182,6 +184,50 @@ const FloorplanCanvas = ({
                   );
                 })}
               </button>
+            );
+          })}
+          {suggestedPlacements.map((placement) => {
+            const item = DEVICE_CATALOG[placement.deviceKey];
+            const Icon = item.icon;
+            const rotation = getPlacementRotation(placement);
+            return (
+              <div
+                key={placement.id}
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  left: placement.position.x,
+                  top: placement.position.y,
+                  transform: 'translate(-50%, -50%)',
+                  borderRadius: '0.75rem',
+                  padding: '0.35rem',
+                  border: '1px dashed rgba(108, 246, 255, 0.65)',
+                  background: 'rgba(108, 246, 255, 0.12)',
+                  color: 'rgba(214, 233, 248, 0.9)',
+                  opacity: 0.7,
+                  pointerEvents: 'none',
+                }}
+              >
+                {item.showsCone ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      width: 50,
+                      height: 50,
+                      background: 'rgba(108, 246, 255, 0.2)',
+                      clipPath: 'polygon(50% 10%, 0% 100%, 100% 100%)',
+                      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                      transformOrigin: '50% 50%',
+                      pointerEvents: 'none',
+                      filter: 'blur(0.5px)',
+                    }}
+                  />
+                ) : null}
+                <Icon width={24} height={24} />
+              </div>
             );
           })}
           {placements.map((placement) => {
