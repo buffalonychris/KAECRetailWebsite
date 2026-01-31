@@ -50,6 +50,44 @@ export type HomeSecurityPlannerRecommendation = {
   generatedAtISO: string;
 };
 
+export type FloorplanRoomKind = 'bedroom' | 'bathroom' | 'kitchen' | 'living' | 'hall' | 'garage' | 'basement' | 'other';
+export type FloorplanRoomSizeBand = 'small' | 'medium' | 'large';
+export type FloorplanWall = 'n' | 's' | 'e' | 'w';
+
+export type FloorplanRoom = {
+  id: string;
+  name: string;
+  kind?: FloorplanRoomKind;
+  sizeBand?: FloorplanRoomSizeBand;
+  rect: { x: number; y: number; w: number; h: number };
+  doors: Array<{ id: string; label: string; wall: FloorplanWall; offset: number }>;
+  windows: Array<{ id: string; label?: string; wall: FloorplanWall; offset: number }>;
+};
+
+export type FloorplanFloor = {
+  id: string;
+  label: 'Floor 1' | 'Floor 2' | 'Floor 3';
+  rooms: FloorplanRoom[];
+};
+
+export type FloorplanPlacement = {
+  id: string;
+  deviceKey: string;
+  label: string;
+  floorId: string;
+  roomId?: string;
+  position: { x: number; y: number };
+  wallSnap?: { wall: FloorplanWall; offset: number };
+  required: boolean;
+  source: 'suggested' | 'user_added';
+};
+
+export type HomeSecurityFloorplan = {
+  version: 'v1';
+  floors: FloorplanFloor[];
+  placements: FloorplanPlacement[];
+};
+
 export type HomeSecurityFunnelState = {
   selectedPackageId?: PackageTierId;
   selectedPath?: HomeSecurityPathChoice;
@@ -57,6 +95,7 @@ export type HomeSecurityFunnelState = {
   fitCheckResult?: HomeSecurityFitCheckResult;
   precisionPlannerDraft?: PrecisionPlannerDraft;
   plannerRecommendation?: HomeSecurityPlannerRecommendation;
+  floorplan?: HomeSecurityFloorplan;
 };
 
 export const defaultHomeSecurityFitCheckAnswers: HomeSecurityFitCheckAnswers = {
