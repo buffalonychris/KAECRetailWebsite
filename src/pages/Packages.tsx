@@ -9,6 +9,7 @@ import DemoDashboardLink from '../components/DemoDashboardLink';
 import { getPackages } from '../content/packages';
 import { HOME_SECURITY_TIER_MEDIA } from '../content/homeSecurityPackageData';
 import { brandSite } from '../lib/brand';
+import { track } from '../lib/analytics';
 import { loadRetailFlow, markFlowStep, updateRetailFlow } from '../lib/retailFlow';
 import { resolveVertical } from '../lib/verticals';
 import { useLayoutConfig } from '../components/LayoutConfig';
@@ -23,6 +24,7 @@ const Packages = () => {
   const packageList = getPackages(vertical);
   const isHomeSecurity = vertical === 'home-security';
   const homeSecurityTierMedia = isHomeSecurity ? HOME_SECURITY_TIER_MEDIA : null;
+  const plannerHref = '/home-security/planner?vertical=home-security';
 
   useLayoutConfig({
     layoutVariant: isHomeSecurity ? 'funnel' : 'sitewide',
@@ -55,6 +57,10 @@ const Packages = () => {
     setGuidedMode(false);
     updateRetailFlow({ guidedMode: false });
     navigate('/');
+  };
+
+  const handlePlannerOpen = () => {
+    track('hs_planner_opened', { source: 'packages' });
   };
 
   return (
@@ -106,6 +112,27 @@ const Packages = () => {
           </div>
         )}
       </div>
+      {isHomeSecurity && (
+        <div
+          className="card"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '1rem',
+          }}
+        >
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <strong>Want surgical precision?</strong>
+            <span style={{ color: 'var(--kaec-muted)' }}>Use the Precision Planner for optional layout detail.</span>
+          </div>
+          <Link className="btn btn-secondary" to={plannerHref} onClick={handlePlannerOpen}>
+            Use Precision Planner (optional)
+          </Link>
+        </div>
+      )}
       <div className="card-grid motion-stagger">
         {packageList.map((pkg) => {
           const tierMedia = homeSecurityTierMedia?.[pkg.id as keyof typeof HOME_SECURITY_TIER_MEDIA];

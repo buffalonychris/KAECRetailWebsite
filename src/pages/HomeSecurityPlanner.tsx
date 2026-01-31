@@ -1,7 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AccordionSection from '../components/AccordionSection';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
+import { track } from '../lib/analytics';
 import type { EntryPoints, HomeSecurityFitCheckAnswers, PrecisionPlannerDraft } from '../lib/homeSecurityFunnel';
 import {
   buildHomeSecurityPlannerPlan,
@@ -107,6 +109,13 @@ const HomeSecurityPlanner = () => {
   };
 
   const handleContinue = () => {
+    track('hs_planner_results_generated', {
+      tier: selectedTier,
+      doors_count: exteriorDoors.length,
+      pets: Boolean(draft.pets),
+      elders: Boolean(draft.elders),
+      ground_windows: draft.groundWindows ?? 'unknown',
+    });
     const nextPlan = buildHomeSecurityPlannerPlan(draft, selectedTier);
     setPlan(nextPlan);
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -125,6 +134,10 @@ const HomeSecurityPlanner = () => {
     const recommendedTierKey = nextPlan.selectedTier;
     const recommendedPackageId = recommendedTierKey === 'bronze' ? 'A1' : recommendedTierKey === 'silver' ? 'A2' : 'A3';
     const derivedAddOns = deriveHomeSecurityQuoteAddOns(nextPlan, draft);
+    track('hs_planner_applied_to_quote', {
+      recommendedTier: recommendedTierKey,
+      add_ons_count: derivedAddOns.ids.length,
+    });
     updateRetailFlow({
       homeSecurity: {
         plannerRecommendation: {
@@ -160,6 +173,15 @@ const HomeSecurityPlanner = () => {
           <p style={{ margin: 0, color: '#c8c0aa' }}>Optional. For customers who want surgical precision.</p>
           <p style={{ margin: 0, color: '#c8c0aa' }}>This does not change your package unless you choose to.</p>
         </div>
+
+        <AccordionSection title="What the Precision Planner does" description="" defaultOpen={false}>
+          <ul className="operator-list" style={{ margin: 0 }}>
+            <li>Checks whether your exterior doors are fully covered.</li>
+            <li>Suggests camera angles and water-risk coverage.</li>
+            <li>Shows what Bronze/Silver/Gold cover for your layout.</li>
+            <li>Optional add-ons are quoted separately.</li>
+          </ul>
+        </AccordionSection>
 
         <div className="card" style={{ display: 'grid', gap: '1.25rem' }}>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -237,6 +259,9 @@ const HomeSecurityPlanner = () => {
 
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             <label style={{ fontWeight: 600 }}>Exterior doors</label>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+              Tip: count any door that leads outside, including garage entry doors.
+            </p>
             {exteriorDoors.length === 0 ? (
               <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors added yet.</p>
             ) : null}
@@ -452,6 +477,7 @@ const HomeSecurityPlanner = () => {
               Continue without applying
             </button>
           </div>
+          <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.8)' }}>You can change anything on the quote page.</p>
         </div>
       </div>
     </section>
