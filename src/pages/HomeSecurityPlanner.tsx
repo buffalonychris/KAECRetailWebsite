@@ -1,10 +1,19 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AccordionSection from '../components/AccordionSection';
+import FloorplanCanvas from '../components/floorplan/FloorplanCanvas';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import { track } from '../lib/analytics';
-import type { EntryPoints, HomeSecurityFitCheckAnswers, PrecisionPlannerDraft } from '../lib/homeSecurityFunnel';
+import type {
+  EntryPoints,
+  FloorplanFloor,
+  FloorplanRoom,
+  FloorplanRoomKind,
+  HomeSecurityFitCheckAnswers,
+  HomeSecurityFloorplan,
+  PrecisionPlannerDraft,
+} from '../lib/homeSecurityFunnel';
 import {
   buildHomeSecurityPlannerPlan,
   deriveHomeSecurityQuoteAddOns,
@@ -37,6 +46,93 @@ const deriveDraftFromFitCheck = (answers?: HomeSecurityFitCheckAnswers): Precisi
   };
 };
 
+const floorLabels = ['Floor 1', 'Floor 2', 'Floor 3'] as const;
+
+const createFloor = (index: number): FloorplanFloor => ({
+  id: `floor-${index + 1}`,
+  label: floorLabels[index],
+  rooms: [],
+});
+
+const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
+  version: 'v1',
+  floors: Array.from({ length: count }, (_, index) => createFloor(index)),
+  placements: [],
+});
+
+const roomKindOptions: Array<{ value: FloorplanRoomKind; label: string }> = [
+  { value: 'bedroom', label: 'Bedroom' },
+  { value: 'bathroom', label: 'Bathroom' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'living', label: 'Living' },
+  { value: 'hall', label: 'Hall' },
+  { value: 'garage', label: 'Garage' },
+  { value: 'basement', label: 'Basement' },
+  { value: 'other', label: 'Other' },
+];
+
+const createRoom = (name: string, index: number, rectOverride?: FloorplanRoom['rect']): FloorplanRoom => ({
+  id: `room-${name.toLowerCase().replace(/\\s+/g, '-')}-${index + 1}`,
+  name,
+  kind: undefined,
+  rect: rectOverride ?? { x: 24, y: 24 + index * 70, w: 160, h: 56 },
+  doors: [],
+  windows: [],
+});
+
+const applyTemplateToFloors = (
+  template: 'apartment' | 'ranch' | '2-story',
+  floorplan: HomeSecurityFloorplan,
+): HomeSecurityFloorplan => {
+  const nextFloors = floorplan.floors.map((floor) => ({ ...floor, rooms: [...floor.rooms] }));
+
+  if (template === 'apartment') {
+    const target = nextFloors[0];
+    if (target) {
+      target.rooms = [
+        createRoom('Living', 0, { x: 24, y: 24, w: 220, h: 90 }),
+        createRoom('Kitchen', 1, { x: 260, y: 24, w: 160, h: 90 }),
+        createRoom('Bedroom', 2, { x: 24, y: 140, w: 180, h: 80 }),
+        createRoom('Bath', 3, { x: 220, y: 140, w: 120, h: 80 }),
+      ];
+    }
+  }
+
+  if (template === 'ranch') {
+    const target = nextFloors[0];
+    if (target) {
+      target.rooms = [
+        createRoom('Living', 0, { x: 24, y: 24, w: 220, h: 80 }),
+        createRoom('Kitchen', 1, { x: 260, y: 24, w: 160, h: 80 }),
+        createRoom('Primary Bedroom', 2, { x: 24, y: 120, w: 200, h: 80 }),
+        createRoom('Bath', 3, { x: 240, y: 120, w: 120, h: 80 }),
+        createRoom('Hall', 4, { x: 24, y: 210, w: 200, h: 60 }),
+      ];
+    }
+  }
+
+  if (template === '2-story') {
+    const first = nextFloors[0];
+    const second = nextFloors[1];
+    if (first) {
+      first.rooms = [
+        createRoom('Living', 0, { x: 24, y: 24, w: 220, h: 90 }),
+        createRoom('Kitchen', 1, { x: 260, y: 24, w: 160, h: 90 }),
+        createRoom('Hall', 2, { x: 24, y: 140, w: 180, h: 70 }),
+      ];
+    }
+    if (second) {
+      second.rooms = [
+        createRoom('Bedroom 1', 0, { x: 24, y: 24, w: 200, h: 90 }),
+        createRoom('Bedroom 2', 1, { x: 240, y: 24, w: 170, h: 90 }),
+        createRoom('Bath', 2, { x: 24, y: 140, w: 140, h: 70 }),
+      ];
+    }
+  }
+
+  return { ...floorplan, floors: nextFloors };
+};
+
 const HomeSecurityPlanner = () => {
   useLayoutConfig({
     layoutVariant: 'funnel',
@@ -61,6 +157,12 @@ const HomeSecurityPlanner = () => {
   })();
 
   const [draft, setDraft] = useState<PrecisionPlannerDraft>(initialDraft);
+  const defaultFloorCount = (initialDraft.floors ?? 1) as 1 | 2 | 3;
+  const [floorplan, setFloorplan] = useState<HomeSecurityFloorplan>(() => {
+    return storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
+  });
+  const [selectedFloorId, setSelectedFloorId] = useState<string>(() => floorplan.floors[0]?.id ?? 'floor-1');
+  const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
@@ -68,6 +170,8 @@ const HomeSecurityPlanner = () => {
 
   const exteriorDoors = draft.exteriorDoors ?? [];
   const priorities = draft.priorities ?? [];
+  const wizardFloors = (draft.floors ?? 1) as 1 | 2 | 3;
+  const selectedFloor = floorplan.floors.find((floor) => floor.id === selectedFloorId) ?? floorplan.floors[0];
 
   const handleDoorLabelChange = (index: number, value: string) => {
     setDraft((prev) => {
@@ -107,6 +211,35 @@ const HomeSecurityPlanner = () => {
   const handleSaveDraft = () => {
     updateRetailFlow({ homeSecurity: { precisionPlannerDraft: draft } });
   };
+
+  useEffect(() => {
+    setFloorplan((prev) => {
+      if (!prev || prev.version !== 'v1') {
+        return createEmptyFloorplan(wizardFloors);
+      }
+      let nextFloors = prev.floors.map((floor, index) => ({ ...floor, label: floorLabels[index] }));
+      if (nextFloors.length < wizardFloors) {
+        const additions = Array.from({ length: wizardFloors - nextFloors.length }, (_, index) =>
+          createFloor(nextFloors.length + index),
+        );
+        nextFloors = [...nextFloors, ...additions];
+      } else if (nextFloors.length > wizardFloors) {
+        nextFloors = nextFloors.slice(0, wizardFloors);
+      }
+      return { ...prev, floors: nextFloors };
+    });
+  }, [wizardFloors]);
+
+  useEffect(() => {
+    if (!floorplan.floors.find((floor) => floor.id === selectedFloorId)) {
+      setSelectedFloorId(floorplan.floors[0]?.id ?? 'floor-1');
+      setSelectedRoomId(undefined);
+    }
+  }, [floorplan.floors, selectedFloorId]);
+
+  useEffect(() => {
+    updateRetailFlow({ homeSecurity: { floorplan } });
+  }, [floorplan]);
 
   const handleContinue = () => {
     track('hs_planner_results_generated', {
@@ -150,6 +283,63 @@ const HomeSecurityPlanner = () => {
       },
     });
     navigate(`/quote?vertical=home-security&tier=${recommendedPackageId}`);
+  };
+
+  const handleSelectFloor = (floorId: string) => {
+    setSelectedFloorId(floorId);
+    setSelectedRoomId(undefined);
+  };
+
+  const updateRoom = (roomId: string, updates: Partial<FloorplanRoom>) => {
+    setFloorplan((prev) => ({
+      ...prev,
+      floors: prev.floors.map((floor) =>
+        floor.id === selectedFloorId
+          ? {
+              ...floor,
+              rooms: floor.rooms.map((room) => (room.id === roomId ? { ...room, ...updates } : room)),
+            }
+          : floor,
+      ),
+    }));
+  };
+
+  const handleAddRoom = () => {
+    setFloorplan((prev) => {
+      const nextFloors = prev.floors.map((floor) => ({ ...floor }));
+      const floorIndex = nextFloors.findIndex((floor) => floor.id === selectedFloorId);
+      if (floorIndex === -1) return prev;
+      const targetFloor = nextFloors[floorIndex];
+      const nextRoomIndex = targetFloor.rooms.length;
+      const newRoom: FloorplanRoom = {
+        id: `room-${Date.now()}-${nextRoomIndex + 1}`,
+        name: `Room ${nextRoomIndex + 1}`,
+        rect: { x: 24, y: 24 + nextRoomIndex * 70, w: 160, h: 56 },
+        doors: [],
+        windows: [],
+      };
+      targetFloor.rooms = [...targetFloor.rooms, newRoom];
+      return { ...prev, floors: nextFloors };
+    });
+  };
+
+  const handleDeleteRoom = (roomId: string) => {
+    setFloorplan((prev) => ({
+      ...prev,
+      floors: prev.floors.map((floor) =>
+        floor.id === selectedFloorId ? { ...floor, rooms: floor.rooms.filter((room) => room.id !== roomId) } : floor,
+      ),
+    }));
+    if (selectedRoomId === roomId) {
+      setSelectedRoomId(undefined);
+    }
+  };
+
+  const handleResetMap = () => {
+    const reset = createEmptyFloorplan(wizardFloors);
+    setFloorplan(reset);
+    setSelectedFloorId(reset.floors[0]?.id ?? 'floor-1');
+    setSelectedRoomId(undefined);
   };
 
   const tierComparisonNote = useMemo(() => {
@@ -366,6 +556,127 @@ const HomeSecurityPlanner = () => {
             <button type="button" className="btn btn-secondary" onClick={handleContinue}>
               Continue
             </button>
+          </div>
+        </div>
+
+        <div className="card" style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <h3 style={{ margin: 0 }}>Build a simple map (optional)</h3>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+              Fast: make a simple room layout in under 2 minutes.
+            </p>
+            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+              You can skip this and keep recommendations.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {floorplan.floors.map((floor) => (
+              <button
+                key={floor.id}
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => handleSelectFloor(floor.id)}
+                style={{
+                  borderColor: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
+                  color: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
+                }}
+              >
+                {floor.label}
+              </button>
+            ))}
+            <button type="button" className="btn btn-link" onClick={handleResetMap}>
+              Reset map
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gap: '0.5rem' }}>
+            <strong>Templates</strong>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('apartment', prev))}
+              >
+                Apartment
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('ranch', prev))}
+              >
+                Ranch
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setFloorplan((prev) => applyTemplateToFloors('2-story', prev))}
+              >
+                2-Story
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <strong>Rooms on {selectedFloor?.label ?? 'Floor'}</strong>
+              {selectedFloor?.rooms.length ? (
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  {selectedFloor.rooms.map((room) => (
+                    <div
+                      key={room.id}
+                      onClick={() => setSelectedRoomId(room.id)}
+                      style={{
+                        padding: '0.75rem',
+                        borderRadius: '0.75rem',
+                        border: room.id === selectedRoomId ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
+                        background: room.id === selectedRoomId ? 'rgba(108, 246, 255, 0.12)' : 'rgba(15, 19, 32, 0.6)',
+                        display: 'grid',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={room.name}
+                        onChange={(event) => updateRoom(room.id, { name: event.target.value })}
+                        onFocus={() => setSelectedRoomId(room.id)}
+                      />
+                      <select
+                        value={room.kind ?? ''}
+                        onChange={(event) =>
+                          updateRoom(room.id, { kind: (event.target.value || undefined) as FloorplanRoomKind })
+                        }
+                      >
+                        <option value="">Room kind (optional)</option>
+                        {roomKindOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button type="button" className="btn btn-secondary" onClick={() => handleDeleteRoom(room.id)}>
+                        Delete room
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                  No rooms added yet. Use a template or add rooms below.
+                </p>
+              )}
+              <button type="button" className="btn btn-secondary" onClick={handleAddRoom}>
+                Add room
+              </button>
+            </div>
+
+            {selectedFloor ? (
+              <FloorplanCanvas
+                floor={selectedFloor}
+                selectedRoomId={selectedRoomId}
+                onSelectRoom={setSelectedRoomId}
+              />
+            ) : null}
           </div>
         </div>
 
