@@ -346,3 +346,49 @@ export const buildHomeSecurityPlannerPlan = (draft: PrecisionPlannerDraft, selec
   });
   return { ...plan, bundles };
 };
+
+export const deriveHomeSecurityQuoteAddOns = (
+  plan: PlannerPlan,
+  draft?: PrecisionPlannerDraft,
+): { ids: string[]; notes: Record<string, string> } => {
+  const ids: string[] = [];
+  const notes: Record<string, string> = {};
+  const optionalKeys = new Set(plan.optionalAddons.map((addon) => addon.key));
+  const priorities = (draft?.priorities ?? []).map((priority) => priority.toLowerCase());
+  const hasWaterPriority = priorities.includes('water');
+  const hasSecurityPriority = priorities.includes('security');
+  const hasElders = draft?.elders ?? false;
+
+  const addAddOn = (id: string, note: string) => {
+    if (ids.includes(id)) return;
+    ids.push(id);
+    notes[id] = note;
+  };
+
+  const sensorKeys: PlannerPlacement['key'][] = ['contact_sensor', 'motion_sensor', 'leak_sensor'];
+  const hasSensorOptional = sensorKeys.some((key) => optionalKeys.has(key));
+  if (hasSensorOptional) {
+    addAddOn('additional-sensors', 'Adds coverage for windows, hallways, and water-risk areas.');
+  }
+
+  const cameraKeys: PlannerPlacement['key'][] = ['cam_outdoor_poe', 'cam_indoor_wifi', 'poe_injector'];
+  const hasCameraOptional = cameraKeys.some((key) => optionalKeys.has(key));
+  if (hasCameraOptional) {
+    addAddOn('additional-cameras', 'Adds additional camera angles or PoE hardware as needed.');
+  }
+
+  const hasLeakOptional = optionalKeys.has('leak_sensor');
+  if (hasWaterPriority || hasLeakOptional) {
+    addAddOn('water-shutoff', 'Optional: enables automatic shutoff (plumbing required).');
+  }
+
+  const localRecordingKeys: PlannerPlacement['key'][] = ['protect_brains_ck', 'protect_brains_unvr', 'nvr_drive_4tb'];
+  const hasLocalRecordingHost = plan.placements.some((placement) => localRecordingKeys.includes(placement.key));
+  const shouldRecommendUps =
+    (plan.selectedTier === 'gold' || hasLocalRecordingHost) && (hasSecurityPriority || hasElders);
+  if (shouldRecommendUps) {
+    addAddOn('ups-backup', 'Optional: keeps hub/network recording alive during outages.');
+  }
+
+  return { ids, notes };
+};

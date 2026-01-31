@@ -42,12 +42,21 @@ export type PrecisionPlannerDraft = {
   selectedTier?: 'bronze' | 'silver' | 'gold';
 };
 
+export type HomeSecurityPlannerRecommendation = {
+  recommendedTierKey: 'bronze' | 'silver' | 'gold';
+  recommendedPackageId: 'A1' | 'A2' | 'A3';
+  recommendedAddOnIds: string[];
+  recommendedAddOnNotes?: Record<string, string>;
+  generatedAtISO: string;
+};
+
 export type HomeSecurityFunnelState = {
   selectedPackageId?: PackageTierId;
   selectedPath?: HomeSecurityPathChoice;
   fitCheckAnswers?: HomeSecurityFitCheckAnswers;
   fitCheckResult?: HomeSecurityFitCheckResult;
   precisionPlannerDraft?: PrecisionPlannerDraft;
+  plannerRecommendation?: HomeSecurityPlannerRecommendation;
 };
 
 export const defaultHomeSecurityFitCheckAnswers: HomeSecurityFitCheckAnswers = {

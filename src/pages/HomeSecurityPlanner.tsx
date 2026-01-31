@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
 import type { EntryPoints, HomeSecurityFitCheckAnswers, PrecisionPlannerDraft } from '../lib/homeSecurityFunnel';
 import {
   buildHomeSecurityPlannerPlan,
+  deriveHomeSecurityQuoteAddOns,
   type PlannerPlan,
   type PlannerTierKey,
 } from '../lib/homeSecurityPlannerEngine';
@@ -61,6 +62,7 @@ const HomeSecurityPlanner = () => {
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
+  const navigate = useNavigate();
 
   const exteriorDoors = draft.exteriorDoors ?? [];
   const priorities = draft.priorities ?? [];
@@ -113,6 +115,28 @@ const HomeSecurityPlanner = () => {
   const handleTierChange = (value: PlannerTierKey) => {
     setSelectedTier(value);
     setDraft((prev) => ({ ...prev, selectedTier: value }));
+  };
+
+  const handleApplyToQuote = () => {
+    const nextPlan = plan ?? buildHomeSecurityPlannerPlan(draft, selectedTier);
+    if (!plan) {
+      setPlan(nextPlan);
+    }
+    const recommendedTierKey = nextPlan.selectedTier;
+    const recommendedPackageId = recommendedTierKey === 'bronze' ? 'A1' : recommendedTierKey === 'silver' ? 'A2' : 'A3';
+    const derivedAddOns = deriveHomeSecurityQuoteAddOns(nextPlan, draft);
+    updateRetailFlow({
+      homeSecurity: {
+        plannerRecommendation: {
+          recommendedTierKey,
+          recommendedPackageId,
+          recommendedAddOnIds: derivedAddOns.ids,
+          recommendedAddOnNotes: Object.keys(derivedAddOns.notes).length > 0 ? derivedAddOns.notes : undefined,
+          generatedAtISO: new Date().toISOString(),
+        },
+      },
+    });
+    navigate(`/quote?vertical=home-security&tier=${recommendedPackageId}`);
   };
 
   const tierComparisonNote = useMemo(() => {
@@ -396,6 +420,9 @@ const HomeSecurityPlanner = () => {
                     ))}
                   </ul>
                 )}
+                <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                  Passive suggestion: Wall-mounted tablet/dashboard (quoted separately).
+                </p>
               </div>
 
               <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -417,6 +444,14 @@ const HomeSecurityPlanner = () => {
               Run the planner to see placements, coverage, and tier comparisons.
             </p>
           )}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn-primary" onClick={handleApplyToQuote}>
+              Apply to Quote
+            </button>
+            <button type="button" className="btn btn-link">
+              Continue without applying
+            </button>
+          </div>
         </div>
       </div>
     </section>

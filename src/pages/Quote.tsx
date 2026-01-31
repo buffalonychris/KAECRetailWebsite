@@ -38,9 +38,11 @@ const Quote = () => {
   const [reliability, setReliability] = useState('good');
   const [packageId, setPackageId] = useState<PackageTierId>('A2');
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [plannerSelectionsApplied, setPlannerSelectionsApplied] = useState(false);
   const [narrative, setNarrative] = useState<NarrativeResponse | null>(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const flowState = useMemo(() => loadRetailFlow(), []);
+  const plannerRecommendation = flowState.homeSecurity?.plannerRecommendation;
   const fitCheckComplete = isHomeSecurity
     ? isHomeSecurityFitCheckComplete(flowState.homeSecurity?.fitCheckAnswers ?? defaultHomeSecurityFitCheckAnswers)
     : true;
@@ -86,6 +88,17 @@ const Quote = () => {
     }
   }, [isHomeSecurity, packageId]);
 
+  useEffect(() => {
+    if (!isHomeSecurity || !plannerRecommendation) return;
+    const existingQuoteAddOns = flowState.quote?.selectedAddOns ?? [];
+    if (selectedAddOns.length === 0 && existingQuoteAddOns.length === 0) {
+      if (plannerRecommendation.recommendedAddOnIds.length > 0) {
+        setSelectedAddOns(plannerRecommendation.recommendedAddOnIds);
+        setPlannerSelectionsApplied(true);
+      }
+    }
+  }, [isHomeSecurity, plannerRecommendation, selectedAddOns.length, flowState.quote?.selectedAddOns]);
+
   const selectedPackage = useMemo(
     () => packagePricing.find((pkg) => pkg.id === packageId) ?? packagePricing[0],
     [packageId, packagePricing]
@@ -95,6 +108,14 @@ const Quote = () => {
     setSelectedAddOns((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const clearPlannerSuggestions = () => {
+    updateRetailFlow({ homeSecurity: { plannerRecommendation: undefined } });
+    if (plannerSelectionsApplied) {
+      setSelectedAddOns([]);
+      setPlannerSelectionsApplied(false);
+    }
   };
 
   const addOnTotal = useMemo(() => {
@@ -255,6 +276,25 @@ const Quote = () => {
           </div>
         )}
       </div>
+      {isHomeSecurity && plannerRecommendation && (
+        <div className="card" style={{ display: 'grid', gap: '0.5rem' }}>
+          <strong>Applied from Precision Planner</strong>
+          <p style={{ margin: 0, color: '#c8c0aa' }}>
+            You can remove any add-ons below. This does not change your checkout flow unless you choose to.
+          </p>
+          {plannerRecommendation.recommendedAddOnNotes &&
+            Object.keys(plannerRecommendation.recommendedAddOnNotes).length > 0 && (
+              <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#c8c0aa' }}>
+                {Object.entries(plannerRecommendation.recommendedAddOnNotes).map(([id, note]) => (
+                  <li key={id}>{note}</li>
+                ))}
+              </ul>
+            )}
+          <button type="button" className="btn btn-secondary" onClick={clearPlannerSuggestions}>
+            Clear planner suggestions
+          </button>
+        </div>
+      )}
 
       <div className="card" style={{ display: 'grid', gap: '1.5rem' }}>
         <div style={{ display: 'grid', gap: '0.75rem' }}>
