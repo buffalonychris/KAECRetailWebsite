@@ -71,6 +71,8 @@ export type FloorplanFloor = {
   rooms: FloorplanRoom[];
 };
 
+export type FloorplanPlacementSource = 'suggested' | 'user_added';
+
 export type FloorplanPlacement = {
   id: string;
   deviceKey: FloorplanDeviceType;
@@ -81,7 +83,7 @@ export type FloorplanPlacement = {
   wallSnap?: { wall: FloorplanWall; offset: number };
   rotation?: number;
   required: boolean;
-  source: 'suggested' | 'user_added';
+  source: FloorplanPlacementSource;
 };
 
 export type HomeSecurityFloorplan = {
