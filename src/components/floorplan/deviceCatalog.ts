@@ -37,6 +37,28 @@ export type FloorplanCatalogItem = {
   showsCone?: boolean;
 };
 
+const WALL_ANCHORED_DEVICE_KEYS: readonly FloorplanDeviceType[] = [
+  'door_sensor',
+  'window_sensor',
+  'video_doorbell',
+  'outdoor_camera_poe',
+  'siren_chime',
+] as const;
+
+const ROTATABLE_DEVICE_KEYS: readonly FloorplanDeviceType[] = [
+  'indoor_camera',
+  'video_doorbell',
+  'outdoor_camera_poe',
+] as const;
+
+export const isWallAnchored = (deviceType: FloorplanDeviceType): boolean => {
+  return WALL_ANCHORED_DEVICE_KEYS.includes(deviceType);
+};
+
+export const isRotatableDevice = (deviceType: FloorplanDeviceType): boolean => {
+  return ROTATABLE_DEVICE_KEYS.includes(deviceType);
+};
+
 export const DEVICE_KEYS = [
   'door_sensor',
   'window_sensor',
@@ -57,14 +79,14 @@ export const DEVICE_CATALOG: Record<FloorplanDeviceType, FloorplanCatalogItem> =
     label: 'Door Sensor',
     category: 'entry',
     icon: DoorSensorIcon,
-    wallAnchored: true,
+    wallAnchored: isWallAnchored('door_sensor'),
   },
   window_sensor: {
     type: 'window_sensor',
     label: 'Window Sensor',
     category: 'entry',
     icon: WindowSensorIcon,
-    wallAnchored: true,
+    wallAnchored: isWallAnchored('window_sensor'),
   },
   glass_break_sensor: {
     type: 'glass_break_sensor',
@@ -93,7 +115,7 @@ export const DEVICE_CATALOG: Record<FloorplanDeviceType, FloorplanCatalogItem> =
     label: 'Video Doorbell',
     category: 'video',
     icon: VideoDoorbellIcon,
-    wallAnchored: true,
+    wallAnchored: isWallAnchored('video_doorbell'),
     showsCone: true,
   },
   outdoor_camera_poe: {
@@ -101,7 +123,7 @@ export const DEVICE_CATALOG: Record<FloorplanDeviceType, FloorplanCatalogItem> =
     label: 'Outdoor Camera (PoE)',
     category: 'video',
     icon: OutdoorCameraPoeIcon,
-    wallAnchored: false,
+    wallAnchored: isWallAnchored('outdoor_camera_poe'),
     showsCone: true,
   },
   leak_sensor: {
@@ -116,7 +138,7 @@ export const DEVICE_CATALOG: Record<FloorplanDeviceType, FloorplanCatalogItem> =
     label: 'Siren / Chime',
     category: 'safety',
     icon: SirenChimeIcon,
-    wallAnchored: false,
+    wallAnchored: isWallAnchored('siren_chime'),
   },
   security_hub: {
     type: 'security_hub',

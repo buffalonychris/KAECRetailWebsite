@@ -4,7 +4,20 @@ import AccordionSection from '../components/AccordionSection';
 import FloorplanCanvas from '../components/floorplan/FloorplanCanvas';
 import HomeSecurityFunnelSteps from '../components/HomeSecurityFunnelSteps';
 import { useLayoutConfig } from '../components/LayoutConfig';
-import { DEVICE_CATALOG, DEVICE_KEYS, type FloorplanDeviceType } from '../components/floorplan/deviceCatalog';
+import {
+  DEVICE_CATALOG,
+  DEVICE_KEYS,
+  isRotatableDevice,
+  isWallAnchored,
+  type FloorplanDeviceType,
+} from '../components/floorplan/deviceCatalog';
+import {
+  autoSnapToNearestWall,
+  findRoomAtPoint,
+  getPlacementRotation,
+  getWallInsetPosition,
+  snapToGrid,
+} from '../components/floorplan/floorplanUtils';
 import { track } from '../lib/analytics';
 import type {
   EntryPoints,
@@ -98,39 +111,7 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
   placements: [],
 });
 
-const GRID_SIZE = 10;
-
-const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
-
-const clampUnit = (value: number) => Math.min(Math.max(value, 0), 1);
-
-const findRoomAtPoint = (floor: FloorplanFloor | undefined, point: { x: number; y: number }) => {
-  if (!floor) return undefined;
-  return floor.rooms.find(
-    (room) =>
-      point.x >= room.rect.x &&
-      point.x <= room.rect.x + room.rect.w &&
-      point.y >= room.rect.y &&
-      point.y <= room.rect.y + room.rect.h,
-  );
-};
-
-const getWallSnapForPoint = (room: FloorplanRoom, point: { x: number; y: number }) => {
-  const distances: Record<FloorplanWall, number> = {
-    n: Math.abs(point.y - room.rect.y),
-    s: Math.abs(room.rect.y + room.rect.h - point.y),
-    w: Math.abs(point.x - room.rect.x),
-    e: Math.abs(room.rect.x + room.rect.w - point.x),
-  };
-  const nearestWall = (Object.keys(distances) as FloorplanWall[]).reduce((closest, wall) =>
-    distances[wall] < distances[closest] ? wall : closest,
-  );
-  const offset =
-    nearestWall === 'n' || nearestWall === 's'
-      ? clampUnit((point.x - room.rect.x) / room.rect.w)
-      : clampUnit((point.y - room.rect.y) / room.rect.h);
-  return { wall: nearestWall, offset };
-};
+const clampRotation = (value: number) => Math.min(Math.max(value, 0), 360);
 
 const roomKindOptions: Array<{ value: FloorplanRoomKind; label: string }> = [
   { value: 'bedroom', label: 'Bedroom' },
@@ -314,6 +295,13 @@ const HomeSecurityPlanner = () => {
     () => floorplan.placements.filter((placement) => placement.floorId === selectedFloor?.id),
     [floorplan.placements, selectedFloor?.id],
   );
+  const selectedPlacement = floorPlacements.find((placement) => placement.id === selectedPlacementId);
+  const selectedPlacementItem = selectedPlacement ? DEVICE_CATALOG[selectedPlacement.deviceKey] : null;
+  const selectedPlacementRoom =
+    selectedPlacement && selectedFloor
+      ? selectedFloor.rooms.find((room) => room.id === selectedPlacement.roomId) ??
+        findRoomAtPoint(selectedFloor, selectedPlacement.position)
+      : undefined;
   const activeCatalogItem = activeDeviceKey ? DEVICE_CATALOG[activeDeviceKey] : null;
 
   const mapExteriorDoors = useMemo(() => {
@@ -464,20 +452,65 @@ const HomeSecurityPlanner = () => {
     const item = DEVICE_CATALOG[activeDeviceKey];
     const snappedPoint = { x: snapToGrid(point.x), y: snapToGrid(point.y) };
     const targetRoom = findRoomAtPoint(selectedFloor, snappedPoint);
-    const wallSnap = item.wallAnchored && targetRoom ? getWallSnapForPoint(targetRoom, snappedPoint) : undefined;
+    const wallSnap = item.wallAnchored && targetRoom ? autoSnapToNearestWall(targetRoom.rect, snappedPoint) : undefined;
+    const position =
+      item.wallAnchored && wallSnap && targetRoom ? getWallInsetPosition(targetRoom.rect, wallSnap) : snappedPoint;
     const placement: FloorplanPlacement = {
       id: `placement-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
       deviceKey: activeDeviceKey,
       label: item.label,
       floorId: selectedFloor.id,
       roomId: targetRoom?.id,
-      position: snappedPoint,
+      position,
       wallSnap,
       required: false,
       source: 'user_added',
     };
     setFloorplan((prev) => ({ ...prev, placements: [...prev.placements, placement] }));
     setSelectedPlacementId(placement.id);
+  };
+
+  const updatePlacement = (placementId: string, updates: Partial<FloorplanPlacement>) => {
+    setFloorplan((prev) => ({
+      ...prev,
+      placements: prev.placements.map((placement) =>
+        placement.id === placementId ? { ...placement, ...updates } : placement,
+      ),
+    }));
+  };
+
+  const handlePlacementWallChange = (wall: FloorplanWall) => {
+    if (!selectedPlacement) return;
+    const offset = selectedPlacement.wallSnap?.offset ?? 0.5;
+    const wallSnap = { wall, offset };
+    const position =
+      selectedPlacementRoom && selectedFloor
+        ? getWallInsetPosition(selectedPlacementRoom.rect, wallSnap)
+        : selectedPlacement.position;
+    updatePlacement(selectedPlacement.id, { wallSnap, position, roomId: selectedPlacementRoom?.id });
+  };
+
+  const handlePlacementWallOffsetChange = (offsetPercent: number) => {
+    if (!selectedPlacement) return;
+    const wall = selectedPlacement.wallSnap?.wall ?? 'n';
+    const wallSnap = { wall, offset: Math.min(Math.max(offsetPercent / 100, 0), 1) };
+    const position =
+      selectedPlacementRoom && selectedFloor
+        ? getWallInsetPosition(selectedPlacementRoom.rect, wallSnap)
+        : selectedPlacement.position;
+    updatePlacement(selectedPlacement.id, { wallSnap, position, roomId: selectedPlacementRoom?.id });
+  };
+
+  const handleSnapPlacementToNearestWall = () => {
+    if (!selectedPlacement || !selectedPlacementRoom) return;
+    const wallSnap = autoSnapToNearestWall(selectedPlacementRoom.rect, selectedPlacement.position);
+    const position = getWallInsetPosition(selectedPlacementRoom.rect, wallSnap);
+    updatePlacement(selectedPlacement.id, { wallSnap, position, roomId: selectedPlacementRoom.id });
+  };
+
+  const handlePlacementRotationChange = (value: number) => {
+    if (!selectedPlacement) return;
+    updatePlacement(selectedPlacement.id, { rotation: clampRotation(value) });
   };
 
   const updateRoom = (roomId: string, updates: Partial<FloorplanRoom>) => {
@@ -1086,6 +1119,7 @@ const HomeSecurityPlanner = () => {
                     selectedPlacementId={selectedPlacementId}
                     onSelectRoom={setSelectedRoomId}
                     onSelectPlacement={setSelectedPlacementId}
+                    onUpdatePlacement={updatePlacement}
                     onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
                   />
                 ) : null}
@@ -1153,6 +1187,73 @@ const HomeSecurityPlanner = () => {
                       </button>
                     </div>
                   ) : null}
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <strong>Placement details</strong>
+                  {selectedPlacement && selectedPlacementItem ? (
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                      <div style={{ display: 'grid', gap: '0.25rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
+                        <strong>{selectedPlacementItem.label}</strong>
+                      </div>
+                      {isWallAnchored(selectedPlacement.deviceKey) ? (
+                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                          <label style={{ display: 'grid', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                            <select
+                              value={selectedPlacement.wallSnap?.wall ?? 'n'}
+                              onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
+                            >
+                              {wallOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label style={{ display: 'grid', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                              Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
+                            </span>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={5}
+                              value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
+                              onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleSnapPlacementToNearestWall}
+                            disabled={!selectedPlacementRoom}
+                          >
+                            Snap to nearest wall
+                          </button>
+                        </div>
+                      ) : null}
+                      {isRotatableDevice(selectedPlacement.deviceKey) ? (
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={360}
+                            step={15}
+                            value={Math.round(getPlacementRotation(selectedPlacement))}
+                            onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
+                          />
+                        </label>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>Select a placement to edit it.</p>
+                  )}
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.5rem' }}>

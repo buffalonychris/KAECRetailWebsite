@@ -2,6 +2,14 @@ import { useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { DEVICE_CATALOG } from './deviceCatalog';
 import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../lib/homeSecurityFunnel';
+import {
+  autoSnapToNearestWall,
+  clampPointToRect,
+  findRoomAtPoint,
+  getPlacementRotation,
+  getWallInsetPosition,
+  snapToGrid,
+} from './floorplanUtils';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -31,6 +39,7 @@ type FloorplanCanvasProps = {
   onSelectRoom: (id: string) => void;
   onSelectPlacement?: (id: string) => void;
   onCanvasClick?: (point: { x: number; y: number }) => void;
+  onUpdatePlacement?: (placementId: string, updates: Partial<FloorplanPlacement>) => void;
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
   width?: number | string;
   height?: number;
@@ -42,7 +51,7 @@ const markerBaseStyles = {
   borderRadius: '999px',
 } as const;
 
-const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: 'n' | 's' | 'e' | 'w', offset: number) => {
+const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: FloorplanWall, offset: number) => {
   const clampedOffset = Math.min(Math.max(offset, 0), 1);
   switch (wall) {
     case 'n':
@@ -57,19 +66,7 @@ const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: 'n' | 's
   }
 };
 
-const getWallRotation = (wall: FloorplanWall) => {
-  switch (wall) {
-    case 'n':
-      return 180;
-    case 'e':
-      return 270;
-    case 'w':
-      return 90;
-    case 's':
-    default:
-      return 0;
-  }
-};
+const DRAG_THRESHOLD = 4;
 
 const FloorplanCanvas = ({
   floor,
@@ -79,6 +76,7 @@ const FloorplanCanvas = ({
   onSelectRoom,
   onSelectPlacement,
   onCanvasClick,
+  onUpdatePlacement,
   onUpdateRoomRect,
   width = '100%',
   height = 320,
@@ -86,9 +84,20 @@ const FloorplanCanvas = ({
   const selectedRoom = floor.rooms.find((room) => room.id === selectedRoomId);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
+  const dragStateRef = useRef<{
+    placementId: string;
+    pointerId: number;
+    origin: { x: number; y: number };
+    isDragging: boolean;
+  } | null>(null);
+  const justDraggedRef = useRef(false);
 
   const handleSurfaceClick = (event: MouseEvent<HTMLDivElement>) => {
     if (!onCanvasClick) return;
+    if (justDraggedRef.current) {
+      justDraggedRef.current = false;
+      return;
+    }
     const viewport = viewportRef.current;
     if (!viewport) return;
     const rect = viewport.getBoundingClientRect();
@@ -181,15 +190,92 @@ const FloorplanCanvas = ({
             const invalid = item.wallAnchored && !placement.wallSnap;
             const isSelected = placement.id === selectedPlacementId;
             const isHovered = placement.id === hoveredPlacementId;
-            const rotation =
-              placement.rotation ?? (placement.wallSnap ? getWallRotation(placement.wallSnap.wall) : 0);
+            const rotation = getPlacementRotation(placement);
             return (
               <button
                 key={placement.id}
                 type="button"
                 onClick={(event) => {
+                  if (justDraggedRef.current) {
+                    justDraggedRef.current = false;
+                    return;
+                  }
                   event.stopPropagation();
                   onSelectPlacement?.(placement.id);
+                }}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  onSelectPlacement?.(placement.id);
+                  if (!onUpdatePlacement) return;
+                  const viewport = viewportRef.current;
+                  if (!viewport) return;
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  dragStateRef.current = {
+                    placementId: placement.id,
+                    pointerId: event.pointerId,
+                    origin: { x: event.clientX, y: event.clientY },
+                    isDragging: false,
+                  };
+                }}
+                onPointerMove={(event) => {
+                  if (!onUpdatePlacement) return;
+                  const dragState = dragStateRef.current;
+                  if (!dragState || dragState.placementId !== placement.id || dragState.pointerId !== event.pointerId) {
+                    return;
+                  }
+                  const deltaX = event.clientX - dragState.origin.x;
+                  const deltaY = event.clientY - dragState.origin.y;
+                  if (!dragState.isDragging) {
+                    if (Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) {
+                      return;
+                    }
+                    dragState.isDragging = true;
+                  }
+                  const viewport = viewportRef.current;
+                  if (!viewport) return;
+                  const rect = viewport.getBoundingClientRect();
+                  const clampedPoint = clampPointToRect(
+                    { x: event.clientX - rect.left, y: event.clientY - rect.top },
+                    { x: 0, y: 0, w: rect.width, h: rect.height },
+                  );
+                  const snappedPoint = { x: snapToGrid(clampedPoint.x), y: snapToGrid(clampedPoint.y) };
+                  const targetRoom = findRoomAtPoint(floor, snappedPoint);
+                  if (item.wallAnchored && targetRoom) {
+                    const wallSnap = autoSnapToNearestWall(targetRoom.rect, snappedPoint);
+                    const position = getWallInsetPosition(targetRoom.rect, wallSnap);
+                    onUpdatePlacement(placement.id, { position, wallSnap, roomId: targetRoom.id });
+                  } else {
+                    onUpdatePlacement(placement.id, {
+                      position: snappedPoint,
+                      wallSnap: item.wallAnchored ? undefined : undefined,
+                      roomId: targetRoom?.id,
+                    });
+                  }
+                  justDraggedRef.current = true;
+                }}
+                onPointerUp={(event) => {
+                  const dragState = dragStateRef.current;
+                  if (!dragState || dragState.placementId !== placement.id || dragState.pointerId !== event.pointerId) {
+                    return;
+                  }
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+                  dragStateRef.current = null;
+                  if (!dragState.isDragging) {
+                    justDraggedRef.current = false;
+                  }
+                }}
+                onPointerCancel={(event) => {
+                  const dragState = dragStateRef.current;
+                  if (!dragState || dragState.placementId !== placement.id || dragState.pointerId !== event.pointerId) {
+                    return;
+                  }
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+                  dragStateRef.current = null;
+                  justDraggedRef.current = false;
                 }}
                 onMouseEnter={() => setHoveredPlacementId(placement.id)}
                 onMouseLeave={() => setHoveredPlacementId((prev) => (prev === placement.id ? null : prev))}
