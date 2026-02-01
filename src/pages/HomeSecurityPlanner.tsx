@@ -20,6 +20,9 @@ import {
 } from '../components/floorplan/floorplanUtils';
 import { COVERAGE_STATE_COLORS, COVERAGE_TOOLTIPS } from '../lib/homeSecurityPlanner/coverageConstants';
 import { computeFloorplanCoverageOverlay } from '../lib/homeSecurityPlanner/coverageModel';
+import { buildCoverageNotes, buildDeviceSummary } from '../lib/homeSecurityPlanner/export/exportNotes';
+import { capturePlannerSnapshot } from '../lib/homeSecurityPlanner/export/exportImage';
+import { generatePdf } from '../lib/homeSecurityPlanner/export/exportPdf';
 import { track } from '../lib/analytics';
 import type {
   EntryPoints,
@@ -303,6 +306,9 @@ const HomeSecurityPlanner = () => {
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportStatus, setExportStatus] = useState<'png' | 'pdf' | null>(null);
+  const plannerExportRef = useRef<HTMLDivElement | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
@@ -329,6 +335,67 @@ const HomeSecurityPlanner = () => {
         findRoomAtPoint(selectedFloor, selectedPlacement.position)
       : undefined;
   const activeCatalogItem = activeDeviceKey ? DEVICE_CATALOG[activeDeviceKey] : null;
+  const isExporting = exportStatus !== null;
+
+  const downloadDataUrl = (dataUrl: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
+  };
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    downloadDataUrl(url, filename);
+    URL.revokeObjectURL(url);
+  };
+
+  const buildCoverageSnapshot = () => {
+    const collectedRoomStates: Parameters<typeof buildCoverageNotes>[0] = [];
+    const collectedDoorExceptions: Parameters<typeof buildCoverageNotes>[1] = [];
+
+    floorplan.floors.forEach((floor) => {
+      const placements = floorplan.placements.filter((placement) => placement.floorId === floor.id);
+      const overlay = computeFloorplanCoverageOverlay(floor, placements);
+      collectedRoomStates.push(...overlay.roomStates);
+      collectedDoorExceptions.push(...overlay.exteriorDoorExceptions);
+    });
+
+    return buildCoverageNotes(collectedRoomStates, collectedDoorExceptions);
+  };
+
+  const handleDownloadPng = async () => {
+    if (!plannerExportRef.current) return;
+    setExportStatus('png');
+    setExportMenuOpen(false);
+    try {
+      const dataUrl = await capturePlannerSnapshot({ element: plannerExportRef.current, fitToBounds: true });
+      downloadDataUrl(dataUrl, 'home-security-plan.png');
+    } finally {
+      setExportStatus(null);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!plannerExportRef.current) return;
+    setExportStatus('pdf');
+    setExportMenuOpen(false);
+    try {
+      const image = await capturePlannerSnapshot({ element: plannerExportRef.current, fitToBounds: true });
+      const deviceSummary = buildDeviceSummary(floorplan);
+      const coverageNotes = buildCoverageSnapshot();
+      const pdfBlob = await generatePdf({
+        image,
+        notes: {
+          deviceSummary,
+          coverageNotes,
+        },
+      });
+      downloadBlob(pdfBlob, 'home-security-plan.pdf');
+    } finally {
+      setExportStatus(null);
+    }
+  };
 
   const mapExteriorDoors = useMemo(() => {
     return floorplan.floors.flatMap((floor) =>
@@ -1136,17 +1203,19 @@ const HomeSecurityPlanner = () => {
             >
               <div style={{ minWidth: 0 }}>
                 {selectedFloor ? (
-                  <FloorplanCanvas
-                    floor={selectedFloor}
-                    placements={floorPlacements}
-                    selectedRoomId={selectedRoomId}
-                    selectedPlacementId={selectedPlacementId}
-                    onSelectRoom={setSelectedRoomId}
-                    onSelectPlacement={setSelectedPlacementId}
-                    onUpdatePlacement={updatePlacement}
-                    onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
-                    coverageOverlay={coverageOverlay}
-                  />
+                  <div ref={plannerExportRef} style={{ minWidth: 0 }}>
+                    <FloorplanCanvas
+                      floor={selectedFloor}
+                      placements={floorPlacements}
+                      selectedRoomId={selectedRoomId}
+                      selectedPlacementId={selectedPlacementId}
+                      onSelectRoom={setSelectedRoomId}
+                      onSelectPlacement={setSelectedPlacementId}
+                      onUpdatePlacement={updatePlacement}
+                      onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
+                      coverageOverlay={coverageOverlay}
+                    />
+                  </div>
                 ) : null}
               </div>
               <div
@@ -1205,6 +1274,47 @@ const HomeSecurityPlanner = () => {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setExportMenuOpen((open) => !open)}
+                    disabled={isExporting}
+                  >
+                    Save / Share this plan
+                  </button>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                    Great for reviewing with family or keeping for records.
+                  </span>
+                  {exportMenuOpen ? (
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleDownloadPng}
+                        disabled={isExporting}
+                      >
+                        Download PNG
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleDownloadPdf}
+                        disabled={isExporting}
+                      >
+                        Download PDF
+                      </button>
                     </div>
                   ) : null}
                 </div>
