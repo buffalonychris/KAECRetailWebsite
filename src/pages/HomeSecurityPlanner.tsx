@@ -736,213 +736,228 @@ const HomeSecurityPlanner = () => {
 
   return (
     <section className="section">
-      <div className="container" style={{ display: 'grid', gap: '1.5rem' }}>
-        <HomeSecurityFunnelSteps currentStep="fit-check" />
-        <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
-          <h1 style={{ margin: 0 }}>Home Security Precision Planner</h1>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>Optional. For customers who want surgical precision.</p>
-          <p style={{ margin: 0, color: '#c8c0aa' }}>This does not change your package unless you choose to.</p>
-        </div>
-
-        <AccordionSection title="What the Precision Planner does" description="" defaultOpen={false}>
-          <ul className="operator-list" style={{ margin: 0 }}>
-            <li>Checks whether your exterior doors are fully covered.</li>
-            <li>Suggests camera angles and water-risk coverage.</li>
-            <li>Shows what Bronze/Silver/Gold cover for your layout.</li>
-            <li>Optional add-ons are quoted separately.</li>
-          </ul>
-        </AccordionSection>
-
-        <div className="card" style={{ display: 'grid', gap: '1.25rem' }}>
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Property type</label>
-            <select
-              value={draft.propertyType ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  propertyType: (event.target.value || undefined) as PrecisionPlannerDraft['propertyType'],
-                }))
-              }
-            >
-              <option value="">Select</option>
-              <option value="house">House</option>
-              <option value="apartment">Apartment</option>
-              <option value="condo">Condo</option>
-              <option value="rental">Rental</option>
-            </select>
+      <div
+        className="container"
+        style={{
+          display: 'grid',
+          gap: '1.5rem',
+          maxWidth: 'none',
+          width: '100%',
+          padding: '0 1.5rem',
+        }}
+      >
+        <div style={{ display: 'grid', gap: '1.5rem', maxWidth: '980px', width: '100%', margin: '0 auto' }}>
+          <HomeSecurityFunnelSteps currentStep="fit-check" />
+          <div className="hero-card" style={{ display: 'grid', gap: '0.75rem' }}>
+            <h1 style={{ margin: 0 }}>Home Security Precision Planner</h1>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>Optional. For customers who want surgical precision.</p>
+            <p style={{ margin: 0, color: '#c8c0aa' }}>This does not change your package unless you choose to.</p>
           </div>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Floors</label>
-            <select
-              value={draft.floors ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  floors: event.target.value ? (Number(event.target.value) as PrecisionPlannerDraft['floors']) : undefined,
-                }))
-              }
-            >
-              <option value="">Select</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </div>
+          <AccordionSection title="What the Precision Planner does" description="" defaultOpen={false}>
+            <ul className="operator-list" style={{ margin: 0 }}>
+              <li>Checks whether your exterior doors are fully covered.</li>
+              <li>Suggests camera angles and water-risk coverage.</li>
+              <li>Shows what Bronze/Silver/Gold cover for your layout.</li>
+              <li>Optional add-ons are quoted separately.</li>
+            </ul>
+          </AccordionSection>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Size band</label>
-            <select
-              value={draft.sizeBand ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  sizeBand: (event.target.value || undefined) as PrecisionPlannerDraft['sizeBand'],
-                }))
-              }
-            >
-              <option value="">Select</option>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-            </select>
-          </div>
+          <div className="card" style={{ display: 'grid', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Property type</label>
+              <select
+                value={draft.propertyType ?? ''}
+                onChange={(event) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    propertyType: (event.target.value || undefined) as PrecisionPlannerDraft['propertyType'],
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                <option value="house">House</option>
+                <option value="apartment">Apartment</option>
+                <option value="condo">Condo</option>
+                <option value="rental">Rental</option>
+              </select>
+            </div>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Garage</label>
-            <select
-              value={draft.garage ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  garage: (event.target.value || undefined) as PrecisionPlannerDraft['garage'],
-                }))
-              }
-            >
-              <option value="">Select</option>
-              <option value="none">None</option>
-              <option value="attached">Attached</option>
-              <option value="detached">Detached</option>
-            </select>
-          </div>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Floors</label>
+              <select
+                value={draft.floors ?? ''}
+                onChange={(event) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    floors: event.target.value
+                      ? (Number(event.target.value) as PrecisionPlannerDraft['floors'])
+                      : undefined,
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
 
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            <label style={{ fontWeight: 600 }}>Exterior doors</label>
-            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-              Tip: count any door that leads outside, including garage entry doors.
-            </p>
-            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-              If you add exterior doors to the map below, the planner will use the map.
-            </p>
-            {exteriorDoors.length === 0 ? (
-              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors added yet.</p>
-            ) : null}
-            {exteriorDoors.map((door, index) => (
-              <div key={`door-${index}`} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  value={door}
-                  placeholder="Door label"
-                  onChange={(event) => handleDoorLabelChange(index, event.target.value)}
-                />
-                <button type="button" className="btn btn-secondary" onClick={() => handleRemoveDoor(index)}>
-                  Remove
-                </button>
-              </div>
-            ))}
-            <button type="button" className="btn btn-secondary" onClick={handleAddDoor}>
-              Add exterior door
-            </button>
-          </div>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Size band</label>
+              <select
+                value={draft.sizeBand ?? ''}
+                onChange={(event) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    sizeBand: (event.target.value || undefined) as PrecisionPlannerDraft['sizeBand'],
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Ground-level windows</label>
-            <select
-              value={draft.groundWindows ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  groundWindows: (event.target.value || undefined) as PrecisionPlannerDraft['groundWindows'],
-                }))
-              }
-            >
-              <option value="">Select</option>
-              <option value="no">No</option>
-              <option value="some">Some</option>
-              <option value="yes">Yes</option>
-            </select>
-          </div>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Garage</label>
+              <select
+                value={draft.garage ?? ''}
+                onChange={(event) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    garage: (event.target.value || undefined) as PrecisionPlannerDraft['garage'],
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                <option value="none">None</option>
+                <option value="attached">Attached</option>
+                <option value="detached">Detached</option>
+              </select>
+            </div>
 
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-              <input
-                type="checkbox"
-                checked={draft.pets ?? false}
-                onChange={(event) => setDraft((prev) => ({ ...prev, pets: event.target.checked }))}
-              />
-              Pets
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
-              <input
-                type="checkbox"
-                checked={draft.elders ?? false}
-                onChange={(event) => setDraft((prev) => ({ ...prev, elders: event.target.checked }))}
-              />
-              Elders
-            </label>
-          </div>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <label style={{ fontWeight: 600 }}>Exterior doors</label>
+              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                Tip: count any door that leads outside, including garage entry doors.
+              </p>
+              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                If you add exterior doors to the map below, the planner will use the map.
+              </p>
+              {exteriorDoors.length === 0 ? (
+                <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors added yet.</p>
+              ) : null}
+              {exteriorDoors.map((door, index) => (
+                <div key={`door-${index}`} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    value={door}
+                    placeholder="Door label"
+                    onChange={(event) => handleDoorLabelChange(index, event.target.value)}
+                  />
+                  <button type="button" className="btn btn-secondary" onClick={() => handleRemoveDoor(index)}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button type="button" className="btn btn-secondary" onClick={handleAddDoor}>
+                Add exterior door
+              </button>
+            </div>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Priorities (choose up to 2)</label>
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Ground-level windows</label>
+              <select
+                value={draft.groundWindows ?? ''}
+                onChange={(event) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    groundWindows: (event.target.value || undefined) as PrecisionPlannerDraft['groundWindows'],
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                <option value="no">No</option>
+                <option value="some">Some</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              {priorityOptions.map((option) => {
-                const checked = priorities.includes(option);
-                const disabled = !checked && priorities.length >= 2;
-                return (
-                  <label key={option} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => handlePriorityToggle(option)}
-                    />
-                    {option}
-                  </label>
-                );
-              })}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={draft.pets ?? false}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, pets: event.target.checked }))}
+                />
+                Pets
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  checked={draft.elders ?? false}
+                  onChange={(event) => setDraft((prev) => ({ ...prev, elders: event.target.checked }))}
+                />
+                Elders
+              </label>
+            </div>
+
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Priorities (choose up to 2)</label>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                {priorityOptions.map((option) => {
+                  const checked = priorities.includes(option);
+                  const disabled = !checked && priorities.length >= 2;
+                  return (
+                    <label key={option} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={disabled}
+                        onChange={() => handlePriorityToggle(option)}
+                      />
+                      {option}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600 }}>Compare tier</label>
+              <select value={selectedTier} onChange={(event) => handleTierChange(event.target.value as PlannerTierKey)}>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Silver</option>
+                <option value="gold">Gold</option>
+              </select>
+              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                This only affects the planner comparison, not your checkout flow.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-primary" onClick={handleSaveDraft}>
+                Save draft
+              </button>
+              <Link className="btn btn-link" to="/discovery?vertical=home-security">
+                Back to Fit Check
+              </Link>
+              <Link className="btn btn-link" to="/packages?vertical=home-security">
+                Back to Packages
+              </Link>
+              <button type="button" className="btn btn-secondary" onClick={handleContinue}>
+                Continue
+              </button>
             </div>
           </div>
-
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 600 }}>Compare tier</label>
-            <select value={selectedTier} onChange={(event) => handleTierChange(event.target.value as PlannerTierKey)}>
-              <option value="bronze">Bronze</option>
-              <option value="silver">Silver</option>
-              <option value="gold">Gold</option>
-            </select>
-            <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-              This only affects the planner comparison, not your checkout flow.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button type="button" className="btn btn-primary" onClick={handleSaveDraft}>
-              Save draft
-            </button>
-            <Link className="btn btn-link" to="/discovery?vertical=home-security">
-              Back to Fit Check
-            </Link>
-            <Link className="btn btn-link" to="/packages?vertical=home-security">
-              Back to Packages
-            </Link>
-            <button type="button" className="btn btn-secondary" onClick={handleContinue}>
-              Continue
-            </button>
-          </div>
         </div>
+      </div>
 
-        <div className="card" style={{ display: 'grid', gap: '1rem' }}>
+      <div style={{ display: 'grid', gap: '1.5rem', width: '100%' }}>
+        <div className="card" style={{ display: 'grid', gap: '1rem', width: '100%' }}>
           <div style={{ display: 'grid', gap: '0.35rem' }}>
             <h3 style={{ margin: 0 }}>Build a simple map (optional)</h3>
             <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
@@ -1000,8 +1015,8 @@ const HomeSecurityPlanner = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'flex-start' }}>
+            <div style={{ display: 'grid', gap: '0.75rem', flex: '1 1 320px', minWidth: '280px' }}>
               <strong>Rooms on {selectedFloor?.label ?? 'Floor'}</strong>
               {selectedFloor?.rooms.length ? (
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
@@ -1198,356 +1213,359 @@ const HomeSecurityPlanner = () => {
               </div>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                alignItems: 'start',
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                {selectedFloor ? (
-                  <div ref={plannerExportRef} style={{ minWidth: 0 }}>
-                    <FloorplanCanvas
-                      floor={selectedFloor}
-                      placements={floorPlacements}
-                      selectedRoomId={selectedRoomId}
-                      selectedPlacementId={selectedPlacementId}
-                      onSelectRoom={setSelectedRoomId}
-                      onSelectPlacement={setSelectedPlacementId}
-                      onUpdatePlacement={updatePlacement}
-                      onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
-                      coverageOverlay={coverageOverlay}
-                    />
+            <div style={{ flex: '2 1 640px', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'flex-start' }}>
+                <div style={{ flex: '2 1 520px', minWidth: '320px', width: '100%' }}>
+                  {selectedFloor ? (
+                    <div
+                      ref={plannerExportRef}
+                      style={{ minWidth: 0, width: '100%', maxHeight: '70vh', overflow: 'auto' }}
+                    >
+                      <FloorplanCanvas
+                        floor={selectedFloor}
+                        placements={floorPlacements}
+                        selectedRoomId={selectedRoomId}
+                        selectedPlacementId={selectedPlacementId}
+                        onSelectRoom={setSelectedRoomId}
+                        onSelectPlacement={setSelectedPlacementId}
+                        onUpdatePlacement={updatePlacement}
+                        onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
+                        coverageOverlay={coverageOverlay}
+                        height={520}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+                <div
+                  style={{
+                    flex: '1 1 300px',
+                    minWidth: '260px',
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    padding: '1rem',
+                    background: 'rgba(15, 19, 32, 0.5)',
+                    display: 'grid',
+                    gap: '1rem',
+                  }}
+                >
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Device placements help us visualize coverage zones later.
+                    </p>
                   </div>
-                ) : null}
-              </div>
-              <div
-                style={{
-                  borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  padding: '1rem',
-                  background: 'rgba(15, 19, 32, 0.6)',
-                  display: 'grid',
-                  gap: '1rem',
-                }}
-                >
-                <div style={{ display: 'grid', gap: '0.35rem' }}>
-                  <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
-                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                    Device placements help us visualize coverage zones later.
-                  </p>
-                </div>
 
-                <div style={{ display: 'grid', gap: '0.6rem' }}>
-                  <label
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    title={COVERAGE_TOOLTIPS.toggle}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={showCoverage}
-                      onChange={(event) => setShowCoverage(event.target.checked)}
-                    />
-                    <span>Show coverage</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Coverage uses your placements and room layout to show approximate detection areas.
-                  </span>
-                  {showCoverage ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <strong>Coverage legend</strong>
-                      <div style={{ display: 'grid', gap: '0.35rem' }}>
-                        {(['green', 'yellow', 'red'] as const).map((state) => (
-                          <div
-                            key={state}
-                            title={COVERAGE_TOOLTIPS.room[state]}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                          >
-                            <span
-                              aria-hidden="true"
-                              style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: '0.25rem',
-                                background: COVERAGE_STATE_COLORS[state].fill,
-                                border: `1px solid ${COVERAGE_STATE_COLORS[state].stroke}`,
-                              }}
-                            />
-                            <span style={{ textTransform: 'capitalize' }}>{state}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setExportMenuOpen((open) => !open)}
-                    disabled={isExporting}
-                  >
-                    Save / Share this plan
-                  </button>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                    Great for reviewing with family or keeping for records.
-                  </span>
-                  {exportMenuOpen ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleDownloadPng}
-                        disabled={isExporting}
-                      >
-                        Download PNG
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleDownloadPdf}
-                        disabled={isExporting}
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <h4 style={{ margin: 0 }}>What installation looks like</h4>
-                  {showInstallEffort ? (
-                    <>
-                      <strong>
-                        Typical install: {installEffort.hoursMin}–{installEffort.hoursMax} hours
-                      </strong>
-                      {installEffort.badges.length ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          {installEffort.badges.map((badge) => (
-                            <span
-                              key={badge}
-                              style={{
-                                padding: '0.2rem 0.5rem',
-                                borderRadius: '999px',
-                                background: 'rgba(108, 246, 255, 0.15)',
-                                border: '1px solid rgba(108, 246, 255, 0.35)',
-                                fontSize: '0.75rem',
-                              }}
+                  <div style={{ display: 'grid', gap: '0.6rem' }}>
+                    <label
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      title={COVERAGE_TOOLTIPS.toggle}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={showCoverage}
+                        onChange={(event) => setShowCoverage(event.target.checked)}
+                      />
+                      <span>Show coverage</span>
+                    </label>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                      Coverage uses your placements and room layout to show approximate detection areas.
+                    </span>
+                    {showCoverage ? (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <strong>Coverage legend</strong>
+                        <div style={{ display: 'grid', gap: '0.35rem' }}>
+                          {(['green', 'yellow', 'red'] as const).map((state) => (
+                            <div
+                              key={state}
+                              title={COVERAGE_TOOLTIPS.room[state]}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                             >
-                              {badge}
-                            </span>
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  width: 14,
+                                  height: 14,
+                                  borderRadius: '0.25rem',
+                                  background: COVERAGE_STATE_COLORS[state].fill,
+                                  border: `1px solid ${COVERAGE_STATE_COLORS[state].stroke}`,
+                                }}
+                              />
+                              <span style={{ textTransform: 'capitalize' }}>{state}</span>
+                            </div>
                           ))}
                         </div>
-                      ) : null}
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: '0.35rem' }}>
-                        {installEffort.bullets.map((bullet) => (
-                          <li key={bullet} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                      Add a device or select a tier to see installation expectations.
-                    </p>
-                  )}
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  <strong>Device legend</strong>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    {DEVICE_KEYS.map((deviceKey) => {
-                      const item = DEVICE_CATALOG[deviceKey];
-                      const Icon = item.icon;
-                      const isActive = activeDeviceKey === deviceKey;
-                      return (
-                        <button
-                          key={deviceKey}
-                          type="button"
-                          onClick={() => setActiveDeviceKey(deviceKey)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.4rem 0.6rem',
-                            borderRadius: '0.5rem',
-                            border: isActive ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
-                            background: isActive ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
-                            color: 'inherit',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                          }}
-                        >
-                          <Icon width={20} height={20} />
-                          <span>{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {activeCatalogItem ? (
-                    <div style={{ display: 'grid', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
-                        Click on the map to place this item.
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={() => setActiveDeviceKey(null)}
-                        style={{ justifySelf: 'start' }}
-                      >
-                        Clear tool
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <strong>Placement details</strong>
-                  {selectedPlacement && selectedPlacementItem ? (
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                      <div style={{ display: 'grid', gap: '0.25rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
-                        <strong>{selectedPlacementItem.label}</strong>
                       </div>
-                      {isWallAnchored(selectedPlacement.deviceKey) ? (
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                          <label style={{ display: 'grid', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                            <select
-                              value={selectedPlacement.wallSnap?.wall ?? 'n'}
-                              onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
-                            >
-                              {wallOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label style={{ display: 'grid', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                              Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
-                            </span>
-                            <input
-                              type="range"
-                              min={0}
-                              max={100}
-                              step={5}
-                              value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
-                              onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleSnapPlacementToNearestWall}
-                            disabled={!selectedPlacementRoom}
-                          >
-                            Snap to nearest wall
-                          </button>
-                        </div>
-                      ) : null}
-                      {isRotatableDevice(selectedPlacement.deviceKey) ? (
-                        <label style={{ display: 'grid', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={360}
-                            step={15}
-                            value={Math.round(getPlacementRotation(selectedPlacement))}
-                            onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
-                          />
-                        </label>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>Select a placement to edit it.</p>
-                  )}
-                </div>
+                    ) : null}
+                  </div>
 
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <strong>Placements on {selectedFloor?.label ?? 'this floor'}</strong>
-                  {floorPlacements.length === 0 ? (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
-                  ) : (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setExportMenuOpen((open) => !open)}
+                      disabled={isExporting}
+                    >
+                      Save / Share this plan
+                    </button>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Great for reviewing with family or keeping for records.
+                    </span>
+                    {exportMenuOpen ? (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleDownloadPng}
+                          disabled={isExporting}
+                        >
+                          Download PNG
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleDownloadPdf}
+                          disabled={isExporting}
+                        >
+                          Download PDF
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <h4 style={{ margin: 0 }}>What installation looks like</h4>
+                    {showInstallEffort ? (
+                      <>
+                        <strong>
+                          Typical install: {installEffort.hoursMin}–{installEffort.hoursMax} hours
+                        </strong>
+                        {installEffort.badges.length ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {installEffort.badges.map((badge) => (
+                              <span
+                                key={badge}
+                                style={{
+                                  padding: '0.2rem 0.5rem',
+                                  borderRadius: '999px',
+                                  background: 'rgba(108, 246, 255, 0.15)',
+                                  border: '1px solid rgba(108, 246, 255, 0.35)',
+                                  fontSize: '0.75rem',
+                                }}
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                        <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: '0.35rem' }}>
+                          {installEffort.bullets.map((bullet) => (
+                            <li key={bullet} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Add a device or select a tier to see installation expectations.
+                      </p>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    <strong>Device legend</strong>
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      {floorPlacements.map((placement) => {
-                        const item = DEVICE_CATALOG[placement.deviceKey];
+                      {DEVICE_KEYS.map((deviceKey) => {
+                        const item = DEVICE_CATALOG[deviceKey];
                         const Icon = item.icon;
-                        const needsWall = item.wallAnchored && !placement.wallSnap;
+                        const isActive = activeDeviceKey === deviceKey;
                         return (
-                          <div
-                            key={placement.id}
+                          <button
+                            key={deviceKey}
+                            type="button"
+                            onClick={() => setActiveDeviceKey(deviceKey)}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.5rem',
-                              padding: '0.45rem 0.6rem',
+                              padding: '0.4rem 0.6rem',
                               borderRadius: '0.5rem',
-                              border:
-                                placement.id === selectedPlacementId
-                                  ? '1px solid #6cf6ff'
-                                  : '1px solid rgba(255, 255, 255, 0.12)',
-                              background:
-                                placement.id === selectedPlacementId
-                                  ? 'rgba(108, 246, 255, 0.12)'
-                                  : 'transparent',
+                              border: isActive ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
+                              background: isActive ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
+                              color: 'inherit',
+                              cursor: 'pointer',
+                              textAlign: 'left',
                             }}
                           >
-                            <Icon width={18} height={18} />
-                            <span style={{ flex: 1 }}>{placement.label}</span>
-                            {needsWall ? (
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  padding: '0.1rem 0.35rem',
-                                  borderRadius: '999px',
-                                  border: '1px solid rgba(255, 107, 107, 0.6)',
-                                  color: 'rgba(255, 107, 107, 0.9)',
-                                }}
-                              >
-                                Needs wall
-                              </span>
-                            ) : null}
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => handleRemovePlacement(placement.id)}
-                            >
-                              Delete
-                            </button>
-                          </div>
+                            <Icon width={20} height={20} />
+                            <span>{item.label}</span>
+                          </button>
                         );
                       })}
                     </div>
-                  )}
+                    {activeCatalogItem ? (
+                      <div style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                          Click on the map to place this item.
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={() => setActiveDeviceKey(null)}
+                          style={{ justifySelf: 'start' }}
+                        >
+                          Clear tool
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Placement details</strong>
+                    {selectedPlacement && selectedPlacementItem ? (
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <div style={{ display: 'grid', gap: '0.25rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
+                          <strong>{selectedPlacementItem.label}</strong>
+                        </div>
+                        {isWallAnchored(selectedPlacement.deviceKey) ? (
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                              <select
+                                value={selectedPlacement.wallSnap?.wall ?? 'n'}
+                                onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
+                              >
+                                {wallOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
+                              </span>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
+                                onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={handleSnapPlacementToNearestWall}
+                              disabled={!selectedPlacementRoom}
+                            >
+                              Snap to nearest wall
+                            </button>
+                          </div>
+                        ) : null}
+                        {isRotatableDevice(selectedPlacement.deviceKey) ? (
+                          <label style={{ display: 'grid', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                              Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
+                            </span>
+                            <input
+                              type="range"
+                              min={0}
+                              max={360}
+                              step={15}
+                              value={Math.round(getPlacementRotation(selectedPlacement))}
+                              onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
+                            />
+                          </label>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>Select a placement to edit it.</p>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Placements on {selectedFloor?.label ?? 'this floor'}</strong>
+                    {floorPlacements.length === 0 ? (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        {floorPlacements.map((placement) => {
+                          const item = DEVICE_CATALOG[placement.deviceKey];
+                          const Icon = item.icon;
+                          const needsWall = item.wallAnchored && !placement.wallSnap;
+                          return (
+                            <div
+                              key={placement.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.45rem 0.6rem',
+                                borderRadius: '0.5rem',
+                                border:
+                                  placement.id === selectedPlacementId
+                                    ? '1px solid #6cf6ff'
+                                    : '1px solid rgba(255, 255, 255, 0.12)',
+                                background:
+                                  placement.id === selectedPlacementId
+                                    ? 'rgba(108, 246, 255, 0.12)'
+                                    : 'transparent',
+                              }}
+                            >
+                              <Icon width={18} height={18} />
+                              <span style={{ flex: 1 }}>{placement.label}</span>
+                              {needsWall ? (
+                                <span
+                                  style={{
+                                    fontSize: '0.7rem',
+                                    padding: '0.1rem 0.35rem',
+                                    borderRadius: '999px',
+                                    border: '1px solid rgba(255, 107, 107, 0.6)',
+                                    color: 'rgba(255, 107, 107, 0.9)',
+                                  }}
+                                >
+                                  Needs wall
+                                </span>
+                              ) : null}
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => handleRemovePlacement(placement.id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
+      <div style={{ width: '100%', maxWidth: '980px', margin: '0 auto' }}>
         <div ref={resultsRef} className="card" style={{ display: 'grid', gap: '0.5rem' }}>
           <h3 style={{ margin: 0 }}>Planner results</h3>
           {plan ? (
