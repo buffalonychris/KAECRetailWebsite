@@ -23,6 +23,7 @@ import { computeFloorplanCoverageOverlay } from '../lib/homeSecurityPlanner/cove
 import { buildCoverageNotes, buildDeviceSummary } from '../lib/homeSecurityPlanner/export/exportNotes';
 import { capturePlannerSnapshot } from '../lib/homeSecurityPlanner/export/exportImage';
 import { generatePdf } from '../lib/homeSecurityPlanner/export/exportPdf';
+import { computeInstallEffort } from '../lib/homeSecurityPlanner/installEffort/computeInstallEffort';
 import { track } from '../lib/analytics';
 import type {
   EntryPoints,
@@ -336,6 +337,10 @@ const HomeSecurityPlanner = () => {
       : undefined;
   const activeCatalogItem = activeDeviceKey ? DEVICE_CATALOG[activeDeviceKey] : null;
   const isExporting = exportStatus !== null;
+  const hasPlacedDevices = floorplan.placements.length > 0;
+  const hasSelectedTier = Boolean(selectedTier);
+  const showInstallEffort = hasSelectedTier || hasPlacedDevices;
+  const installEffort = useMemo(() => computeInstallEffort({ floorplan }), [floorplan]);
 
   const downloadDataUrl = (dataUrl: string, filename: string) => {
     const link = document.createElement('a');
@@ -1317,6 +1322,53 @@ const HomeSecurityPlanner = () => {
                       </button>
                     </div>
                   ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <h4 style={{ margin: 0 }}>What installation looks like</h4>
+                  {showInstallEffort ? (
+                    <>
+                      <strong>
+                        Typical install: {installEffort.hoursMin}–{installEffort.hoursMax} hours
+                      </strong>
+                      {installEffort.badges.length ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {installEffort.badges.map((badge) => (
+                            <span
+                              key={badge}
+                              style={{
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '999px',
+                                background: 'rgba(108, 246, 255, 0.15)',
+                                border: '1px solid rgba(108, 246, 255, 0.35)',
+                                fontSize: '0.75rem',
+                              }}
+                            >
+                              {badge}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: '0.35rem' }}>
+                        {installEffort.bullets.map((bullet) => (
+                          <li key={bullet} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Add a device or select a tier to see installation expectations.
+                    </p>
+                  )}
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
