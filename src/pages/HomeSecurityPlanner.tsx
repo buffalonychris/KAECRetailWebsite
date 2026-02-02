@@ -14,7 +14,11 @@ import {
 } from '../components/floorplan/deviceCatalog';
 import {
   autoSnapToNearestWall,
+  applyRoomDimensions,
   clampPointToRect,
+  computeExteriorBounds,
+  computeScaleFromFootprint,
+  FEET_PER_STEP,
   findRoomAtPoint,
   getCompassOrientationLabel,
   getDefaultWindowGroundLevel,
@@ -145,6 +149,9 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplanWithStairs
   placements: [],
   stairs: [],
   compassOrientation: null,
+  homeFootprintFeet: null,
+  feetPerStep: null,
+  roomDimensionsFeet: {},
 });
 
 const clampRotation = (value: number) => Math.min(Math.max(value, 0), 360);
@@ -347,6 +354,10 @@ const HomeSecurityPlanner = () => {
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
+  const [footprintWidthInput, setFootprintWidthInput] = useState('');
+  const [footprintDepthInput, setFootprintDepthInput] = useState('');
+  const [roomWidthInput, setRoomWidthInput] = useState('');
+  const [roomDepthInput, setRoomDepthInput] = useState('');
   const navigate = useNavigate();
 
   const exteriorDoors = draft.exteriorDoors ?? [];
@@ -381,6 +392,12 @@ const HomeSecurityPlanner = () => {
   const showInstallEffort = hasSelectedTier || hasPlacedDevices;
   const installEffort = useMemo(() => computeInstallEffort({ floorplan }), [floorplan]);
   const compassLabel = getCompassOrientationLabel(floorplan.compassOrientation ?? null);
+  const footprintScaleLabel = floorplan.feetPerStep ? floorplan.feetPerStep.toFixed(1) : null;
+
+  const selectedRoomDimensions =
+    selectedRoomId && floorplan.roomDimensionsFeet ? floorplan.roomDimensionsFeet[selectedRoomId] ?? null : null;
+  const canApplyFootprint = Boolean(footprintWidthInput && footprintDepthInput && selectedFloor?.rooms.length);
+  const canApplyRoomDimensions = Boolean(roomWidthInput && roomDepthInput && selectedRoom);
 
   const downloadDataUrl = (dataUrl: string, filename: string) => {
     const link = document.createElement('a');
@@ -503,6 +520,30 @@ const HomeSecurityPlanner = () => {
     );
   };
 
+  const handleApplyHomeFootprint = () => {
+    if (!selectedFloor) return;
+    const widthFt = Number(footprintWidthInput);
+    const depthFt = Number(footprintDepthInput);
+    if (!Number.isFinite(widthFt) || widthFt <= 0) return;
+    if (!Number.isFinite(depthFt) || depthFt <= 0) return;
+    const exteriorBounds = computeExteriorBounds(selectedFloor.rooms);
+    if (!exteriorBounds) return;
+    const feetPerStep = computeScaleFromFootprint(exteriorBounds, widthFt, depthFt);
+    setFloorplan((prev) => ({
+      ...prev,
+      homeFootprintFeet: { widthFt, depthFt },
+      feetPerStep,
+    }));
+  };
+
+  const handleClearHomeFootprint = () => {
+    setFloorplan((prev) => ({
+      ...prev,
+      homeFootprintFeet: null,
+      feetPerStep: null,
+    }));
+  };
+
   const handleSaveDraft = () => {
     updateRetailFlow({ homeSecurity: { precisionPlannerDraft: draft } });
   };
@@ -531,6 +572,22 @@ const HomeSecurityPlanner = () => {
       setSelectedRoomId(undefined);
     }
   }, [floorplan.floors, selectedFloorId]);
+
+  useEffect(() => {
+    setFootprintWidthInput(floorplan.homeFootprintFeet?.widthFt ? String(floorplan.homeFootprintFeet.widthFt) : '');
+    setFootprintDepthInput(floorplan.homeFootprintFeet?.depthFt ? String(floorplan.homeFootprintFeet.depthFt) : '');
+  }, [floorplan.homeFootprintFeet?.depthFt, floorplan.homeFootprintFeet?.widthFt]);
+
+  useEffect(() => {
+    if (!selectedRoomId) {
+      setRoomWidthInput('');
+      setRoomDepthInput('');
+      return;
+    }
+    const dimensions = floorplan.roomDimensionsFeet?.[selectedRoomId] ?? null;
+    setRoomWidthInput(dimensions?.widthFt ? String(dimensions.widthFt) : '');
+    setRoomDepthInput(dimensions?.depthFt ? String(dimensions.depthFt) : '');
+  }, [floorplan.roomDimensionsFeet, selectedRoomId]);
 
   useEffect(() => {
     if (selectedPlacementId && !floorPlacements.find((placement) => placement.id === selectedPlacementId)) {
@@ -765,6 +822,35 @@ const HomeSecurityPlanner = () => {
 
       return { ...prev, floors: nextFloors, placements: nextPlacements };
     });
+  };
+
+  const handleApplyRoomDimensions = () => {
+    if (!selectedRoom) return;
+    const widthFt = Number(roomWidthInput);
+    const depthFt = Number(roomDepthInput);
+    if (!Number.isFinite(widthFt) || widthFt <= 0) return;
+    if (!Number.isFinite(depthFt) || depthFt <= 0) return;
+    const feetPerStep = floorplan.feetPerStep ?? FEET_PER_STEP;
+    const resizedRect = applyRoomDimensions(selectedRoom.rect, widthFt, depthFt, feetPerStep);
+    handleUpdateRoomRect(selectedRoom.id, resizedRect);
+    setFloorplan((prev) => ({
+      ...prev,
+      roomDimensionsFeet: {
+        ...prev.roomDimensionsFeet,
+        [selectedRoom.id]: { widthFt, depthFt },
+      },
+    }));
+  };
+
+  const handleClearRoomDimensions = () => {
+    if (!selectedRoom) return;
+    setFloorplan((prev) => {
+      const nextDimensions = { ...prev.roomDimensionsFeet };
+      delete nextDimensions[selectedRoom.id];
+      return { ...prev, roomDimensionsFeet: nextDimensions };
+    });
+    setRoomWidthInput('');
+    setRoomDepthInput('');
   };
 
   const handleAddRoom = () => {
@@ -1256,6 +1342,64 @@ const HomeSecurityPlanner = () => {
                 {selectedRoom ? (
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Optional room dimensions</strong>
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Enter approximate room size if you know it. We’ll snap to ~{FEET_PER_STEP} ft steps.
+                      </p>
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Room width (ft)
+                          </span>
+                          <input
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={roomWidthInput}
+                            onChange={(event) => setRoomWidthInput(event.target.value)}
+                            placeholder="e.g. 12"
+                          />
+                        </label>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Room depth (ft)
+                          </span>
+                          <input
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={roomDepthInput}
+                            onChange={(event) => setRoomDepthInput(event.target.value)}
+                            placeholder="e.g. 10"
+                          />
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleApplyRoomDimensions}
+                          disabled={!canApplyRoomDimensions}
+                        >
+                          Apply
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={handleClearRoomDimensions}
+                          disabled={!selectedRoomDimensions}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      {selectedRoomDimensions ? (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                          Saved: {selectedRoomDimensions.widthFt} ft × {selectedRoomDimensions.depthFt} ft.
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
                       <strong>Doors</strong>
                       {selectedRoom.doors.length === 0 ? (
                         <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors yet.</p>
@@ -1463,7 +1607,76 @@ const HomeSecurityPlanner = () => {
                   flex: '0 1 320px',
                   minWidth: 'min(100%, 320px)',
                 }}
+              >
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
+                    paddingBottom: '0.75rem',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
                 >
+                  <h4 style={{ margin: 0 }}>Optional dimensions</h4>
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                    If you don’t know, skip this. We’ll use averages.
+                  </p>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Home width (ft)</span>
+                      <input
+                        type="number"
+                        min={FEET_PER_STEP}
+                        step={FEET_PER_STEP}
+                        value={footprintWidthInput}
+                        onChange={(event) => setFootprintWidthInput(event.target.value)}
+                        placeholder="e.g. 40"
+                      />
+                    </label>
+                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Home depth (ft)</span>
+                      <input
+                        type="number"
+                        min={FEET_PER_STEP}
+                        step={FEET_PER_STEP}
+                        value={footprintDepthInput}
+                        onChange={(event) => setFootprintDepthInput(event.target.value)}
+                        placeholder="e.g. 30"
+                      />
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleApplyHomeFootprint}
+                      disabled={!canApplyFootprint}
+                    >
+                      Apply scale
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-link"
+                      onClick={handleClearHomeFootprint}
+                      disabled={!floorplan.homeFootprintFeet}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {footprintScaleLabel ? (
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                      Scaled to approx {footprintScaleLabel} ft per step.
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
+                      Uses a ~{FEET_PER_STEP} ft step until you calibrate.
+                    </span>
+                  )}
+                  {!selectedFloor?.rooms.length ? (
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.55)' }}>
+                      Add at least one room to calculate a footprint scale.
+                    </span>
+                  ) : null}
+                </div>
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
                   <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
                   <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>

@@ -17,6 +17,9 @@ export type FloorplanStair = {
 
 export type HomeSecurityFloorplanWithStairs = HomeSecurityFloorplanWithCompass & {
   stairs: FloorplanStair[];
+  homeFootprintFeet: { widthFt: number; depthFt: number } | null;
+  feetPerStep: number | null;
+  roomDimensionsFeet: Record<string, { widthFt: number; depthFt: number } | null>;
 };
 
 const createStairId = () => `stairs-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -29,7 +32,17 @@ export const ensureFloorplanStairs = (floorplan: HomeSecurityFloorplan): HomeSec
     'compassOrientation' in floorplan
       ? ((floorplan as HomeSecurityFloorplanWithCompass).compassOrientation ?? null)
       : null;
-  return { ...floorplan, compassOrientation, stairs };
+  const homeFootprintFeet =
+    'homeFootprintFeet' in floorplan
+      ? ((floorplan as HomeSecurityFloorplanWithStairs).homeFootprintFeet ?? null)
+      : null;
+  const feetPerStep =
+    'feetPerStep' in floorplan ? ((floorplan as HomeSecurityFloorplanWithStairs).feetPerStep ?? null) : null;
+  const roomDimensionsFeet =
+    'roomDimensionsFeet' in floorplan
+      ? ((floorplan as HomeSecurityFloorplanWithStairs).roomDimensionsFeet ?? {})
+      : {};
+  return { ...floorplan, compassOrientation, stairs, homeFootprintFeet, feetPerStep, roomDimensionsFeet };
 };
 
 export const removePlacementById = <T extends HomeSecurityFloorplan>(floorplan: T, placementId: string): T => ({
@@ -47,6 +60,13 @@ export const removeRoomById = <T extends HomeSecurityFloorplan>(
     floor.id === floorId ? { ...floor, rooms: floor.rooms.filter((room) => room.id !== roomId) } : floor,
   ),
   placements: floorplan.placements.filter((placement) => placement.roomId !== roomId),
+  ...(('roomDimensionsFeet' in floorplan && floorplan.roomDimensionsFeet)
+    ? {
+        roomDimensionsFeet: Object.fromEntries(
+          Object.entries(floorplan.roomDimensionsFeet).filter(([key]) => key !== roomId),
+        ),
+      }
+    : {}),
 });
 
 export const addStairs = (
