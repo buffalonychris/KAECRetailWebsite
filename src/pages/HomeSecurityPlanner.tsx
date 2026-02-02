@@ -16,6 +16,7 @@ import {
   autoSnapToNearestWall,
   clampPointToRect,
   findRoomAtPoint,
+  getCompassOrientationLabel,
   getDefaultWindowGroundLevel,
   getPlacementRotation,
   getWallInsetPosition,
@@ -26,10 +27,12 @@ import {
 } from '../components/floorplan/floorplanUtils';
 import {
   addStairs,
+  setCompassOrientation,
   ensureFloorplanStairs,
   removePlacementById,
   removeRoomById,
   removeStairsById,
+  type CompassOrientation,
   type FloorplanStair,
   type FloorplanStairDirection,
   type HomeSecurityFloorplanWithStairs,
@@ -73,6 +76,8 @@ const windowStyleOptions: Array<{ value: WindowStylePreset; label: string }> = [
   { value: 'basement', label: 'Basement (low)' },
   { value: 'glassBlock', label: 'Glass block' },
 ];
+
+const compassOrientationOptions: CompassOrientation[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 
 const exteriorDoorLabelKeywords = ['front', 'back', 'side', 'patio', 'garage entry', 'slider'];
 
@@ -139,6 +144,7 @@ const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplanWithStairs
   floors: Array.from({ length: count }, (_, index) => createFloor(index)),
   placements: [],
   stairs: [],
+  compassOrientation: null,
 });
 
 const clampRotation = (value: number) => Math.min(Math.max(value, 0), 360);
@@ -374,6 +380,7 @@ const HomeSecurityPlanner = () => {
   const hasSelectedTier = Boolean(selectedTier);
   const showInstallEffort = hasSelectedTier || hasPlacedDevices;
   const installEffort = useMemo(() => computeInstallEffort({ floorplan }), [floorplan]);
+  const compassLabel = getCompassOrientationLabel(floorplan.compassOrientation ?? null);
 
   const downloadDataUrl = (dataUrl: string, filename: string) => {
     const link = document.createElement('a');
@@ -488,6 +495,12 @@ const HomeSecurityPlanner = () => {
       }
       return { ...prev, priorities: Array.from(nextPriorities) };
     });
+  };
+
+  const handleCompassOrientationChange = (value: string) => {
+    setFloorplan((prev) =>
+      setCompassOrientation(prev, (value || null) as CompassOrientation | null),
+    );
   };
 
   const handleSaveDraft = () => {
@@ -1433,6 +1446,7 @@ const HomeSecurityPlanner = () => {
                       coverageOverlay={coverageOverlay}
                       showFurnishings={showFurnishings}
                       showExteriorContext={showExteriorContext}
+                      compassOrientation={floorplan.compassOrientation}
                       height={560}
                     />
                   </div>
@@ -1494,6 +1508,24 @@ const HomeSecurityPlanner = () => {
                   <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
                     Coverage uses your placements and room layout to show approximate detection areas.
                   </span>
+                  <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.35rem' }}>
+                    <label style={{ fontWeight: 600 }}>Compass (optional)</label>
+                    <select
+                      value={floorplan.compassOrientation ?? ''}
+                      onChange={(event) => handleCompassOrientationChange(event.target.value)}
+                    >
+                      <option value="">Not provided</option>
+                      {compassOrientationOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                    <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                      If you know which way the house faces, set which direction the bottom of your screen points.
+                    </span>
+                    <span style={{ fontSize: '0.7rem', color: 'rgba(214, 233, 248, 0.65)' }}>{compassLabel}</span>
+                  </div>
                   {showCoverage ? (
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
                       <strong>Coverage legend</strong>

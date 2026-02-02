@@ -10,6 +10,8 @@ import {
   determineFrontSideFromMainDoor,
   EXTERIOR_PADDING,
   DRIVEWAY_THICKNESS,
+  getCompassNorthArrowAngle,
+  getCompassNorthVector,
   getDefaultWindowGroundLevel,
   getHallwaySurfaceStyle,
   getPlacementRotation,
@@ -79,6 +81,33 @@ describe('floorplan utils', () => {
     expect(style.backgroundColor).toContain('rgba');
     expect(style.backgroundImage).toContain('radial-gradient');
     expect(style.backgroundSize).toBe('12px 12px');
+  });
+
+  it('maps compass orientation to a north arrow angle and vector', () => {
+    expect(getCompassNorthArrowAngle('N')).toBe(180);
+    expect(getCompassNorthArrowAngle('NE')).toBe(135);
+    expect(getCompassNorthArrowAngle('E')).toBe(90);
+    expect(getCompassNorthArrowAngle('SE')).toBe(45);
+    expect(getCompassNorthArrowAngle('S')).toBe(0);
+    expect(getCompassNorthArrowAngle('SW')).toBe(315);
+    expect(getCompassNorthArrowAngle('W')).toBe(270);
+    expect(getCompassNorthArrowAngle('NW')).toBe(225);
+
+    const northVector = getCompassNorthVector('S');
+    expect(northVector.x).toBeCloseTo(0, 3);
+    expect(northVector.y).toBeCloseTo(-1, 3);
+
+    const eastVector = getCompassNorthVector('E');
+    expect(eastVector.x).toBeCloseTo(1, 3);
+    expect(eastVector.y).toBeCloseTo(0, 3);
+
+    const downVector = getCompassNorthVector('N');
+    expect(downVector.x).toBeCloseTo(0, 3);
+    expect(downVector.y).toBeCloseTo(1, 3);
+
+    const diagVector = getCompassNorthVector('NE');
+    expect(diagVector.x).toBeCloseTo(0.707, 2);
+    expect(diagVector.y).toBeCloseTo(0.707, 2);
   });
 
   it('computes a padded exterior boundary for rooms', () => {

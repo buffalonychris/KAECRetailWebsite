@@ -1,5 +1,10 @@
 import type { HomeSecurityFloorplan } from '../../lib/homeSecurityFunnel';
 
+export type CompassOrientation = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+export type HomeSecurityFloorplanWithCompass = HomeSecurityFloorplan & {
+  compassOrientation: CompassOrientation | null;
+};
+
 export type FloorplanStairDirection = 'up' | 'down';
 
 export type FloorplanStair = {
@@ -10,7 +15,7 @@ export type FloorplanStair = {
   direction: FloorplanStairDirection;
 };
 
-export type HomeSecurityFloorplanWithStairs = HomeSecurityFloorplan & {
+export type HomeSecurityFloorplanWithStairs = HomeSecurityFloorplanWithCompass & {
   stairs: FloorplanStair[];
 };
 
@@ -20,7 +25,11 @@ export const ensureFloorplanStairs = (floorplan: HomeSecurityFloorplan): HomeSec
   const stairs = 'stairs' in floorplan && Array.isArray((floorplan as HomeSecurityFloorplanWithStairs).stairs)
     ? (floorplan as HomeSecurityFloorplanWithStairs).stairs
     : [];
-  return { ...floorplan, stairs };
+  const compassOrientation =
+    'compassOrientation' in floorplan
+      ? ((floorplan as HomeSecurityFloorplanWithCompass).compassOrientation ?? null)
+      : null;
+  return { ...floorplan, compassOrientation, stairs };
 };
 
 export const removePlacementById = <T extends HomeSecurityFloorplan>(floorplan: T, placementId: string): T => ({
@@ -60,4 +69,12 @@ export const removeStairsById = (
 ): HomeSecurityFloorplanWithStairs => ({
   ...floorplan,
   stairs: floorplan.stairs.filter((stair) => stair.id !== stairId),
+});
+
+export const setCompassOrientation = (
+  floorplan: HomeSecurityFloorplanWithStairs,
+  compassOrientation: CompassOrientation | null,
+): HomeSecurityFloorplanWithStairs => ({
+  ...floorplan,
+  compassOrientation,
 });

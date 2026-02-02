@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { HomeSecurityFloorplan } from '../../../lib/homeSecurityFunnel';
-import { addStairs, removePlacementById, removeRoomById, removeStairsById, type HomeSecurityFloorplanWithStairs } from '../floorplanState';
+import {
+  addStairs,
+  removePlacementById,
+  removeRoomById,
+  removeStairsById,
+  setCompassOrientation,
+  type HomeSecurityFloorplanWithStairs,
+} from '../floorplanState';
 
 const baseFloorplan: HomeSecurityFloorplan = {
   version: 'v1',
@@ -45,6 +52,7 @@ const baseFloorplan: HomeSecurityFloorplan = {
 const baseFloorplanWithStairs: HomeSecurityFloorplanWithStairs = {
   ...baseFloorplan,
   stairs: [],
+  compassOrientation: null,
 };
 
 describe('floorplan state', () => {
@@ -83,5 +91,10 @@ describe('floorplan state', () => {
     });
     const removed = removeStairsById(updated, 'stairs-1');
     expect(removed.stairs).toHaveLength(0);
+  });
+
+  it('stores the compass orientation on the floorplan', () => {
+    const updated = setCompassOrientation(baseFloorplanWithStairs, 'SE');
+    expect(updated.compassOrientation).toBe('SE');
   });
 });

@@ -1,4 +1,5 @@
 import type { FloorplanFloor, FloorplanPlacement, FloorplanRoom, FloorplanWall } from '../../lib/homeSecurityFunnel';
+import type { CompassOrientation } from './floorplanState';
 
 export type WindowStylePreset = 'standard' | 'basement' | 'glassBlock';
 export type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -236,6 +237,34 @@ export const getHallwaySurfaceStyle = () => ({
     'radial-gradient(circle at 1px 1px, rgba(160, 182, 210, 0.08) 0, rgba(160, 182, 210, 0.08) 1px, transparent 1.2px)',
   backgroundSize: '12px 12px',
 });
+
+const COMPASS_DOWN_ANGLE: Record<CompassOrientation, number> = {
+  N: 0,
+  NE: 45,
+  E: 90,
+  SE: 135,
+  S: 180,
+  SW: 225,
+  W: 270,
+  NW: 315,
+};
+
+const normalizeAngle = (value: number) => ((value % 360) + 360) % 360;
+
+export const getCompassNorthArrowAngle = (orientation: CompassOrientation) =>
+  normalizeAngle(180 - COMPASS_DOWN_ANGLE[orientation]);
+
+export const getCompassNorthVector = (orientation: CompassOrientation) => {
+  const angle = getCompassNorthArrowAngle(orientation);
+  const radians = (angle * Math.PI) / 180;
+  return {
+    x: Math.sin(radians),
+    y: -Math.cos(radians),
+  };
+};
+
+export const getCompassOrientationLabel = (orientation: CompassOrientation | null) =>
+  orientation ? `Screen-down = ${orientation}` : 'Not provided';
 
 export const computeExteriorBounds = (
   rooms: FloorplanRoom[],
