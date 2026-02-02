@@ -8,7 +8,9 @@ import {
   findRoomAtPoint,
   getPlacementRotation,
   getWallInsetPosition,
+  getWindowMarkerVisual,
   snapToGrid,
+  type FloorplanWindowMarker,
 } from './floorplanUtils';
 import CoverageOverlay from './CoverageOverlay';
 import type { FloorplanCoverageOverlay } from '../../lib/homeSecurityPlanner/coverageModel';
@@ -54,6 +56,7 @@ const markerBaseStyles = {
   position: 'absolute' as const,
   transform: 'translate(-50%, -50%)',
   borderRadius: '999px',
+  overflow: 'visible' as const,
 } as const;
 
 const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: FloorplanWall, offset: number) => {
@@ -182,8 +185,14 @@ const FloorplanCanvas = ({
                   );
                 })}
                 {room.windows.map((window) => {
+                  const windowMarker = window as FloorplanWindowMarker;
                   const position = getMarkerPosition(room, window.wall, window.offset);
                   const isHorizontal = window.wall === 'n' || window.wall === 's';
+                  const windowVisual = getWindowMarkerVisual({
+                    wall: window.wall,
+                    isGroundLevel: windowMarker.isGroundLevel,
+                    windowStyle: windowMarker.windowStyle,
+                  });
                   return (
                     <span
                       key={window.id}
@@ -191,11 +200,40 @@ const FloorplanCanvas = ({
                         ...markerBaseStyles,
                         left: position.x,
                         top: position.y,
-                        width: isHorizontal ? 16 : 2,
-                        height: isHorizontal ? 2 : 16,
-                        background: 'rgba(255, 255, 255, 0.9)',
+                        width: isHorizontal ? windowVisual.length : windowVisual.thickness,
+                        height: isHorizontal ? windowVisual.thickness : windowVisual.length,
+                        background: windowVisual.background,
+                        border: windowVisual.border,
+                        boxShadow: windowVisual.boxShadow,
+                        backgroundImage: windowVisual.backgroundImage,
+                        backgroundSize: windowVisual.backgroundSize,
+                        borderRadius: windowVisual.borderRadius ?? markerBaseStyles.borderRadius,
                       }}
-                    />
+                    >
+                      {windowVisual.badge ? (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            left: '50%',
+                            top: -6,
+                            transform: 'translate(-50%, -100%)',
+                            padding: '1px 4px',
+                            borderRadius: '999px',
+                            fontSize: '0.55rem',
+                            letterSpacing: '0.04em',
+                            textTransform: 'uppercase',
+                            background: windowVisual.badge.background,
+                            color: windowVisual.badge.color,
+                            border: windowVisual.badge.border,
+                            boxShadow: '0 0 4px rgba(0, 0, 0, 0.4)',
+                            pointerEvents: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {windowVisual.badge.label}
+                        </span>
+                      ) : null}
+                    </span>
                   );
                 })}
               </button>
