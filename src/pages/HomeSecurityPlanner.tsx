@@ -345,6 +345,7 @@ const HomeSecurityPlanner = () => {
   const [selectedStairsId, setSelectedStairsId] = useState<string | null>(null);
   const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
   const [activeStairsDirection, setActiveStairsDirection] = useState<FloorplanStairDirection | null>(null);
+  const [dockOpen, setDockOpen] = useState<'left' | 'right' | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
   const [showFurnishings, setShowFurnishings] = useState(true);
   const [showExteriorContext, setShowExteriorContext] = useState(true);
@@ -352,6 +353,8 @@ const HomeSecurityPlanner = () => {
   const [exportStatus, setExportStatus] = useState<'png' | 'pdf' | null>(null);
   const plannerExportRef = useRef<HTMLDivElement | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const leftDockRef = useRef<HTMLDivElement | null>(null);
+  const rightDockRef = useRef<HTMLDivElement | null>(null);
   const [selectedTier, setSelectedTier] = useState<PlannerTierKey>(initialDraft.selectedTier ?? defaultTier);
   const [plan, setPlan] = useState<PlannerPlan | null>(null);
   const [footprintWidthInput, setFootprintWidthInput] = useState('');
@@ -380,6 +383,7 @@ const HomeSecurityPlanner = () => {
   const selectedPlacement = floorPlacements.find((placement) => placement.id === selectedPlacementId);
   const selectedStairs = floorStairs.find((stair) => stair.id === selectedStairsId);
   const selectedPlacementItem = selectedPlacement ? DEVICE_CATALOG[selectedPlacement.deviceKey] : null;
+  const selectedSummary = selectedPlacementItem ? selectedPlacementItem.label : selectedStairs ? `Stairs ${selectedStairs.direction}` : null;
   const selectedPlacementRoom =
     selectedPlacement && selectedFloor
       ? selectedFloor.rooms.find((room) => room.id === selectedPlacement.roomId) ??
@@ -549,6 +553,10 @@ const HomeSecurityPlanner = () => {
     updateRetailFlow({ homeSecurity: { precisionPlannerDraft: draft } });
   };
 
+  const handleDockToggle = (dock: 'left' | 'right') => {
+    setDockOpen((open) => (open === dock ? null : dock));
+  };
+
   useEffect(() => {
     setFloorplan((prev) => {
       if (!prev || prev.version !== 'v1') {
@@ -601,6 +609,22 @@ const HomeSecurityPlanner = () => {
       setSelectedStairsId(null);
     }
   }, [floorStairs, selectedStairsId]);
+
+  useEffect(() => {
+    if (!dockOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (leftDockRef.current?.contains(target) || rightDockRef.current?.contains(target)) {
+        return;
+      }
+      setDockOpen(null);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [dockOpen]);
 
   useEffect(() => {
     updateRetailFlow({ homeSecurity: { floorplan } });
@@ -1215,306 +1239,716 @@ const HomeSecurityPlanner = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {floorplan.floors.map((floor) => (
-              <button
-                key={floor.id}
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => handleSelectFloor(floor.id)}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'stretch' }}>
+            <div ref={leftDockRef} style={{ display: 'flex', alignItems: 'stretch', gap: '0.5rem' }}>
+              <div
                 style={{
-                  borderColor: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
-                  color: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
+                  display: 'grid',
+                  placeItems: 'center',
+                  padding: '0.35rem',
+                  borderRadius: '0.9rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: 'rgba(15, 19, 32, 0.7)',
                 }}
               >
-                {floor.label}
-              </button>
-            ))}
-            <button type="button" className="btn btn-link" onClick={handleResetMap}>
-              Reset map
-            </button>
-          </div>
+                <button
+                  type="button"
+                  title="Actions dock"
+                  aria-pressed={dockOpen === 'left'}
+                  onClick={() => handleDockToggle('left')}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '0.75rem',
+                    border: dockOpen === 'left' ? '1px solid rgba(108, 246, 255, 0.6)' : '1px solid transparent',
+                    background: dockOpen === 'left' ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
+                    color: 'inherit',
+                    cursor: 'pointer',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  ⚙️
+                </button>
+              </div>
+              {dockOpen === 'left' ? (
+                <div
+                  style={{
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    padding: '1rem',
+                    background: 'rgba(15, 19, 32, 0.75)',
+                    display: 'grid',
+                    gap: '1rem',
+                    width: 'min(100%, 320px)',
+                    minWidth: 'min(100%, 280px)',
+                  }}
+                >
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Floors</strong>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {floorplan.floors.map((floor) => (
+                        <button
+                          key={floor.id}
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => handleSelectFloor(floor.id)}
+                          style={{
+                            borderColor: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
+                            color: floor.id === selectedFloorId ? '#6cf6ff' : undefined,
+                          }}
+                        >
+                          {floor.label}
+                        </button>
+                      ))}
+                      <button type="button" className="btn btn-link" onClick={handleResetMap}>
+                        Reset map
+                      </button>
+                    </div>
+                  </div>
 
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            <strong>Templates</strong>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('apartment', prev, draft.garage))}
-              >
-                Apartment
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('ranch', prev, draft.garage))}
-              >
-                Ranch
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setFloorplan((prev) => applyTemplateToFloors('2-story', prev, draft.garage))}
-              >
-                2-Story
-              </button>
-            </div>
-          </div>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Templates</strong>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setFloorplan((prev) => applyTemplateToFloors('apartment', prev, draft.garage))}
+                      >
+                        Apartment
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setFloorplan((prev) => applyTemplateToFloors('ranch', prev, draft.garage))}
+                      >
+                        Ranch
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setFloorplan((prev) => applyTemplateToFloors('2-story', prev, draft.garage))}
+                      >
+                        2-Story
+                      </button>
+                    </div>
+                  </div>
 
-          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              <strong>Rooms on {selectedFloor?.label ?? 'Floor'}</strong>
-              {selectedFloor?.rooms.length ? (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {selectedFloor.rooms.map((room) => (
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    <strong>Rooms on {selectedFloor?.label ?? 'Floor'}</strong>
+                    {selectedFloor?.rooms.length ? (
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        {selectedFloor.rooms.map((room) => (
+                          <div
+                            key={room.id}
+                            onClick={() => setSelectedRoomId(room.id)}
+                            style={{
+                              padding: '0.75rem',
+                              borderRadius: '0.75rem',
+                              border:
+                                room.id === selectedRoomId ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
+                              background: room.id === selectedRoomId ? 'rgba(108, 246, 255, 0.12)' : 'rgba(15, 19, 32, 0.6)',
+                              display: 'grid',
+                              gap: '0.5rem',
+                            }}
+                          >
+                            <input
+                              type="text"
+                              value={room.name}
+                              onChange={(event) => updateRoom(room.id, { name: event.target.value })}
+                              onFocus={() => handleSelectRoom(room.id)}
+                            />
+                            <select
+                              value={room.kind ?? ''}
+                              onChange={(event) =>
+                                updateRoom(room.id, { kind: (event.target.value || undefined) as FloorplanRoomKind })
+                              }
+                              onFocus={() => handleSelectRoom(room.id)}
+                            >
+                              <option value="">Room kind (optional)</option>
+                              {roomKindOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                            <button type="button" className="btn btn-secondary" onClick={() => handleDeleteRoom(room.id)}>
+                              Delete room
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                        No rooms added yet. Use a template or add rooms below.
+                      </p>
+                    )}
+                    <button type="button" className="btn btn-secondary" onClick={handleAddRoom}>
+                      Add room
+                    </button>
                     <div
-                      key={room.id}
-                      onClick={() => setSelectedRoomId(room.id)}
                       style={{
-                        padding: '0.75rem',
                         borderRadius: '0.75rem',
-                        border: room.id === selectedRoomId ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
-                        background: room.id === selectedRoomId ? 'rgba(108, 246, 255, 0.12)' : 'rgba(15, 19, 32, 0.6)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        padding: '0.75rem',
+                        background: 'rgba(15, 19, 32, 0.6)',
                         display: 'grid',
-                        gap: '0.5rem',
+                        gap: '0.75rem',
                       }}
                     >
-                      <input
-                        type="text"
-                        value={room.name}
-                        onChange={(event) => updateRoom(room.id, { name: event.target.value })}
-                        onFocus={() => handleSelectRoom(room.id)}
-                      />
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                        <div>
+                          <strong>Room details</strong>
+                          <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                            {selectedRoom ? selectedRoom.name : 'Select a room to edit doors and windows.'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => selectedRoomId && handleDeleteRoom(selectedRoomId)}
+                          disabled={!selectedRoomId}
+                        >
+                          Delete selected
+                        </button>
+                      </div>
+                      {selectedRoom ? (
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <strong>Doors</strong>
+                            {selectedRoom.doors.length === 0 ? (
+                              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors yet.</p>
+                            ) : null}
+                            {selectedRoom.doors.map((door) => (
+                              <div key={door.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                                <input
+                                  type="text"
+                                  value={door.label}
+                                  placeholder="Door label"
+                                  onChange={(event) => handleUpdateDoorMarker(door.id, { label: event.target.value })}
+                                />
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                  <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                                    <select
+                                      value={door.wall}
+                                      onChange={(event) =>
+                                        handleUpdateDoorMarker(door.id, { wall: event.target.value as FloorplanWall })
+                                      }
+                                    >
+                                      {wallOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                          {option.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                  <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                      Offset
+                                    </span>
+                                    <input
+                                      type="range"
+                                      min={0}
+                                      max={1}
+                                      step={0.05}
+                                      value={door.offset}
+                                      onChange={(event) =>
+                                        handleUpdateDoorMarker(door.id, { offset: Number(event.target.value) })
+                                      }
+                                    />
+                                  </label>
+                                  <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                      Exterior
+                                    </span>
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(door.exterior)}
+                                      onChange={(event) =>
+                                        handleUpdateDoorMarker(door.id, { exterior: event.target.checked })
+                                      }
+                                    />
+                                  </label>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                  Exterior doors are doors that lead outside.
+                                </p>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary"
+                                  onClick={() => handleRemoveDoorMarker(door.id)}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <button type="button" className="btn btn-secondary" onClick={handleAddDoorMarker}>
+                              Add door
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <strong>Windows</strong>
+                            {selectedRoom.windows.length === 0 ? (
+                              <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No windows yet.</p>
+                            ) : null}
+                            {selectedRoom.windows.map((window) => {
+                              const windowMarker = window as FloorplanWindowMarker;
+                              return (
+                                <div key={window.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                                  <input
+                                    type="text"
+                                    value={window.label ?? ''}
+                                    placeholder="Window label (optional)"
+                                    onChange={(event) => handleUpdateWindowMarker(window.id, { label: event.target.value })}
+                                  />
+                                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                        Wall
+                                      </span>
+                                      <select
+                                        value={window.wall}
+                                        onChange={(event) =>
+                                          handleUpdateWindowMarker(window.id, { wall: event.target.value as FloorplanWall })
+                                        }
+                                      >
+                                        {wallOptions.map((option) => (
+                                          <option key={option.value} value={option.value}>
+                                            {option.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                        Offset
+                                      </span>
+                                      <input
+                                        type="range"
+                                        min={0}
+                                        max={1}
+                                        step={0.05}
+                                        value={window.offset}
+                                        onChange={(event) =>
+                                          handleUpdateWindowMarker(window.id, { offset: Number(event.target.value) })
+                                        }
+                                      />
+                                    </label>
+                                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                        Style
+                                      </span>
+                                      <select
+                                        value={windowMarker.windowStyle ?? 'standard'}
+                                        onChange={(event) =>
+                                          handleUpdateWindowMarker(window.id, {
+                                            windowStyle: event.target.value as WindowStylePreset,
+                                          })
+                                        }
+                                      >
+                                        {windowStyleOptions.map((option) => (
+                                          <option key={option.value} value={option.value}>
+                                            {option.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                        Ground-level (higher risk)
+                                      </span>
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(windowMarker.isGroundLevel)}
+                                        onChange={(event) =>
+                                          handleUpdateWindowMarker(window.id, { isGroundLevel: event.target.checked })
+                                        }
+                                      />
+                                    </label>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => handleRemoveWindowMarker(window.id)}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <button type="button" className="btn btn-secondary" onClick={handleAddWindowMarker}>
+                              Add window
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.75rem',
+                      paddingBottom: '0.75rem',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <h4 style={{ margin: 0 }}>Orientation &amp; dimensions</h4>
+                    <div style={{ display: 'grid', gap: '0.4rem' }}>
+                      <label style={{ fontWeight: 600 }}>Compass</label>
                       <select
-                        value={room.kind ?? ''}
-                        onChange={(event) =>
-                          updateRoom(room.id, { kind: (event.target.value || undefined) as FloorplanRoomKind })
-                        }
-                        onFocus={() => handleSelectRoom(room.id)}
+                        value={floorplan.compassOrientation ?? ''}
+                        onChange={(event) => handleCompassOrientationChange(event.target.value)}
                       >
-                        <option value="">Room kind (optional)</option>
-                        {roomKindOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
+                        <option value="">Not provided</option>
+                        {compassOrientationOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
                           </option>
                         ))}
                       </select>
-                      <button type="button" className="btn btn-secondary" onClick={() => handleDeleteRoom(room.id)}>
-                        Delete room
-                      </button>
+                      <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Optional — set which direction the bottom of your screen faces.
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'rgba(214, 233, 248, 0.65)' }}>{compassLabel}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                  No rooms added yet. Use a template or add rooms below.
-                </p>
-              )}
-              <button type="button" className="btn btn-secondary" onClick={handleAddRoom}>
-                Add room
-              </button>
-              <div
-                style={{
-                  borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  padding: '0.75rem',
-                  background: 'rgba(15, 19, 32, 0.6)',
-                  display: 'grid',
-                  gap: '0.75rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                  <div>
-                    <strong>Room details</strong>
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                      {selectedRoom ? selectedRoom.name : 'Select a room to edit doors and windows.'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => selectedRoomId && handleDeleteRoom(selectedRoomId)}
-                    disabled={!selectedRoomId}
-                  >
-                    Delete selected
-                  </button>
-                </div>
-                {selectedRoom ? (
-                  <div style={{ display: 'grid', gap: '1rem' }}>
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <strong>Doors</strong>
-                      {selectedRoom.doors.length === 0 ? (
-                        <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors yet.</p>
-                      ) : null}
-                      {selectedRoom.doors.map((door) => (
-                        <div key={door.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Home dimensions</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Optional — if you know it, we’ll scale proportions.
+                      </span>
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Home width (ft)
+                          </span>
                           <input
-                            type="text"
-                            value={door.label}
-                            placeholder="Door label"
-                            onChange={(event) => handleUpdateDoorMarker(door.id, { label: event.target.value })}
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={footprintWidthInput}
+                            onChange={(event) => setFootprintWidthInput(event.target.value)}
+                            placeholder="e.g. 40"
                           />
-                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                            <label style={{ display: 'grid', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                              <select
-                                value={door.wall}
-                                onChange={(event) =>
-                                  handleUpdateDoorMarker(door.id, { wall: event.target.value as FloorplanWall })
-                                }
-                              >
-                                {wallOptions.map((option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                            <label style={{ display: 'grid', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
-                              <input
-                                type="range"
-                                min={0}
-                                max={1}
-                                step={0.05}
-                                value={door.offset}
-                                onChange={(event) =>
-                                  handleUpdateDoorMarker(door.id, { offset: Number(event.target.value) })
-                                }
-                              />
-                            </label>
-                            <label style={{ display: 'grid', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Exterior</span>
-                              <input
-                                type="checkbox"
-                                checked={Boolean(door.exterior)}
-                                onChange={(event) => handleUpdateDoorMarker(door.id, { exterior: event.target.checked })}
-                              />
-                            </label>
-                          </div>
-                          <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Exterior doors are doors that lead outside.
-                          </p>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => handleRemoveDoorMarker(door.id)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                      <button type="button" className="btn btn-secondary" onClick={handleAddDoorMarker}>
-                        Add door
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <strong>Windows</strong>
-                      {selectedRoom.windows.length === 0 ? (
-                        <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No windows yet.</p>
+                        </label>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Home depth (ft)
+                          </span>
+                          <input
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={footprintDepthInput}
+                            onChange={(event) => setFootprintDepthInput(event.target.value)}
+                            placeholder="e.g. 30"
+                          />
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleApplyHomeFootprint}
+                          disabled={!canApplyFootprint}
+                        >
+                          Apply
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={handleClearHomeFootprint}
+                          disabled={!floorplan.homeFootprintFeet}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      {footprintScaleLabel ? (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                          Scaled to approx {footprintScaleLabel} ft per step.
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
+                          Uses a ~{FEET_PER_STEP} ft step until you calibrate.
+                        </span>
+                      )}
+                      {!selectedFloor?.rooms.length ? (
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.55)' }}>
+                          Add at least one room to calculate a footprint scale.
+                        </span>
                       ) : null}
-                      {selectedRoom.windows.map((window) => {
-                        const windowMarker = window as FloorplanWindowMarker;
-                        return (
-                          <div key={window.id} style={{ display: 'grid', gap: '0.5rem' }}>
-                            <input
-                              type="text"
-                              value={window.label ?? ''}
-                              placeholder="Window label (optional)"
-                              onChange={(event) => handleUpdateWindowMarker(window.id, { label: event.target.value })}
-                            />
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                              <label style={{ display: 'grid', gap: '0.35rem' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                                <select
-                                  value={window.wall}
-                                  onChange={(event) =>
-                                    handleUpdateWindowMarker(window.id, { wall: event.target.value as FloorplanWall })
-                                  }
-                                >
-                                  {wallOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                      {option.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              </label>
-                              <label style={{ display: 'grid', gap: '0.35rem' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
-                                <input
-                                  type="range"
-                                  min={0}
-                                  max={1}
-                                  step={0.05}
-                                  value={window.offset}
-                                  onChange={(event) =>
-                                    handleUpdateWindowMarker(window.id, { offset: Number(event.target.value) })
-                                  }
-                                />
-                              </label>
-                              <label style={{ display: 'grid', gap: '0.35rem' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                                  Style
-                                </span>
-                                <select
-                                  value={windowMarker.windowStyle ?? 'standard'}
-                                  onChange={(event) =>
-                                    handleUpdateWindowMarker(window.id, {
-                                      windowStyle: event.target.value as WindowStylePreset,
-                                    })
-                                  }
-                                >
-                                  {windowStyleOptions.map((option) => (
-                                    <option key={option.value} value={option.value}>
-                                      {option.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              </label>
-                              <label style={{ display: 'grid', gap: '0.35rem' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                                  Ground-level (higher risk)
-                                </span>
-                                <input
-                                  type="checkbox"
-                                  checked={Boolean(windowMarker.isGroundLevel)}
-                                  onChange={(event) =>
-                                    handleUpdateWindowMarker(window.id, { isGroundLevel: event.target.checked })
-                                  }
-                                />
-                              </label>
-                            </div>
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => handleRemoveWindowMarker(window.id)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        );
-                      })}
-                      <button type="button" className="btn btn-secondary" onClick={handleAddWindowMarker}>
-                        Add window
-                      </button>
+                    </div>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <strong>Room dimensions</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Optional — snaps to simple increments.
+                      </span>
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Room width (ft)
+                          </span>
+                          <input
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={roomWidthInput}
+                            onChange={(event) => setRoomWidthInput(event.target.value)}
+                            placeholder="e.g. 12"
+                            disabled={!selectedRoom}
+                          />
+                        </label>
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Room depth (ft)
+                          </span>
+                          <input
+                            type="number"
+                            min={FEET_PER_STEP}
+                            step={FEET_PER_STEP}
+                            value={roomDepthInput}
+                            onChange={(event) => setRoomDepthInput(event.target.value)}
+                            placeholder="e.g. 10"
+                            disabled={!selectedRoom}
+                          />
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleApplyRoomDimensions}
+                          disabled={!canApplyRoomDimensions}
+                        >
+                          Apply
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={handleClearRoomDimensions}
+                          disabled={!selectedRoomDimensions}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      {selectedRoom ? (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                          Editing: {selectedRoom.name}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
+                          Select a room to set its dimensions.
+                        </span>
+                      )}
+                      {selectedRoomDimensions ? (
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                          Saved: {selectedRoomDimensions.widthFt} ft × {selectedRoomDimensions.depthFt} ft.
+                        </span>
+                      ) : null}
                     </div>
                   </div>
-                ) : null}
-              </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingBottom: '0.75rem',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <h4 style={{ margin: 0 }}>Visual context</h4>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={showFurnishings}
+                        onChange={(event) => setShowFurnishings(event.target.checked)}
+                      />
+                      <span>Show furnishings</span>
+                    </label>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                      Quick scale cues for rooms and furnishings.
+                    </span>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={showExteriorContext}
+                        onChange={(event) => setShowExteriorContext(event.target.checked)}
+                      />
+                      <span>Show exterior context</span>
+                    </label>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                      Adds a minimal yard, sidewalk, and driveway outline.
+                    </span>
+                    <label
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      title={COVERAGE_TOOLTIPS.toggle}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={showCoverage}
+                        onChange={(event) => setShowCoverage(event.target.checked)}
+                      />
+                      <span>Show coverage overlay</span>
+                    </label>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                      Uses placements and rooms to visualize detection zones.
+                    </span>
+                    {showCoverage ? (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <strong>Coverage legend</strong>
+                        <div style={{ display: 'grid', gap: '0.35rem' }}>
+                          {(['green', 'yellow', 'red'] as const).map((state) => (
+                            <div
+                              key={state}
+                              title={COVERAGE_TOOLTIPS.room[state]}
+                              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  width: 14,
+                                  height: 14,
+                                  borderRadius: '0.25rem',
+                                  background: COVERAGE_STATE_COLORS[state].fill,
+                                  border: `1px solid ${COVERAGE_STATE_COLORS[state].stroke}`,
+                                }}
+                              />
+                              <span style={{ textTransform: 'capitalize' }}>{state}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setExportMenuOpen((open) => !open)}
+                      disabled={isExporting}
+                    >
+                      Save / Share this plan
+                    </button>
+                    <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Great for reviewing with family or keeping for records.
+                    </span>
+                    {exportMenuOpen ? (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleDownloadPng}
+                          disabled={isExporting}
+                        >
+                          Download PNG
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={handleDownloadPdf}
+                          disabled={isExporting}
+                        >
+                          Download PDF
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <h4 style={{ margin: 0 }}>What installation looks like</h4>
+                    {showInstallEffort ? (
+                      <>
+                        <strong>
+                          Typical install: {installEffort.hoursMin}–{installEffort.hoursMax} hours
+                        </strong>
+                        {installEffort.badges.length ? (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {installEffort.badges.map((badge) => (
+                              <span
+                                key={badge}
+                                style={{
+                                  padding: '0.2rem 0.5rem',
+                                  borderRadius: '999px',
+                                  background: 'rgba(108, 246, 255, 0.15)',
+                                  border: '1px solid rgba(108, 246, 255, 0.35)',
+                                  fontSize: '0.75rem',
+                                }}
+                              >
+                                {badge}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                        <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: '0.35rem' }}>
+                          {installEffort.bullets.map((bullet) => (
+                            <li key={bullet} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Add a device or select a tier to see installation expectations.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '1.5rem',
-                alignItems: 'flex-start',
-                width: '100%',
-              }}
-            >
-              <div style={{ minWidth: 0, flex: '1 1 640px' }}>
+            <div style={{ minWidth: 0, flex: '1 1 640px', display: 'grid', gap: '0.75rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: 'rgba(15, 19, 32, 0.6)',
+                }}
+              >
+                <div style={{ display: 'grid', gap: '0.25rem' }}>
+                  <strong>Workspace canvas</strong>
+                  <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                    Use the rails for actions (left) and device palette (right).
+                  </span>
+                </div>
+                {dockOpen !== 'right' && selectedSummary ? (
+                  <span
+                    style={{
+                      padding: '0.35rem 0.6rem',
+                      borderRadius: '999px',
+                      border: '1px solid rgba(108, 246, 255, 0.35)',
+                      background: 'rgba(108, 246, 255, 0.12)',
+                      fontSize: '0.8rem',
+                      color: 'rgba(214, 233, 248, 0.9)',
+                    }}
+                  >
+                    Selected: {selectedSummary}
+                  </span>
+                ) : null}
+              </div>
+              <div style={{ minWidth: 0, width: '100%' }}>
                 {selectedFloor ? (
                   <div ref={plannerExportRef} style={{ minWidth: 0, width: '100%' }}>
                     <FloorplanCanvas
@@ -1539,623 +1973,208 @@ const HomeSecurityPlanner = () => {
                   </div>
                 ) : null}
               </div>
+            </div>
+
+            <div
+              ref={rightDockRef}
+              style={{ display: 'flex', alignItems: 'stretch', gap: '0.5rem', flexDirection: 'row-reverse' }}
+            >
               <div
                 style={{
-                  borderRadius: '0.75rem',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  padding: '1rem',
-                  background: 'rgba(15, 19, 32, 0.6)',
                   display: 'grid',
-                  gap: '1rem',
-                  flex: '0 1 320px',
-                  minWidth: 'min(100%, 320px)',
+                  placeItems: 'center',
+                  padding: '0.35rem',
+                  borderRadius: '0.9rem',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: 'rgba(15, 19, 32, 0.7)',
                 }}
               >
-                <div
+                <button
+                  type="button"
+                  title="Elements dock"
+                  aria-pressed={dockOpen === 'right'}
+                  onClick={() => handleDockToggle('right')}
                   style={{
-                    display: 'grid',
-                    gap: '0.75rem',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <h4 style={{ margin: 0 }}>Orientation &amp; dimensions (optional)</h4>
-                  <div style={{ display: 'grid', gap: '0.4rem' }}>
-                    <label style={{ fontWeight: 600 }}>Compass</label>
-                    <select
-                      value={floorplan.compassOrientation ?? ''}
-                      onChange={(event) => handleCompassOrientationChange(event.target.value)}
-                    >
-                      <option value="">Not provided</option>
-                      {compassOrientationOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                      Optional — set which direction the bottom of your screen faces.
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: 'rgba(214, 233, 248, 0.65)' }}>{compassLabel}</span>
-                  </div>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    <strong>Home dimensions</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                      Optional — if you know it, we’ll scale proportions.
-                    </span>
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <label style={{ display: 'grid', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                          Home width (ft)
-                        </span>
-                        <input
-                          type="number"
-                          min={FEET_PER_STEP}
-                          step={FEET_PER_STEP}
-                          value={footprintWidthInput}
-                          onChange={(event) => setFootprintWidthInput(event.target.value)}
-                          placeholder="e.g. 40"
-                        />
-                      </label>
-                      <label style={{ display: 'grid', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                          Home depth (ft)
-                        </span>
-                        <input
-                          type="number"
-                          min={FEET_PER_STEP}
-                          step={FEET_PER_STEP}
-                          value={footprintDepthInput}
-                          onChange={(event) => setFootprintDepthInput(event.target.value)}
-                          placeholder="e.g. 30"
-                        />
-                      </label>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleApplyHomeFootprint}
-                        disabled={!canApplyFootprint}
-                      >
-                        Apply
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={handleClearHomeFootprint}
-                        disabled={!floorplan.homeFootprintFeet}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    {footprintScaleLabel ? (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                        Scaled to approx {footprintScaleLabel} ft per step.
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
-                        Uses a ~{FEET_PER_STEP} ft step until you calibrate.
-                      </span>
-                    )}
-                    {!selectedFloor?.rooms.length ? (
-                      <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.55)' }}>
-                        Add at least one room to calculate a footprint scale.
-                      </span>
-                    ) : null}
-                  </div>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    <strong>Room dimensions</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                      Optional — snaps to simple increments.
-                    </span>
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <label style={{ display: 'grid', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                          Room width (ft)
-                        </span>
-                        <input
-                          type="number"
-                          min={FEET_PER_STEP}
-                          step={FEET_PER_STEP}
-                          value={roomWidthInput}
-                          onChange={(event) => setRoomWidthInput(event.target.value)}
-                          placeholder="e.g. 12"
-                          disabled={!selectedRoom}
-                        />
-                      </label>
-                      <label style={{ display: 'grid', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                          Room depth (ft)
-                        </span>
-                        <input
-                          type="number"
-                          min={FEET_PER_STEP}
-                          step={FEET_PER_STEP}
-                          value={roomDepthInput}
-                          onChange={(event) => setRoomDepthInput(event.target.value)}
-                          placeholder="e.g. 10"
-                          disabled={!selectedRoom}
-                        />
-                      </label>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleApplyRoomDimensions}
-                        disabled={!canApplyRoomDimensions}
-                      >
-                        Apply
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={handleClearRoomDimensions}
-                        disabled={!selectedRoomDimensions}
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    {selectedRoom ? (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                        Editing: {selectedRoom.name}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
-                        Select a room to set its dimensions.
-                      </span>
-                    )}
-                    {selectedRoomDimensions ? (
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                        Saved: {selectedRoomDimensions.widthFt} ft × {selectedRoomDimensions.depthFt} ft.
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingBottom: '0.75rem',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <h4 style={{ margin: 0 }}>Visual context</h4>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={showFurnishings}
-                      onChange={(event) => setShowFurnishings(event.target.checked)}
-                    />
-                    <span>Show furnishings</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Quick scale cues for rooms and furnishings.
-                  </span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={showExteriorContext}
-                      onChange={(event) => setShowExteriorContext(event.target.checked)}
-                    />
-                    <span>Show exterior context</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Adds a minimal yard, sidewalk, and driveway outline.
-                  </span>
-                  <label
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    title={COVERAGE_TOOLTIPS.toggle}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={showCoverage}
-                      onChange={(event) => setShowCoverage(event.target.checked)}
-                    />
-                    <span>Show coverage overlay</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Uses placements and rooms to visualize detection zones.
-                  </span>
-                  {showCoverage ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <strong>Coverage legend</strong>
-                      <div style={{ display: 'grid', gap: '0.35rem' }}>
-                        {(['green', 'yellow', 'red'] as const).map((state) => (
-                          <div
-                            key={state}
-                            title={COVERAGE_TOOLTIPS.room[state]}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                          >
-                            <span
-                              aria-hidden="true"
-                              style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: '0.25rem',
-                                background: COVERAGE_STATE_COLORS[state].fill,
-                                border: `1px solid ${COVERAGE_STATE_COLORS[state].stroke}`,
-                              }}
-                            />
-                            <span style={{ textTransform: 'capitalize' }}>{state}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.5rem',
-                    padding: '0.75rem',
-                    border: hasSelectedItem ? '1px solid rgba(108, 246, 255, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    background: hasSelectedItem ? 'rgba(108, 246, 255, 0.08)' : 'transparent',
+                    width: 44,
+                    height: 44,
                     borderRadius: '0.75rem',
+                    border: dockOpen === 'right' ? '1px solid rgba(108, 246, 255, 0.6)' : '1px solid transparent',
+                    background: dockOpen === 'right' ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
+                    color: 'inherit',
+                    cursor: 'pointer',
+                    fontSize: '1.1rem',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                    <strong>Selected item</strong>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        if (selectedPlacementId) {
-                          handleRemovePlacement(selectedPlacementId);
-                          return;
+                  🧩
+                </button>
+              </div>
+              {dockOpen === 'right' ? (
+                <div
+                  style={{
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    padding: '1rem',
+                    background: 'rgba(15, 19, 32, 0.75)',
+                    display: 'grid',
+                    gap: '1rem',
+                    width: 'min(100%, 320px)',
+                    minWidth: 'min(100%, 280px)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.5rem',
+                      padding: '0.75rem',
+                      border: hasSelectedItem ? '1px solid rgba(108, 246, 255, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
+                      background: hasSelectedItem ? 'rgba(108, 246, 255, 0.08)' : 'transparent',
+                      borderRadius: '0.75rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                      <strong>Selected item</strong>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          if (selectedPlacementId) {
+                            handleRemovePlacement(selectedPlacementId);
+                            return;
+                          }
+                          if (selectedStairsId) {
+                            handleRemoveStairs(selectedStairsId);
+                          }
+                        }}
+                        disabled={!selectedPlacementId && !selectedStairsId}
+                        style={
+                          hasSelectedItem
+                            ? {
+                                borderColor: 'rgba(108, 246, 255, 0.65)',
+                                boxShadow: '0 0 12px rgba(108, 246, 255, 0.25)',
+                              }
+                            : undefined
                         }
-                        if (selectedStairsId) {
-                          handleRemoveStairs(selectedStairsId);
-                        }
-                      }}
-                      disabled={!selectedPlacementId && !selectedStairsId}
-                      style={
-                        hasSelectedItem
-                          ? {
-                              borderColor: 'rgba(108, 246, 255, 0.65)',
-                              boxShadow: '0 0 12px rgba(108, 246, 255, 0.25)',
-                            }
-                          : undefined
-                      }
-                    >
-                      Delete selected
-                    </button>
-                  </div>
-                  {selectedPlacement && selectedPlacementItem ? (
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                      <div style={{ display: 'grid', gap: '0.25rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
-                        <strong>{selectedPlacementItem.label}</strong>
-                      </div>
-                      {isWallAnchored(selectedPlacement.deviceKey) ? (
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                          <label style={{ display: 'grid', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                            <select
-                              value={selectedPlacement.wallSnap?.wall ?? 'n'}
-                              onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
+                      >
+                        Delete selected
+                      </button>
+                    </div>
+                    {selectedPlacement && selectedPlacementItem ? (
+                      <div style={{ display: 'grid', gap: '0.75rem' }}>
+                        <div style={{ display: 'grid', gap: '0.25rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
+                          <strong>{selectedPlacementItem.label}</strong>
+                        </div>
+                        {isWallAnchored(selectedPlacement.deviceKey) ? (
+                          <div style={{ display: 'grid', gap: '0.5rem' }}>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                              <select
+                                value={selectedPlacement.wallSnap?.wall ?? 'n'}
+                                onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
+                              >
+                                {wallOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label style={{ display: 'grid', gap: '0.35rem' }}>
+                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
+                              </span>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
+                                onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={handleSnapPlacementToNearestWall}
+                              disabled={!selectedPlacementRoom}
                             >
-                              {wallOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
+                              Snap to nearest wall
+                            </button>
+                          </div>
+                        ) : null}
+                        {isRotatableDevice(selectedPlacement.deviceKey) ? (
                           <label style={{ display: 'grid', gap: '0.35rem' }}>
                             <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                              Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
+                              Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
                             </span>
                             <input
                               type="range"
                               min={0}
-                              max={100}
-                              step={5}
-                              value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
-                              onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
+                              max={360}
+                              step={15}
+                              value={Math.round(getPlacementRotation(selectedPlacement))}
+                              onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
                             />
                           </label>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleSnapPlacementToNearestWall}
-                            disabled={!selectedPlacementRoom}
-                          >
-                            Snap to nearest wall
-                          </button>
-                        </div>
-                      ) : null}
-                      {isRotatableDevice(selectedPlacement.deviceKey) ? (
-                        <label style={{ display: 'grid', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={360}
-                            step={15}
-                            value={Math.round(getPlacementRotation(selectedPlacement))}
-                            onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
-                          />
-                        </label>
-                      ) : null}
-                    </div>
-                  ) : selectedStairs ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <div style={{ display: 'grid', gap: '0.2rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Type</span>
-                        <strong>Stairs {selectedStairs.direction}</strong>
+                        ) : null}
                       </div>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                        Floor {selectedStairs.floorIndex + 1}
-                      </span>
-                    </div>
-                  ) : (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                      Select a placement or stairs marker to edit it.
-                    </p>
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setExportMenuOpen((open) => !open)}
-                    disabled={isExporting}
-                  >
-                    Save / Share this plan
-                  </button>
-                  <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                    Great for reviewing with family or keeping for records.
-                  </span>
-                  {exportMenuOpen ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleDownloadPng}
-                        disabled={isExporting}
-                      >
-                        Download PNG
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={handleDownloadPdf}
-                        disabled={isExporting}
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <h4 style={{ margin: 0 }}>What installation looks like</h4>
-                  {showInstallEffort ? (
-                    <>
-                      <strong>
-                        Typical install: {installEffort.hoursMin}–{installEffort.hoursMax} hours
-                      </strong>
-                      {installEffort.badges.length ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          {installEffort.badges.map((badge) => (
-                            <span
-                              key={badge}
-                              style={{
-                                padding: '0.2rem 0.5rem',
-                                borderRadius: '999px',
-                                background: 'rgba(108, 246, 255, 0.15)',
-                                border: '1px solid rgba(108, 246, 255, 0.35)',
-                                fontSize: '0.75rem',
-                              }}
-                            >
-                              {badge}
-                            </span>
-                          ))}
+                    ) : selectedStairs ? (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <div style={{ display: 'grid', gap: '0.2rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Type</span>
+                          <strong>Stairs {selectedStairs.direction}</strong>
                         </div>
-                      ) : null}
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: '0.35rem' }}>
-                        {installEffort.bullets.map((bullet) => (
-                          <li key={bullet} style={{ color: 'rgba(214, 233, 248, 0.85)' }}>
-                            {bullet}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : (
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                          Floor {selectedStairs.floorIndex + 1}
+                        </span>
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Select a placement or stairs marker to edit it.
+                      </p>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <h4 style={{ margin: 0 }}>Place devices</h4>
                     <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                      Add a device or select a tier to see installation expectations.
+                      Pick a device, then click on the map to place it.
                     </p>
-                  )}
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.35rem' }}>
-                  <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
-                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                    Device placements help us visualize coverage zones later.
-                  </p>
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  <strong>Device legend</strong>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    {DEVICE_KEYS.map((deviceKey) => {
-                      const item = DEVICE_CATALOG[deviceKey];
-                      const Icon = item.icon;
-                      const tone = DEVICE_ICON_TONES[deviceKey];
-                      const isActive = activeDeviceKey === deviceKey;
-                      return (
-                        <button
-                          key={deviceKey}
-                          type="button"
-                          onClick={() => {
-                            setActiveDeviceKey(deviceKey);
-                            setActiveStairsDirection(null);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.4rem 0.6rem',
-                            borderRadius: '0.5rem',
-                            border: isActive ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
-                            background: isActive ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
-                            color: 'inherit',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 26,
-                              height: 26,
-                              borderRadius: '999px',
-                              display: 'grid',
-                              placeItems: 'center',
-                              background: tone.background,
-                              boxShadow: tone.glow,
-                              color: tone.color,
-                            }}
-                          >
-                            <Icon width={16} height={16} />
-                          </span>
-                          <span>{item.label}</span>
-                        </button>
-                      );
-                    })}
                   </div>
-                  {activeCatalogItem ? (
-                    <div style={{ display: 'grid', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
-                        Click on the map to place this item.
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={() => {
-                          setActiveDeviceKey(null);
-                          setActiveStairsDirection(null);
-                        }}
-                        style={{ justifySelf: 'start' }}
-                      >
-                        Clear tool
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '0.6rem',
-                    paddingTop: '0.75rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                >
-                  <strong>Add stairs</strong>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {(['up', 'down'] as FloorplanStairDirection[]).map((direction) => {
-                      const isActive = activeStairsDirection === direction;
-                      return (
-                        <button
-                          key={direction}
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={() => {
-                            setActiveStairsDirection(isActive ? null : direction);
-                            setActiveDeviceKey(null);
-                          }}
-                          style={{
-                            borderColor: isActive ? 'rgba(108, 246, 255, 0.65)' : undefined,
-                            boxShadow: isActive ? '0 0 10px rgba(108, 246, 255, 0.25)' : undefined,
-                          }}
-                        >
-                          Stairs {direction}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {activeStairsDirection ? (
-                    <div style={{ display: 'grid', gap: '0.25rem' }}>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
-                        Click the map to drop stairs {activeStairsDirection}.
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-link"
-                        onClick={() => setActiveStairsDirection(null)}
-                        style={{ justifySelf: 'start' }}
-                      >
-                        Clear tool
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <strong>Placements on {selectedFloor?.label ?? 'this floor'}</strong>
-                  {floorPlacements.length === 0 ? (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
-                  ) : (
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    <strong>Device legend</strong>
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      {floorPlacements.map((placement) => {
-                        const item = DEVICE_CATALOG[placement.deviceKey];
+                      {DEVICE_KEYS.map((deviceKey) => {
+                        const item = DEVICE_CATALOG[deviceKey];
                         const Icon = item.icon;
-                        const tone = DEVICE_ICON_TONES[placement.deviceKey];
-                        const needsWall = item.wallAnchored && !placement.wallSnap;
+                        const tone = DEVICE_ICON_TONES[deviceKey];
+                        const isActive = activeDeviceKey === deviceKey;
                         return (
-                          <div
-                            key={placement.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleSelectPlacement(placement.id)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                handleSelectPlacement(placement.id);
-                              }
+                          <button
+                            key={deviceKey}
+                            type="button"
+                            onClick={() => {
+                              setActiveDeviceKey(deviceKey);
+                              setActiveStairsDirection(null);
                             }}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.5rem',
-                              padding: '0.45rem 0.6rem',
+                              padding: '0.4rem 0.6rem',
                               borderRadius: '0.5rem',
-                              border:
-                                placement.id === selectedPlacementId
-                                  ? '1px solid #6cf6ff'
-                                  : '1px solid rgba(255, 255, 255, 0.12)',
-                              background:
-                                placement.id === selectedPlacementId
-                                  ? 'rgba(108, 246, 255, 0.12)'
-                                  : 'transparent',
+                              border: isActive ? '1px solid #6cf6ff' : '1px solid rgba(255, 255, 255, 0.12)',
+                              background: isActive ? 'rgba(108, 246, 255, 0.12)' : 'transparent',
+                              color: 'inherit',
                               cursor: 'pointer',
+                              textAlign: 'left',
                             }}
                           >
                             <span
                               style={{
-                                width: 24,
-                                height: 24,
+                                width: 26,
+                                height: 26,
                                 borderRadius: '999px',
                                 display: 'grid',
                                 placeItems: 'center',
@@ -2164,39 +2183,167 @@ const HomeSecurityPlanner = () => {
                                 color: tone.color,
                               }}
                             >
-                              <Icon width={14} height={14} />
+                              <Icon width={16} height={16} />
                             </span>
-                            <span style={{ flex: 1 }}>{placement.label}</span>
-                            {needsWall ? (
-                              <span
-                                style={{
-                                  fontSize: '0.7rem',
-                                  padding: '0.1rem 0.35rem',
-                                  borderRadius: '999px',
-                                  border: '1px solid rgba(255, 107, 107, 0.6)',
-                                  color: 'rgba(255, 107, 107, 0.9)',
-                                }}
-                              >
-                                Needs wall
-                              </span>
-                            ) : null}
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleRemovePlacement(placement.id);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
+                            <span>{item.label}</span>
+                          </button>
                         );
                       })}
                     </div>
-                  )}
+                    {activeCatalogItem ? (
+                      <div style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                          Click on the map to place this item.
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={() => {
+                            setActiveDeviceKey(null);
+                            setActiveStairsDirection(null);
+                          }}
+                          style={{ justifySelf: 'start' }}
+                        >
+                          Clear tool
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gap: '0.6rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    }}
+                  >
+                    <strong>Add stairs</strong>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {(['up', 'down'] as FloorplanStairDirection[]).map((direction) => {
+                        const isActive = activeStairsDirection === direction;
+                        return (
+                          <button
+                            key={direction}
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => {
+                              setActiveStairsDirection(isActive ? null : direction);
+                              setActiveDeviceKey(null);
+                            }}
+                            style={{
+                              borderColor: isActive ? 'rgba(108, 246, 255, 0.65)' : undefined,
+                              boxShadow: isActive ? '0 0 10px rgba(108, 246, 255, 0.25)' : undefined,
+                            }}
+                          >
+                            Stairs {direction}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {activeStairsDirection ? (
+                      <div style={{ display: 'grid', gap: '0.25rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                          Click the map to drop stairs {activeStairsDirection}.
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-link"
+                          onClick={() => setActiveStairsDirection(null)}
+                          style={{ justifySelf: 'start' }}
+                        >
+                          Clear tool
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Placements on {selectedFloor?.label ?? 'this floor'}</strong>
+                    {floorPlacements.length === 0 ? (
+                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No placements yet.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        {floorPlacements.map((placement) => {
+                          const item = DEVICE_CATALOG[placement.deviceKey];
+                          const Icon = item.icon;
+                          const tone = DEVICE_ICON_TONES[placement.deviceKey];
+                          const needsWall = item.wallAnchored && !placement.wallSnap;
+                          return (
+                            <div
+                              key={placement.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleSelectPlacement(placement.id)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  handleSelectPlacement(placement.id);
+                                }
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.45rem 0.6rem',
+                                borderRadius: '0.5rem',
+                                border:
+                                  placement.id === selectedPlacementId
+                                    ? '1px solid #6cf6ff'
+                                    : '1px solid rgba(255, 255, 255, 0.12)',
+                                background:
+                                  placement.id === selectedPlacementId
+                                    ? 'rgba(108, 246, 255, 0.12)'
+                                    : 'transparent',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '999px',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  background: tone.background,
+                                  boxShadow: tone.glow,
+                                  color: tone.color,
+                                }}
+                              >
+                                <Icon width={14} height={14} />
+                              </span>
+                              <span style={{ flex: 1 }}>{placement.label}</span>
+                              {needsWall ? (
+                                <span
+                                  style={{
+                                    fontSize: '0.7rem',
+                                    padding: '0.1rem 0.35rem',
+                                    borderRadius: '999px',
+                                    border: '1px solid rgba(255, 107, 107, 0.6)',
+                                    color: 'rgba(255, 107, 107, 0.9)',
+                                  }}
+                                >
+                                  Needs wall
+                                </span>
+                              ) : null}
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleRemovePlacement(placement.id);
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
         </div>
