@@ -29,6 +29,7 @@ export type WindowMarkerVisual = {
 export const GRID_SIZE = 10;
 export const RESIZE_GRID_STEP = 12;
 export const MIN_ROOM_SIZE = 48;
+export const FEET_PER_STEP = 2;
 export const EXTERIOR_PADDING = 16;
 export const MIN_EXTERIOR_SIZE = 160;
 export const YARD_PADDING = 48;
@@ -42,6 +43,14 @@ export const DRIVEWAY_OFFSET_RATIO = 0.55;
 export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
 const snapDeltaToGrid = (value: number) => Math.round(value / RESIZE_GRID_STEP) * RESIZE_GRID_STEP;
+
+export const snapFeet = (value: number) => Math.round(value / FEET_PER_STEP) * FEET_PER_STEP;
+
+export const feetToCanvasUnits = (feet: number, feetPerStep: number) => {
+  if (!Number.isFinite(feet) || !Number.isFinite(feetPerStep) || feetPerStep <= 0) return 0;
+  const steps = Math.round(feet / feetPerStep);
+  return steps * RESIZE_GRID_STEP;
+};
 
 export const clampUnit = (value: number) => Math.min(Math.max(value, 0), 1);
 
@@ -103,6 +112,36 @@ export const computeSnappedRectFromHandleDrag = (
   }
 
   return next;
+};
+
+type ExteriorRect = { x: number; y: number; w: number; h: number };
+
+export const computeScaleFromFootprint = (exteriorRect: ExteriorRect, widthFt: number, depthFt: number) => {
+  const safeWidth = Math.max(widthFt, 1);
+  const safeDepth = Math.max(depthFt, 1);
+  const canvasUnitsPerFootX = exteriorRect.w / safeWidth;
+  const canvasUnitsPerFootY = exteriorRect.h / safeDepth;
+  // Use the average axis scale to avoid distortion while keeping the scale simple.
+  const averageUnitsPerFoot = (canvasUnitsPerFootX + canvasUnitsPerFootY) / 2;
+  const feetPerCanvasUnit = 1 / averageUnitsPerFoot;
+  return feetPerCanvasUnit * RESIZE_GRID_STEP;
+};
+
+export const applyRoomDimensions = (
+  roomRect: { x: number; y: number; w: number; h: number },
+  widthFt: number,
+  depthFt: number,
+  feetPerStep: number,
+) => {
+  const snappedWidthFt = snapFeet(widthFt);
+  const snappedDepthFt = snapFeet(depthFt);
+  const widthUnits = Math.max(MIN_ROOM_SIZE, feetToCanvasUnits(snappedWidthFt, feetPerStep));
+  const depthUnits = Math.max(MIN_ROOM_SIZE, feetToCanvasUnits(snappedDepthFt, feetPerStep));
+  return {
+    ...roomRect,
+    w: widthUnits,
+    h: depthUnits,
+  };
 };
 
 export const updateAnchoredMarkerAfterResize = <T extends { wall: FloorplanWall; offset: number }>(
@@ -266,9 +305,7 @@ export const getCompassNorthVector = (orientation: CompassOrientation) => {
 export const getCompassOrientationLabel = (orientation: CompassOrientation | null) =>
   orientation ? `Screen-down = ${orientation}` : 'Not provided';
 
-export const computeExteriorBounds = (
-  rooms: FloorplanRoom[],
-): { x: number; y: number; w: number; h: number } | null => {
+export const computeExteriorBounds = (rooms: FloorplanRoom[]): ExteriorRect | null => {
   if (!rooms.length) return null;
   const [first] = rooms;
   let minX = first.rect.x;
@@ -301,8 +338,6 @@ export const computeExteriorBounds = (
 
   return { x, y, w, h };
 };
-
-type ExteriorRect = { x: number; y: number; w: number; h: number };
 
 export const determineFrontSideFromMainDoor = (
   exteriorRect: ExteriorRect,

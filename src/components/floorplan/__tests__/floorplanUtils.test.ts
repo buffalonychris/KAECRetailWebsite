@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { isWallAnchored } from '../deviceCatalog';
 import {
   autoSnapToNearestWall,
+  applyRoomDimensions,
   clampPointToRect,
   computeExteriorContextShapes,
   computeExteriorBounds,
+  computeScaleFromFootprint,
   computeSnappedRectFromHandleDrag,
   CONTEXT_GAP,
   determineFrontSideFromMainDoor,
   EXTERIOR_PADDING,
+  FEET_PER_STEP,
   DRIVEWAY_THICKNESS,
   getCompassNorthArrowAngle,
   getCompassNorthVector,
@@ -20,6 +23,7 @@ import {
   MIN_ROOM_SIZE,
   MIN_EXTERIOR_SIZE,
   RESIZE_GRID_STEP,
+  snapFeet,
   YARD_PADDING,
   updateAnchoredMarkerAfterResize,
 } from '../floorplanUtils';
@@ -164,6 +168,32 @@ describe('floorplan utils', () => {
     const updated = computeSnappedRectFromHandleDrag(rect, 'e', RESIZE_GRID_STEP + 1, 0);
     expect(updated.w).toBe(rect.w + RESIZE_GRID_STEP);
     expect(updated.x).toBe(rect.x);
+  });
+
+  it('snaps feet values to the configured step size', () => {
+    expect(snapFeet(5)).toBe(FEET_PER_STEP * 3);
+    expect(snapFeet(6.9)).toBe(FEET_PER_STEP * 3);
+  });
+
+  it('computes a deterministic footprint scale', () => {
+    const exteriorRect = { x: 0, y: 0, w: 240, h: 120 };
+    const feetPerStep = computeScaleFromFootprint(exteriorRect, 40, 20);
+    expect(feetPerStep).toBeCloseTo(RESIZE_GRID_STEP * (1 / 6), 4);
+  });
+
+  it('applies room dimensions with snapping and minimums', () => {
+    const roomRect = { x: 20, y: 20, w: 120, h: 80 };
+    const updated = applyRoomDimensions(roomRect, 11, 3, FEET_PER_STEP);
+    expect(updated.w).toBe(RESIZE_GRID_STEP * 6);
+    expect(updated.h).toBe(MIN_ROOM_SIZE);
+  });
+
+  it('clamps points into resized room bounds after dimension updates', () => {
+    const roomRect = { x: 10, y: 10, w: 120, h: 80 };
+    const updated = applyRoomDimensions(roomRect, 20, 10, FEET_PER_STEP);
+    const clamped = clampPointToRect({ x: 500, y: -50 }, updated);
+    expect(clamped.x).toBe(updated.x + updated.w);
+    expect(clamped.y).toBe(updated.y);
   });
 
   it('enforces minimum room size during resize', () => {
