@@ -30,6 +30,13 @@ export const RESIZE_GRID_STEP = 12;
 export const MIN_ROOM_SIZE = 48;
 export const EXTERIOR_PADDING = 16;
 export const MIN_EXTERIOR_SIZE = 160;
+export const YARD_PADDING = 48;
+export const CONTEXT_GAP = 8;
+export const SIDEWALK_THICKNESS = 14;
+export const DRIVEWAY_THICKNESS = 28;
+export const SIDEWALK_LENGTH_RATIO = 0.6;
+export const DRIVEWAY_LENGTH_RATIO = 0.35;
+export const DRIVEWAY_OFFSET_RATIO = 0.55;
 
 export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
@@ -264,4 +271,120 @@ export const computeExteriorBounds = (
   }
 
   return { x, y, w, h };
+};
+
+type ExteriorRect = { x: number; y: number; w: number; h: number };
+
+export const determineFrontSideFromMainDoor = (
+  exteriorRect: ExteriorRect,
+  doorPosition: { x: number; y: number },
+): FloorplanWall => {
+  const distances: Record<FloorplanWall, number> = {
+    n: Math.abs(doorPosition.y - exteriorRect.y),
+    s: Math.abs(exteriorRect.y + exteriorRect.h - doorPosition.y),
+    w: Math.abs(doorPosition.x - exteriorRect.x),
+    e: Math.abs(exteriorRect.x + exteriorRect.w - doorPosition.x),
+  };
+  return (['s', 'n', 'e', 'w'] as FloorplanWall[]).reduce((closest, wall) =>
+    distances[wall] < distances[closest] ? wall : closest,
+  );
+};
+
+export const computeExteriorContextShapes = (
+  exteriorRect: ExteriorRect,
+  frontSide: FloorplanWall,
+): {
+  yardRect: ExteriorRect;
+  sidewalkBand: ExteriorRect;
+  drivewayBand: ExteriorRect;
+} => {
+  const yardRect = {
+    x: exteriorRect.x - YARD_PADDING,
+    y: exteriorRect.y - YARD_PADDING,
+    w: exteriorRect.w + YARD_PADDING * 2,
+    h: exteriorRect.h + YARD_PADDING * 2,
+  };
+  const sidewalkLength = Math.max(exteriorRect.w * SIDEWALK_LENGTH_RATIO, 80);
+  const drivewayLength = Math.max(exteriorRect.w * DRIVEWAY_LENGTH_RATIO, 72);
+  const sidewalkHeight = SIDEWALK_THICKNESS;
+  const drivewayHeight = DRIVEWAY_THICKNESS;
+  const centeredSidewalkX = exteriorRect.x + (exteriorRect.w - sidewalkLength) / 2;
+  const drivewayX = exteriorRect.x + exteriorRect.w * DRIVEWAY_OFFSET_RATIO;
+  const sidewalkY = exteriorRect.y - CONTEXT_GAP - sidewalkHeight;
+  const drivewayY = exteriorRect.y - CONTEXT_GAP - drivewayHeight;
+
+  if (frontSide === 'n') {
+    return {
+      yardRect,
+      sidewalkBand: {
+        x: centeredSidewalkX,
+        y: sidewalkY,
+        w: sidewalkLength,
+        h: sidewalkHeight,
+      },
+      drivewayBand: {
+        x: drivewayX,
+        y: drivewayY,
+        w: drivewayLength,
+        h: drivewayHeight,
+      },
+    };
+  }
+
+  if (frontSide === 's') {
+    return {
+      yardRect,
+      sidewalkBand: {
+        x: centeredSidewalkX,
+        y: exteriorRect.y + exteriorRect.h + CONTEXT_GAP,
+        w: sidewalkLength,
+        h: sidewalkHeight,
+      },
+      drivewayBand: {
+        x: drivewayX,
+        y: exteriorRect.y + exteriorRect.h + CONTEXT_GAP,
+        w: drivewayLength,
+        h: drivewayHeight,
+      },
+    };
+  }
+
+  const sidewalkLengthVertical = Math.max(exteriorRect.h * SIDEWALK_LENGTH_RATIO, 80);
+  const drivewayLengthVertical = Math.max(exteriorRect.h * DRIVEWAY_LENGTH_RATIO, 72);
+  const centeredSidewalkY = exteriorRect.y + (exteriorRect.h - sidewalkLengthVertical) / 2;
+  const drivewayYVertical = exteriorRect.y + exteriorRect.h * DRIVEWAY_OFFSET_RATIO;
+
+  if (frontSide === 'e') {
+    return {
+      yardRect,
+      sidewalkBand: {
+        x: exteriorRect.x + exteriorRect.w + CONTEXT_GAP,
+        y: centeredSidewalkY,
+        w: sidewalkHeight,
+        h: sidewalkLengthVertical,
+      },
+      drivewayBand: {
+        x: exteriorRect.x + exteriorRect.w + CONTEXT_GAP,
+        y: drivewayYVertical,
+        w: drivewayHeight,
+        h: drivewayLengthVertical,
+      },
+    };
+  }
+
+  return {
+    yardRect,
+    sidewalkBand: {
+      x: exteriorRect.x - CONTEXT_GAP - sidewalkHeight,
+      y: centeredSidewalkY,
+      w: sidewalkHeight,
+      h: sidewalkLengthVertical,
+    },
+    drivewayBand: {
+      x: exteriorRect.x - CONTEXT_GAP - drivewayHeight,
+      y: drivewayYVertical,
+      w: drivewayHeight,
+      h: drivewayLengthVertical,
+    },
+  };
 };
