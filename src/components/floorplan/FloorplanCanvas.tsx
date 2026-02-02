@@ -5,6 +5,7 @@ import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../li
 import {
   autoSnapToNearestWall,
   clampPointToRect,
+  computeExteriorBounds,
   computeSnappedRectFromHandleDrag,
   findRoomAtPoint,
   getHallwaySurfaceStyle,
@@ -118,6 +119,7 @@ const FloorplanCanvas = ({
   height = 320,
 }: FloorplanCanvasProps) => {
   const selectedRoom = floor.rooms.find((room) => room.id === selectedRoomId);
+  const exteriorBounds = computeExteriorBounds(floor.rooms);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
   const dragStateRef = useRef<{
@@ -170,6 +172,43 @@ const FloorplanCanvas = ({
               ...getHallwaySurfaceStyle(),
             }}
           />
+          {exteriorBounds ? (
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: exteriorBounds.x,
+                top: exteriorBounds.y,
+                width: exteriorBounds.w,
+                height: exteriorBounds.h,
+                borderRadius: '1rem',
+                border: '3px solid rgba(108, 246, 255, 0.85)',
+                boxShadow: '0 0 12px rgba(80, 200, 255, 0.35)',
+                background: 'rgba(16, 24, 40, 0.08)',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 12,
+                  padding: '2px 6px',
+                  borderRadius: '999px',
+                  fontSize: '0.55rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(214, 233, 248, 0.9)',
+                  background: 'rgba(15, 19, 32, 0.6)',
+                  border: '1px solid rgba(108, 246, 255, 0.45)',
+                  boxShadow: '0 0 6px rgba(80, 200, 255, 0.35)',
+                }}
+              >
+                Exterior
+              </span>
+            </div>
+          ) : null}
           {showFurnishings ? <FloorplanFurnishings floor={floor} /> : null}
           {coverageOverlay ? <CoverageOverlay floor={floor} overlay={coverageOverlay} /> : null}
           {floor.rooms.map((room) => {

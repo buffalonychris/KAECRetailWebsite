@@ -28,6 +28,8 @@ export type WindowMarkerVisual = {
 export const GRID_SIZE = 10;
 export const RESIZE_GRID_STEP = 12;
 export const MIN_ROOM_SIZE = 48;
+export const EXTERIOR_PADDING = 16;
+export const MIN_EXTERIOR_SIZE = 160;
 
 export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
@@ -227,3 +229,39 @@ export const getHallwaySurfaceStyle = () => ({
     'radial-gradient(circle at 1px 1px, rgba(160, 182, 210, 0.08) 0, rgba(160, 182, 210, 0.08) 1px, transparent 1.2px)',
   backgroundSize: '12px 12px',
 });
+
+export const computeExteriorBounds = (
+  rooms: FloorplanRoom[],
+): { x: number; y: number; w: number; h: number } | null => {
+  if (!rooms.length) return null;
+  const [first] = rooms;
+  let minX = first.rect.x;
+  let minY = first.rect.y;
+  let maxX = first.rect.x + first.rect.w;
+  let maxY = first.rect.y + first.rect.h;
+
+  rooms.forEach((room) => {
+    minX = Math.min(minX, room.rect.x);
+    minY = Math.min(minY, room.rect.y);
+    maxX = Math.max(maxX, room.rect.x + room.rect.w);
+    maxY = Math.max(maxY, room.rect.y + room.rect.h);
+  });
+
+  let x = minX - EXTERIOR_PADDING;
+  let y = minY - EXTERIOR_PADDING;
+  let w = maxX - minX + EXTERIOR_PADDING * 2;
+  let h = maxY - minY + EXTERIOR_PADDING * 2;
+
+  if (rooms.length === 1) {
+    const targetW = Math.max(w, MIN_EXTERIOR_SIZE);
+    const targetH = Math.max(h, MIN_EXTERIOR_SIZE);
+    const centerX = x + w / 2;
+    const centerY = y + h / 2;
+    w = targetW;
+    h = targetH;
+    x = centerX - w / 2;
+    y = centerY - h / 2;
+  }
+
+  return { x, y, w, h };
+};

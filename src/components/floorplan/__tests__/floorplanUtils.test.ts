@@ -3,12 +3,15 @@ import { isWallAnchored } from '../deviceCatalog';
 import {
   autoSnapToNearestWall,
   clampPointToRect,
+  computeExteriorBounds,
   computeSnappedRectFromHandleDrag,
+  EXTERIOR_PADDING,
   getDefaultWindowGroundLevel,
   getHallwaySurfaceStyle,
   getPlacementRotation,
   getWindowMarkerVisual,
   MIN_ROOM_SIZE,
+  MIN_EXTERIOR_SIZE,
   RESIZE_GRID_STEP,
   updateAnchoredMarkerAfterResize,
 } from '../floorplanUtils';
@@ -70,6 +73,32 @@ describe('floorplan utils', () => {
     expect(style.backgroundColor).toContain('rgba');
     expect(style.backgroundImage).toContain('radial-gradient');
     expect(style.backgroundSize).toBe('12px 12px');
+  });
+
+  it('computes a padded exterior boundary for rooms', () => {
+    const bounds = computeExteriorBounds([
+      { id: 'room-1', name: 'Room 1', rect: { x: 40, y: 50, w: 100, h: 80 }, doors: [], windows: [] },
+      { id: 'room-2', name: 'Room 2', rect: { x: 180, y: 30, w: 60, h: 120 }, doors: [], windows: [] },
+    ]);
+    expect(bounds).not.toBeNull();
+    expect(bounds?.x).toBe(40 - EXTERIOR_PADDING);
+    expect(bounds?.y).toBe(30 - EXTERIOR_PADDING);
+    expect(bounds?.w).toBe(200 + EXTERIOR_PADDING * 2);
+    expect(bounds?.h).toBe(120 + EXTERIOR_PADDING * 2);
+  });
+
+  it('enforces a minimum exterior size for a single small room', () => {
+    const bounds = computeExteriorBounds([
+      { id: 'room-1', name: 'Room 1', rect: { x: 20, y: 30, w: 40, h: 50 }, doors: [], windows: [] },
+    ]);
+    expect(bounds).not.toBeNull();
+    expect(bounds?.w).toBeGreaterThanOrEqual(MIN_EXTERIOR_SIZE);
+    expect(bounds?.h).toBeGreaterThanOrEqual(MIN_EXTERIOR_SIZE);
+  });
+
+  it('returns null when there are no rooms', () => {
+    const bounds = computeExteriorBounds([]);
+    expect(bounds).toBeNull();
   });
 
   it('snaps resize drags to the resize grid step', () => {
