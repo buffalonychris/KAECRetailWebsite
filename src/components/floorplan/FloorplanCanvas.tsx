@@ -5,12 +5,14 @@ import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../li
 import {
   autoSnapToNearestWall,
   clampPointToRect,
+  computeSnappedRectFromHandleDrag,
   findRoomAtPoint,
   getHallwaySurfaceStyle,
   getPlacementRotation,
   getWallInsetPosition,
   getWindowMarkerVisual,
   snapToGrid,
+  type ResizeHandle,
   type FloorplanWindowMarker,
 } from './floorplanUtils';
 import CoverageOverlay from './CoverageOverlay';
@@ -80,6 +82,22 @@ const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: Floorpla
 };
 
 const DRAG_THRESHOLD = 4;
+const RESIZE_HANDLE_SIZE = 12;
+const RESIZE_HANDLES: Array<{
+  id: ResizeHandle;
+  left: string;
+  top: string;
+  cursor: string;
+}> = [
+  { id: 'nw', left: '0%', top: '0%', cursor: 'nwse-resize' },
+  { id: 'n', left: '50%', top: '0%', cursor: 'ns-resize' },
+  { id: 'ne', left: '100%', top: '0%', cursor: 'nesw-resize' },
+  { id: 'e', left: '100%', top: '50%', cursor: 'ew-resize' },
+  { id: 'se', left: '100%', top: '100%', cursor: 'nwse-resize' },
+  { id: 's', left: '50%', top: '100%', cursor: 'ns-resize' },
+  { id: 'sw', left: '0%', top: '100%', cursor: 'nesw-resize' },
+  { id: 'w', left: '0%', top: '50%', cursor: 'ew-resize' },
+];
 
 const FloorplanCanvas = ({
   floor,
@@ -106,6 +124,14 @@ const FloorplanCanvas = ({
     placementId: string;
     pointerId: number;
     origin: { x: number; y: number };
+    isDragging: boolean;
+  } | null>(null);
+  const resizeStateRef = useRef<{
+    roomId: string;
+    pointerId: number;
+    handle: ResizeHandle;
+    origin: { x: number; y: number };
+    rect: { x: number; y: number; w: number; h: number };
     isDragging: boolean;
   } | null>(null);
   const justDraggedRef = useRef(false);
@@ -180,6 +206,102 @@ const FloorplanCanvas = ({
                 style={roomStyles}
               >
                 {room.name}
+                {isSelected
+                  ? RESIZE_HANDLES.map((handle) => (
+                      <span
+                        key={`${room.id}-${handle.id}`}
+                        role="presentation"
+                        onPointerDown={(event) => {
+                          event.stopPropagation();
+                          event.preventDefault();
+                          if (!onUpdateRoomRect) return;
+                          event.currentTarget.setPointerCapture(event.pointerId);
+                          resizeStateRef.current = {
+                            roomId: room.id,
+                            pointerId: event.pointerId,
+                            handle: handle.id,
+                            origin: { x: event.clientX, y: event.clientY },
+                            rect: room.rect,
+                            isDragging: false,
+                          };
+                        }}
+                        onPointerMove={(event) => {
+                          const resizeState = resizeStateRef.current;
+                          if (
+                            !resizeState ||
+                            resizeState.roomId !== room.id ||
+                            resizeState.pointerId !== event.pointerId
+                          ) {
+                            return;
+                          }
+                          const deltaX = event.clientX - resizeState.origin.x;
+                          const deltaY = event.clientY - resizeState.origin.y;
+                          if (!resizeState.isDragging) {
+                            if (Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) {
+                              return;
+                            }
+                            resizeState.isDragging = true;
+                          }
+                          const nextRect = computeSnappedRectFromHandleDrag(
+                            resizeState.rect,
+                            resizeState.handle,
+                            deltaX,
+                            deltaY,
+                          );
+                          onUpdateRoomRect?.(room.id, nextRect);
+                          justDraggedRef.current = true;
+                        }}
+                        onPointerUp={(event) => {
+                          const resizeState = resizeStateRef.current;
+                          if (
+                            !resizeState ||
+                            resizeState.roomId !== room.id ||
+                            resizeState.pointerId !== event.pointerId
+                          ) {
+                            return;
+                          }
+                          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                            event.currentTarget.releasePointerCapture(event.pointerId);
+                          }
+                          resizeStateRef.current = null;
+                          if (!resizeState.isDragging) {
+                            justDraggedRef.current = false;
+                          }
+                        }}
+                        onPointerCancel={(event) => {
+                          const resizeState = resizeStateRef.current;
+                          if (
+                            !resizeState ||
+                            resizeState.roomId !== room.id ||
+                            resizeState.pointerId !== event.pointerId
+                          ) {
+                            return;
+                          }
+                          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                            event.currentTarget.releasePointerCapture(event.pointerId);
+                          }
+                          resizeStateRef.current = null;
+                          justDraggedRef.current = false;
+                        }}
+                        onClick={(event) => event.stopPropagation()}
+                        style={{
+                          position: 'absolute',
+                          left: handle.left,
+                          top: handle.top,
+                          width: RESIZE_HANDLE_SIZE,
+                          height: RESIZE_HANDLE_SIZE,
+                          borderRadius: '999px',
+                          background: '#f9fbff',
+                          border: '2px solid rgba(15, 19, 32, 0.75)',
+                          boxShadow: '0 0 6px rgba(108, 246, 255, 0.65)',
+                          transform: 'translate(-50%, -50%)',
+                          cursor: handle.cursor,
+                          pointerEvents: 'auto',
+                          zIndex: 4,
+                        }}
+                      />
+                    ))
+                  : null}
                 {room.doors.map((door) => {
                   const position = getMarkerPosition(room, door.wall, door.offset);
                   const isHorizontal = door.wall === 'n' || door.wall === 's';
