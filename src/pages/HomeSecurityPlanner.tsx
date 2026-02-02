@@ -390,6 +390,7 @@ const HomeSecurityPlanner = () => {
   const hasPlacedDevices = floorplan.placements.length > 0;
   const hasSelectedTier = Boolean(selectedTier);
   const showInstallEffort = hasSelectedTier || hasPlacedDevices;
+  const hasSelectedItem = Boolean(selectedPlacementId || selectedStairsId);
   const installEffort = useMemo(() => computeInstallEffort({ floorplan }), [floorplan]);
   const compassLabel = getCompassOrientationLabel(floorplan.compassOrientation ?? null);
   const footprintScaleLabel = floorplan.feetPerStep ? floorplan.feetPerStep.toFixed(1) : null;
@@ -1342,64 +1343,6 @@ const HomeSecurityPlanner = () => {
                 {selectedRoom ? (
                   <div style={{ display: 'grid', gap: '1rem' }}>
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <strong>Optional room dimensions</strong>
-                      <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                        Enter approximate room size if you know it. We’ll snap to ~{FEET_PER_STEP} ft steps.
-                      </p>
-                      <div style={{ display: 'grid', gap: '0.5rem' }}>
-                        <label style={{ display: 'grid', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Room width (ft)
-                          </span>
-                          <input
-                            type="number"
-                            min={FEET_PER_STEP}
-                            step={FEET_PER_STEP}
-                            value={roomWidthInput}
-                            onChange={(event) => setRoomWidthInput(event.target.value)}
-                            placeholder="e.g. 12"
-                          />
-                        </label>
-                        <label style={{ display: 'grid', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Room depth (ft)
-                          </span>
-                          <input
-                            type="number"
-                            min={FEET_PER_STEP}
-                            step={FEET_PER_STEP}
-                            value={roomDepthInput}
-                            onChange={(event) => setRoomDepthInput(event.target.value)}
-                            placeholder="e.g. 10"
-                          />
-                        </label>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={handleApplyRoomDimensions}
-                          disabled={!canApplyRoomDimensions}
-                        >
-                          Apply
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-link"
-                          onClick={handleClearRoomDimensions}
-                          disabled={!selectedRoomDimensions}
-                        >
-                          Clear
-                        </button>
-                      </div>
-                      {selectedRoomDimensions ? (
-                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                          Saved: {selectedRoomDimensions.widthFt} ft × {selectedRoomDimensions.depthFt} ft.
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
                       <strong>Doors</strong>
                       {selectedRoom.doors.length === 0 ? (
                         <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No doors yet.</p>
@@ -1611,118 +1554,14 @@ const HomeSecurityPlanner = () => {
                 <div
                   style={{
                     display: 'grid',
-                    gap: '0.6rem',
+                    gap: '0.75rem',
                     paddingBottom: '0.75rem',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                   }}
                 >
-                  <h4 style={{ margin: 0 }}>Optional dimensions</h4>
-                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                    If you don’t know, skip this. We’ll use averages.
-                  </p>
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    <label style={{ display: 'grid', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Home width (ft)</span>
-                      <input
-                        type="number"
-                        min={FEET_PER_STEP}
-                        step={FEET_PER_STEP}
-                        value={footprintWidthInput}
-                        onChange={(event) => setFootprintWidthInput(event.target.value)}
-                        placeholder="e.g. 40"
-                      />
-                    </label>
-                    <label style={{ display: 'grid', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Home depth (ft)</span>
-                      <input
-                        type="number"
-                        min={FEET_PER_STEP}
-                        step={FEET_PER_STEP}
-                        value={footprintDepthInput}
-                        onChange={(event) => setFootprintDepthInput(event.target.value)}
-                        placeholder="e.g. 30"
-                      />
-                    </label>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleApplyHomeFootprint}
-                      disabled={!canApplyFootprint}
-                    >
-                      Apply scale
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-link"
-                      onClick={handleClearHomeFootprint}
-                      disabled={!floorplan.homeFootprintFeet}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  {footprintScaleLabel ? (
-                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                      Scaled to approx {footprintScaleLabel} ft per step.
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
-                      Uses a ~{FEET_PER_STEP} ft step until you calibrate.
-                    </span>
-                  )}
-                  {!selectedFloor?.rooms.length ? (
-                    <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.55)' }}>
-                      Add at least one room to calculate a footprint scale.
-                    </span>
-                  ) : null}
-                </div>
-                <div style={{ display: 'grid', gap: '0.35rem' }}>
-                  <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
-                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                    Device placements help us visualize coverage zones later.
-                  </p>
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.6rem' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={showExteriorContext}
-                      onChange={(event) => setShowExteriorContext(event.target.checked)}
-                    />
-                    <span>Show exterior context</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Adds a minimal yard, sidewalk, and driveway around the exterior wall.
-                  </span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input
-                      type="checkbox"
-                      checked={showFurnishings}
-                      onChange={(event) => setShowFurnishings(event.target.checked)}
-                    />
-                    <span>Show furnishings</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Furnishings are visual-only to help show scale and room context.
-                  </span>
-                  <label
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    title={COVERAGE_TOOLTIPS.toggle}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={showCoverage}
-                      onChange={(event) => setShowCoverage(event.target.checked)}
-                    />
-                    <span>Show coverage</span>
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
-                    Coverage uses your placements and room layout to show approximate detection areas.
-                  </span>
-                  <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.35rem' }}>
-                    <label style={{ fontWeight: 600 }}>Compass (optional)</label>
+                  <h4 style={{ margin: 0 }}>Orientation &amp; dimensions (optional)</h4>
+                  <div style={{ display: 'grid', gap: '0.4rem' }}>
+                    <label style={{ fontWeight: 600 }}>Compass</label>
                     <select
                       value={floorplan.compassOrientation ?? ''}
                       onChange={(event) => handleCompassOrientationChange(event.target.value)}
@@ -1735,10 +1574,191 @@ const HomeSecurityPlanner = () => {
                       ))}
                     </select>
                     <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.7)' }}>
-                      If you know which way the house faces, set which direction the bottom of your screen points.
+                      Optional — set which direction the bottom of your screen faces.
                     </span>
                     <span style={{ fontSize: '0.7rem', color: 'rgba(214, 233, 248, 0.65)' }}>{compassLabel}</span>
                   </div>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Home dimensions</strong>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                      Optional — if you know it, we’ll scale proportions.
+                    </span>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                          Home width (ft)
+                        </span>
+                        <input
+                          type="number"
+                          min={FEET_PER_STEP}
+                          step={FEET_PER_STEP}
+                          value={footprintWidthInput}
+                          onChange={(event) => setFootprintWidthInput(event.target.value)}
+                          placeholder="e.g. 40"
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                          Home depth (ft)
+                        </span>
+                        <input
+                          type="number"
+                          min={FEET_PER_STEP}
+                          step={FEET_PER_STEP}
+                          value={footprintDepthInput}
+                          onChange={(event) => setFootprintDepthInput(event.target.value)}
+                          placeholder="e.g. 30"
+                        />
+                      </label>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleApplyHomeFootprint}
+                        disabled={!canApplyFootprint}
+                      >
+                        Apply
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={handleClearHomeFootprint}
+                        disabled={!floorplan.homeFootprintFeet}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    {footprintScaleLabel ? (
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Scaled to approx {footprintScaleLabel} ft per step.
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
+                        Uses a ~{FEET_PER_STEP} ft step until you calibrate.
+                      </span>
+                    )}
+                    {!selectedFloor?.rooms.length ? (
+                      <span style={{ fontSize: '0.75rem', color: 'rgba(214, 233, 248, 0.55)' }}>
+                        Add at least one room to calculate a footprint scale.
+                      </span>
+                    ) : null}
+                  </div>
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    <strong>Room dimensions</strong>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                      Optional — snaps to simple increments.
+                    </span>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                          Room width (ft)
+                        </span>
+                        <input
+                          type="number"
+                          min={FEET_PER_STEP}
+                          step={FEET_PER_STEP}
+                          value={roomWidthInput}
+                          onChange={(event) => setRoomWidthInput(event.target.value)}
+                          placeholder="e.g. 12"
+                          disabled={!selectedRoom}
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                          Room depth (ft)
+                        </span>
+                        <input
+                          type="number"
+                          min={FEET_PER_STEP}
+                          step={FEET_PER_STEP}
+                          value={roomDepthInput}
+                          onChange={(event) => setRoomDepthInput(event.target.value)}
+                          placeholder="e.g. 10"
+                          disabled={!selectedRoom}
+                        />
+                      </label>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleApplyRoomDimensions}
+                        disabled={!canApplyRoomDimensions}
+                      >
+                        Apply
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={handleClearRoomDimensions}
+                        disabled={!selectedRoomDimensions}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    {selectedRoom ? (
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Editing: {selectedRoom.name}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.6)' }}>
+                        Select a room to set its dimensions.
+                      </span>
+                    )}
+                    {selectedRoomDimensions ? (
+                      <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.7)' }}>
+                        Saved: {selectedRoomDimensions.widthFt} ft × {selectedRoomDimensions.depthFt} ft.
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
+                    paddingBottom: '0.75rem',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <h4 style={{ margin: 0 }}>Visual context</h4>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={showFurnishings}
+                      onChange={(event) => setShowFurnishings(event.target.checked)}
+                    />
+                    <span>Show furnishings</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Quick scale cues for rooms and furnishings.
+                  </span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={showExteriorContext}
+                      onChange={(event) => setShowExteriorContext(event.target.checked)}
+                    />
+                    <span>Show exterior context</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Adds a minimal yard, sidewalk, and driveway outline.
+                  </span>
+                  <label
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    title={COVERAGE_TOOLTIPS.toggle}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={showCoverage}
+                      onChange={(event) => setShowCoverage(event.target.checked)}
+                    />
+                    <span>Show coverage overlay</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Uses placements and rooms to visualize detection zones.
+                  </span>
                   {showCoverage ? (
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
                       <strong>Coverage legend</strong>
@@ -1765,6 +1785,120 @@ const HomeSecurityPlanner = () => {
                       </div>
                     </div>
                   ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.5rem',
+                    padding: '0.75rem',
+                    border: hasSelectedItem ? '1px solid rgba(108, 246, 255, 0.35)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    background: hasSelectedItem ? 'rgba(108, 246, 255, 0.08)' : 'transparent',
+                    borderRadius: '0.75rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                    <strong>Selected item</strong>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        if (selectedPlacementId) {
+                          handleRemovePlacement(selectedPlacementId);
+                          return;
+                        }
+                        if (selectedStairsId) {
+                          handleRemoveStairs(selectedStairsId);
+                        }
+                      }}
+                      disabled={!selectedPlacementId && !selectedStairsId}
+                      style={
+                        hasSelectedItem
+                          ? {
+                              borderColor: 'rgba(108, 246, 255, 0.65)',
+                              boxShadow: '0 0 12px rgba(108, 246, 255, 0.25)',
+                            }
+                          : undefined
+                      }
+                    >
+                      Delete selected
+                    </button>
+                  </div>
+                  {selectedPlacement && selectedPlacementItem ? (
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                      <div style={{ display: 'grid', gap: '0.25rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
+                        <strong>{selectedPlacementItem.label}</strong>
+                      </div>
+                      {isWallAnchored(selectedPlacement.deviceKey) ? (
+                        <div style={{ display: 'grid', gap: '0.5rem' }}>
+                          <label style={{ display: 'grid', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                            <select
+                              value={selectedPlacement.wallSnap?.wall ?? 'n'}
+                              onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
+                            >
+                              {wallOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label style={{ display: 'grid', gap: '0.35rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                              Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
+                            </span>
+                            <input
+                              type="range"
+                              min={0}
+                              max={100}
+                              step={5}
+                              value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
+                              onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={handleSnapPlacementToNearestWall}
+                            disabled={!selectedPlacementRoom}
+                          >
+                            Snap to nearest wall
+                          </button>
+                        </div>
+                      ) : null}
+                      {isRotatableDevice(selectedPlacement.deviceKey) ? (
+                        <label style={{ display: 'grid', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                            Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
+                          </span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={360}
+                            step={15}
+                            value={Math.round(getPlacementRotation(selectedPlacement))}
+                            onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
+                          />
+                        </label>
+                      ) : null}
+                    </div>
+                  ) : selectedStairs ? (
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <div style={{ display: 'grid', gap: '0.2rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Type</span>
+                        <strong>Stairs {selectedStairs.direction}</strong>
+                      </div>
+                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Floor {selectedStairs.floorIndex + 1}
+                      </span>
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Select a placement or stairs marker to edit it.
+                    </p>
+                  )}
                 </div>
 
                 <div
@@ -1853,6 +1987,13 @@ const HomeSecurityPlanner = () => {
                       Add a device or select a tier to see installation expectations.
                     </p>
                   )}
+                </div>
+
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <h4 style={{ margin: 0 }}>Place devices on your home map (optional)</h4>
+                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                    Device placements help us visualize coverage zones later.
+                  </p>
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.75rem' }}>
@@ -1969,103 +2110,6 @@ const HomeSecurityPlanner = () => {
                       </button>
                     </div>
                   ) : null}
-                </div>
-
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                    <strong>Selection details</strong>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        if (selectedPlacementId) {
-                          handleRemovePlacement(selectedPlacementId);
-                          return;
-                        }
-                        if (selectedStairsId) {
-                          handleRemoveStairs(selectedStairsId);
-                        }
-                      }}
-                      disabled={!selectedPlacementId && !selectedStairsId}
-                    >
-                      Delete selected
-                    </button>
-                  </div>
-                  {selectedPlacement && selectedPlacementItem ? (
-                    <div style={{ display: 'grid', gap: '0.75rem' }}>
-                      <div style={{ display: 'grid', gap: '0.25rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Device</span>
-                        <strong>{selectedPlacementItem.label}</strong>
-                      </div>
-                      {isWallAnchored(selectedPlacement.deviceKey) ? (
-                        <div style={{ display: 'grid', gap: '0.5rem' }}>
-                          <label style={{ display: 'grid', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                            <select
-                              value={selectedPlacement.wallSnap?.wall ?? 'n'}
-                              onChange={(event) => handlePlacementWallChange(event.target.value as FloorplanWall)}
-                            >
-                              {wallOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          <label style={{ display: 'grid', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                              Wall offset ({Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}%)
-                            </span>
-                            <input
-                              type="range"
-                              min={0}
-                              max={100}
-                              step={5}
-                              value={Math.round((selectedPlacement.wallSnap?.offset ?? 0.5) * 100)}
-                              onChange={(event) => handlePlacementWallOffsetChange(Number(event.target.value))}
-                            />
-                          </label>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={handleSnapPlacementToNearestWall}
-                            disabled={!selectedPlacementRoom}
-                          >
-                            Snap to nearest wall
-                          </button>
-                        </div>
-                      ) : null}
-                      {isRotatableDevice(selectedPlacement.deviceKey) ? (
-                        <label style={{ display: 'grid', gap: '0.35rem' }}>
-                          <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                            Rotation ({Math.round(getPlacementRotation(selectedPlacement))}°)
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={360}
-                            step={15}
-                            value={Math.round(getPlacementRotation(selectedPlacement))}
-                            onChange={(event) => handlePlacementRotationChange(Number(event.target.value))}
-                          />
-                        </label>
-                      ) : null}
-                    </div>
-                  ) : selectedStairs ? (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <div style={{ display: 'grid', gap: '0.2rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Type</span>
-                        <strong>Stairs {selectedStairs.direction}</strong>
-                      </div>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
-                        Floor {selectedStairs.floorIndex + 1}
-                      </span>
-                    </div>
-                  ) : (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                      Select a placement or stairs marker to edit it.
-                    </p>
-                  )}
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
