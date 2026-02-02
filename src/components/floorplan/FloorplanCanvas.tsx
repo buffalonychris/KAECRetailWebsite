@@ -11,6 +11,8 @@ import {
   determineFrontSideFromMainDoor,
   findRoomAtPoint,
   getHallwaySurfaceStyle,
+  getCompassNorthArrowAngle,
+  getCompassOrientationLabel,
   getPlacementRotation,
   getWallInsetPosition,
   getWindowMarkerVisual,
@@ -21,7 +23,7 @@ import {
 import CoverageOverlay from './CoverageOverlay';
 import type { FloorplanCoverageOverlay } from '../../lib/homeSecurityPlanner/coverageModel';
 import FloorplanFurnishings from './FloorplanFurnishings';
-import type { FloorplanStair } from './floorplanState';
+import type { CompassOrientation, FloorplanStair } from './floorplanState';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -59,6 +61,7 @@ type FloorplanCanvasProps = {
   coverageOverlay?: FloorplanCoverageOverlay | null;
   showFurnishings?: boolean;
   showExteriorContext?: boolean;
+  compassOrientation?: CompassOrientation | null;
   width?: number | string;
   height?: number;
 };
@@ -134,6 +137,7 @@ const FloorplanCanvas = ({
   coverageOverlay,
   showFurnishings = true,
   showExteriorContext = true,
+  compassOrientation = null,
   width = '100%',
   height = 320,
 }: FloorplanCanvasProps) => {
@@ -142,6 +146,8 @@ const FloorplanCanvas = ({
   const mainDoorPosition = exteriorBounds ? getMainExteriorDoorPosition(floor.rooms) : undefined;
   const frontSide = mainDoorPosition && exteriorBounds ? determineFrontSideFromMainDoor(exteriorBounds, mainDoorPosition) : 's';
   const exteriorContext = exteriorBounds && showExteriorContext ? computeExteriorContextShapes(exteriorBounds, frontSide) : null;
+  const compassLabel = getCompassOrientationLabel(compassOrientation);
+  const compassAngle = compassOrientation ? getCompassNorthArrowAngle(compassOrientation) : null;
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
   const dragStateRef = useRef<{
@@ -194,6 +200,54 @@ const FloorplanCanvas = ({
               ...getHallwaySurfaceStyle(),
             }}
           />
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              display: 'grid',
+              gap: '0.25rem',
+              justifyItems: 'center',
+              padding: '0.4rem 0.5rem',
+              borderRadius: '0.6rem',
+              background: 'rgba(10, 12, 20, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: 'rgba(214, 233, 248, 0.8)',
+              fontSize: '0.7rem',
+              pointerEvents: 'none',
+              zIndex: 3,
+            }}
+          >
+            {compassOrientation ? (
+              <>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '999px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: 'rgba(214, 233, 248, 0.95)',
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      transform: `rotate(${compassAngle ?? 0}deg)`,
+                      fontSize: '0.9rem',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ▲
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.65rem' }}>{compassLabel}</span>
+              </>
+            ) : (
+              <span style={{ fontSize: '0.65rem' }}>Compass: optional</span>
+            )}
+          </div>
           {exteriorContext ? (
             <div aria-hidden="true">
               <div
