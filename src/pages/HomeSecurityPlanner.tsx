@@ -309,6 +309,7 @@ const HomeSecurityPlanner = () => {
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
+  const [showFurnishings, setShowFurnishings] = useState(true);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [exportStatus, setExportStatus] = useState<'png' | 'pdf' | null>(null);
   const plannerExportRef = useRef<HTMLDivElement | null>(null);
@@ -1261,6 +1262,7 @@ const HomeSecurityPlanner = () => {
                       onUpdatePlacement={updatePlacement}
                       onCanvasClick={handleCanvasClick}
                       coverageOverlay={coverageOverlay}
+                      showFurnishings={showFurnishings}
                       height={560}
                     />
                   </div>
@@ -1286,6 +1288,17 @@ const HomeSecurityPlanner = () => {
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.6rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={showFurnishings}
+                      onChange={(event) => setShowFurnishings(event.target.checked)}
+                    />
+                    <span>Show furnishings</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Furnishings are visual-only to help show scale and room context.
+                  </span>
                   <label
                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     title={COVERAGE_TOOLTIPS.toggle}

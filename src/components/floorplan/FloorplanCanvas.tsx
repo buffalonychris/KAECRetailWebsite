@@ -12,6 +12,7 @@ import {
 } from './floorplanUtils';
 import CoverageOverlay from './CoverageOverlay';
 import type { FloorplanCoverageOverlay } from '../../lib/homeSecurityPlanner/coverageModel';
+import FloorplanFurnishings from './FloorplanFurnishings';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -44,6 +45,7 @@ type FloorplanCanvasProps = {
   onUpdatePlacement?: (placementId: string, updates: Partial<FloorplanPlacement>) => void;
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
   coverageOverlay?: FloorplanCoverageOverlay | null;
+  showFurnishings?: boolean;
   width?: number | string;
   height?: number;
 };
@@ -82,6 +84,7 @@ const FloorplanCanvas = ({
   onUpdatePlacement,
   onUpdateRoomRect,
   coverageOverlay,
+  showFurnishings = true,
   width = '100%',
   height = 320,
 }: FloorplanCanvasProps) => {
@@ -120,6 +123,7 @@ const FloorplanCanvas = ({
       </div>
       <div style={{ marginTop: '0.75rem', ...viewportStyles, height, width }}>
         <div ref={viewportRef} style={surfaceStyles} onClick={handleSurfaceClick}>
+          {showFurnishings ? <FloorplanFurnishings floor={floor} /> : null}
           {coverageOverlay ? <CoverageOverlay floor={floor} overlay={coverageOverlay} /> : null}
           {floor.rooms.map((room) => {
             const isSelected = room.id === selectedRoomId;
