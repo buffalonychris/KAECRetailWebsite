@@ -14,11 +14,13 @@ import {
 } from '../components/floorplan/deviceCatalog';
 import {
   autoSnapToNearestWall,
+  clampPointToRect,
   findRoomAtPoint,
   getDefaultWindowGroundLevel,
   getPlacementRotation,
   getWallInsetPosition,
   snapToGrid,
+  updateAnchoredMarkerAfterResize,
   type FloorplanWindowMarker,
   type WindowStylePreset,
 } from '../components/floorplan/floorplanUtils';
@@ -707,6 +709,50 @@ const HomeSecurityPlanner = () => {
     }));
   };
 
+  const handleUpdateRoomRect = (roomId: string, rect: FloorplanRoom['rect']) => {
+    setFloorplan((prev) => {
+      const previousRoom = prev.floors.flatMap((floor) => floor.rooms).find((room) => room.id === roomId);
+      if (!previousRoom) {
+        return prev;
+      }
+      const nextFloors = prev.floors.map((floor) => {
+        const hasRoom = floor.rooms.some((room) => room.id === roomId);
+        if (!hasRoom) return floor;
+        return {
+          ...floor,
+          rooms: floor.rooms.map((room) =>
+            room.id === roomId
+              ? {
+                  ...room,
+                  rect,
+                  doors: room.doors.map((door) => updateAnchoredMarkerAfterResize(door, room.rect, rect)),
+                  windows: room.windows.map((window) => updateAnchoredMarkerAfterResize(window, room.rect, rect)),
+                }
+              : room,
+          ),
+        };
+      });
+
+      const nextPlacements = prev.placements.map((placement) => {
+        if (placement.roomId !== roomId) return placement;
+        if (placement.wallSnap) {
+          const wallSnap = updateAnchoredMarkerAfterResize(placement.wallSnap, previousRoom.rect, rect);
+          return {
+            ...placement,
+            wallSnap,
+            position: getWallInsetPosition(rect, wallSnap),
+          };
+        }
+        return {
+          ...placement,
+          position: clampPointToRect(placement.position, rect),
+        };
+      });
+
+      return { ...prev, floors: nextFloors, placements: nextPlacements };
+    });
+  };
+
   const handleAddRoom = () => {
     setFloorplan((prev) => {
       const nextFloors = prev.floors.map((floor) => ({ ...floor }));
@@ -1381,6 +1427,7 @@ const HomeSecurityPlanner = () => {
                       onSelectPlacement={handleSelectPlacement}
                       onSelectStairs={handleSelectStairs}
                       onUpdatePlacement={updatePlacement}
+                      onUpdateRoomRect={handleUpdateRoomRect}
                       onCanvasClick={handleCanvasClick}
                       coverageOverlay={coverageOverlay}
                       showFurnishings={showFurnishings}

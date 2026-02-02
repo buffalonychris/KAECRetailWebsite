@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { isWallAnchored } from '../deviceCatalog';
 import {
   autoSnapToNearestWall,
+  clampPointToRect,
+  computeSnappedRectFromHandleDrag,
   getDefaultWindowGroundLevel,
   getHallwaySurfaceStyle,
   getPlacementRotation,
   getWindowMarkerVisual,
+  MIN_ROOM_SIZE,
+  RESIZE_GRID_STEP,
+  updateAnchoredMarkerAfterResize,
 } from '../floorplanUtils';
 
 describe('floorplan utils', () => {
@@ -65,5 +70,31 @@ describe('floorplan utils', () => {
     expect(style.backgroundColor).toContain('rgba');
     expect(style.backgroundImage).toContain('radial-gradient');
     expect(style.backgroundSize).toBe('12px 12px');
+  });
+
+  it('snaps resize drags to the resize grid step', () => {
+    const rect = { x: 0, y: 0, w: 120, h: 100 };
+    const updated = computeSnappedRectFromHandleDrag(rect, 'e', RESIZE_GRID_STEP + 1, 0);
+    expect(updated.w).toBe(rect.w + RESIZE_GRID_STEP);
+    expect(updated.x).toBe(rect.x);
+  });
+
+  it('enforces minimum room size during resize', () => {
+    const rect = { x: 0, y: 0, w: 60, h: 80 };
+    const updated = computeSnappedRectFromHandleDrag(rect, 'w', 40, 0);
+    expect(updated.w).toBe(MIN_ROOM_SIZE);
+    expect(updated.x).toBe(rect.x + rect.w - MIN_ROOM_SIZE);
+  });
+
+  it('clamps placements into the updated room bounds', () => {
+    const rect = { x: 10, y: 20, w: 100, h: 60 };
+    const point = clampPointToRect({ x: 200, y: -10 }, rect);
+    expect(point.x).toBe(rect.x + rect.w);
+    expect(point.y).toBe(rect.y);
+  });
+
+  it('keeps anchored markers within wall bounds after resize', () => {
+    const marker = updateAnchoredMarkerAfterResize({ wall: 'n', offset: 1.4 }, { x: 0, y: 0, w: 80, h: 80 }, { x: 0, y: 0, w: 40, h: 40 });
+    expect(marker.offset).toBe(1);
   });
 });

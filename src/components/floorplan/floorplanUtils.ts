@@ -1,6 +1,7 @@
 import type { FloorplanFloor, FloorplanPlacement, FloorplanRoom, FloorplanWall } from '../../lib/homeSecurityFunnel';
 
 export type WindowStylePreset = 'standard' | 'basement' | 'glassBlock';
+export type ResizeHandle = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
 export type FloorplanWindowMarker = FloorplanRoom['windows'][number] & {
   isGroundLevel?: boolean;
@@ -25,8 +26,12 @@ export type WindowMarkerVisual = {
 };
 
 export const GRID_SIZE = 10;
+export const RESIZE_GRID_STEP = 12;
+export const MIN_ROOM_SIZE = 48;
 
 export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
+
+const snapDeltaToGrid = (value: number) => Math.round(value / RESIZE_GRID_STEP) * RESIZE_GRID_STEP;
 
 export const clampUnit = (value: number) => Math.min(Math.max(value, 0), 1);
 
@@ -40,6 +45,63 @@ export const clampPointToRect = (
 ) => ({
   x: clampToRange(point.x, rect.x, rect.x + rect.w),
   y: clampToRange(point.y, rect.y, rect.y + rect.h),
+});
+
+export const computeSnappedRectFromHandleDrag = (
+  rect: { x: number; y: number; w: number; h: number },
+  handle: ResizeHandle,
+  dx: number,
+  dy: number,
+) => {
+  const snappedDx = snapDeltaToGrid(dx);
+  const snappedDy = snapDeltaToGrid(dy);
+  const next = { ...rect };
+  const right = rect.x + rect.w;
+  const bottom = rect.y + rect.h;
+
+  if (handle.includes('e')) {
+    next.w = rect.w + snappedDx;
+  }
+  if (handle.includes('w')) {
+    next.w = rect.w - snappedDx;
+    next.x = rect.x + snappedDx;
+  }
+  if (handle.includes('s')) {
+    next.h = rect.h + snappedDy;
+  }
+  if (handle.includes('n')) {
+    next.h = rect.h - snappedDy;
+    next.y = rect.y + snappedDy;
+  }
+
+  if (next.w < MIN_ROOM_SIZE) {
+    next.w = MIN_ROOM_SIZE;
+    if (handle.includes('w')) {
+      next.x = right - next.w;
+    } else {
+      next.x = rect.x;
+    }
+  }
+
+  if (next.h < MIN_ROOM_SIZE) {
+    next.h = MIN_ROOM_SIZE;
+    if (handle.includes('n')) {
+      next.y = bottom - next.h;
+    } else {
+      next.y = rect.y;
+    }
+  }
+
+  return next;
+};
+
+export const updateAnchoredMarkerAfterResize = <T extends { wall: FloorplanWall; offset: number }>(
+  marker: T,
+  _oldRect: { x: number; y: number; w: number; h: number },
+  _newRect: { x: number; y: number; w: number; h: number },
+): T => ({
+  ...marker,
+  offset: clampUnit(marker.offset),
 });
 
 export const findRoomAtPoint = (floor: FloorplanFloor | undefined, point: { x: number; y: number }) => {
