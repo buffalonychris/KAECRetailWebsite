@@ -1,5 +1,29 @@
 import type { FloorplanFloor, FloorplanPlacement, FloorplanRoom, FloorplanWall } from '../../lib/homeSecurityFunnel';
 
+export type WindowStylePreset = 'standard' | 'basement' | 'glassBlock';
+
+export type FloorplanWindowMarker = FloorplanRoom['windows'][number] & {
+  isGroundLevel?: boolean;
+  windowStyle?: WindowStylePreset;
+};
+
+export type WindowMarkerVisual = {
+  thickness: number;
+  length: number;
+  background: string;
+  border?: string;
+  boxShadow?: string;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  borderRadius?: string;
+  badge?: {
+    label: string;
+    background: string;
+    color: string;
+    border: string;
+  };
+};
+
 export const GRID_SIZE = 10;
 
 export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -7,6 +31,8 @@ export const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRI
 export const clampUnit = (value: number) => Math.min(Math.max(value, 0), 1);
 
 export const clampToRange = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+export const getDefaultWindowGroundLevel = (floorIndex: number) => floorIndex === 0;
 
 export const clampPointToRect = (
   point: { x: number; y: number },
@@ -87,4 +113,48 @@ export const getWallInsetPosition = (
     default:
       return { x: roomRect.x + safeInset, y: roomRect.y + roomRect.h * offset };
   }
+};
+
+export const getWindowMarkerVisual = ({
+  wall,
+  isGroundLevel = false,
+  windowStyle = 'standard',
+}: {
+  wall: FloorplanWall;
+  isGroundLevel?: boolean;
+  windowStyle?: WindowStylePreset;
+}): WindowMarkerVisual => {
+  const isHorizontal = wall === 'n' || wall === 's';
+  const length = windowStyle === 'standard' ? 16 : 12;
+  const baseThickness = windowStyle === 'glassBlock' ? 4 : windowStyle === 'basement' ? 3 : 2;
+  const thickness = baseThickness + (isGroundLevel ? 2 : 0);
+  const background = isGroundLevel ? 'rgba(255, 236, 196, 0.95)' : 'rgba(255, 255, 255, 0.9)';
+  const border = isGroundLevel ? '1px solid rgba(255, 255, 255, 0.8)' : 'none';
+  const boxShadow = isGroundLevel ? '0 0 8px rgba(255, 214, 140, 0.7)' : 'none';
+  const backgroundImage =
+    windowStyle === 'glassBlock'
+      ? `repeating-linear-gradient(${isHorizontal ? '90deg' : '0deg'}, rgba(255, 255, 255, 0.65) 0, rgba(255, 255, 255, 0.65) 2px, rgba(255, 255, 255, 0.2) 2px, rgba(255, 255, 255, 0.2) 4px)`
+      : undefined;
+  const backgroundSize = windowStyle === 'glassBlock' ? (isHorizontal ? '6px 100%' : '100% 6px') : undefined;
+  const borderRadius = windowStyle === 'glassBlock' ? '3px' : '999px';
+  const badge = isGroundLevel
+    ? {
+        label: 'LOW',
+        background: 'rgba(255, 192, 130, 0.85)',
+        color: '#2a1b0f',
+        border: '1px solid rgba(255, 236, 196, 0.9)',
+      }
+    : undefined;
+
+  return {
+    thickness,
+    length,
+    background,
+    border,
+    boxShadow,
+    backgroundImage,
+    backgroundSize,
+    borderRadius,
+    badge,
+  };
 };

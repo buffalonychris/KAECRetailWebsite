@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { isWallAnchored } from '../deviceCatalog';
-import { autoSnapToNearestWall, getPlacementRotation } from '../floorplanUtils';
+import { autoSnapToNearestWall, getDefaultWindowGroundLevel, getPlacementRotation, getWindowMarkerVisual } from '../floorplanUtils';
 
 describe('floorplan utils', () => {
   it('identifies wall-anchored devices', () => {
@@ -36,5 +36,21 @@ describe('floorplan utils', () => {
 
     const defaultRotation = getPlacementRotation({ rotation: undefined, wallSnap: undefined });
     expect(defaultRotation).toBe(0);
+  });
+
+  it('defaults ground-level windows to the lowest floor', () => {
+    expect(getDefaultWindowGroundLevel(0)).toBe(true);
+    expect(getDefaultWindowGroundLevel(1)).toBe(false);
+    expect(getDefaultWindowGroundLevel(2)).toBe(false);
+  });
+
+  it('returns distinct visual tokens for ground-level windows', () => {
+    const standard = getWindowMarkerVisual({ wall: 'n', isGroundLevel: false, windowStyle: 'standard' });
+    const groundLevel = getWindowMarkerVisual({ wall: 'n', isGroundLevel: true, windowStyle: 'standard' });
+    const glassBlock = getWindowMarkerVisual({ wall: 'e', isGroundLevel: true, windowStyle: 'glassBlock' });
+
+    expect(groundLevel.thickness).toBeGreaterThan(standard.thickness);
+    expect(groundLevel.boxShadow).not.toBe(standard.boxShadow);
+    expect(glassBlock.backgroundImage).toContain('repeating-linear-gradient');
   });
 });

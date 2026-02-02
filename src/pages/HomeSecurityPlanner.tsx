@@ -15,9 +15,12 @@ import {
 import {
   autoSnapToNearestWall,
   findRoomAtPoint,
+  getDefaultWindowGroundLevel,
   getPlacementRotation,
   getWallInsetPosition,
   snapToGrid,
+  type FloorplanWindowMarker,
+  type WindowStylePreset,
 } from '../components/floorplan/floorplanUtils';
 import { removePlacementById, removeRoomById } from '../components/floorplan/floorplanState';
 import { COVERAGE_STATE_COLORS, COVERAGE_TOOLTIPS } from '../lib/homeSecurityPlanner/coverageConstants';
@@ -55,6 +58,12 @@ const wallOptions: Array<{ value: FloorplanWall; label: string }> = [
   { value: 'w', label: 'West' },
 ];
 
+const windowStyleOptions: Array<{ value: WindowStylePreset; label: string }> = [
+  { value: 'standard', label: 'Standard' },
+  { value: 'basement', label: 'Basement (low)' },
+  { value: 'glassBlock', label: 'Glass block' },
+];
+
 const exteriorDoorLabelKeywords = ['front', 'back', 'side', 'patio', 'garage entry', 'slider'];
 
 const isExteriorDoorLabel = (label: string) => {
@@ -75,12 +84,14 @@ const createDoor = (
 
 const createWindow = (
   label: string,
-  options?: { wall?: FloorplanWall; offset?: number },
-): FloorplanRoom['windows'][number] => ({
+  options?: { wall?: FloorplanWall; offset?: number; isGroundLevel?: boolean; windowStyle?: WindowStylePreset },
+): FloorplanWindowMarker => ({
   id: `window-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
   label,
   wall: options?.wall ?? 's',
   offset: options?.offset ?? 0.5,
+  isGroundLevel: options?.isGroundLevel ?? true,
+  windowStyle: options?.windowStyle ?? 'standard',
 });
 
 const deriveExteriorDoors = (entryPoints?: EntryPoints): string[] | undefined => {
@@ -687,17 +698,24 @@ const HomeSecurityPlanner = () => {
 
   const handleAddWindowMarker = () => {
     if (!selectedRoom) return;
+    const floorIndex = Math.max(
+      0,
+      floorplan.floors.findIndex((floor) => floor.id === selectedFloorId),
+    );
+    const isGroundLevel = getDefaultWindowGroundLevel(floorIndex);
     const nextWindows = [
       ...selectedRoom.windows,
       createWindow('Window', {
         wall: 's',
         offset: 0.5,
+        isGroundLevel,
+        windowStyle: 'standard',
       }),
     ];
     updateRoom(selectedRoom.id, { windows: nextWindows });
   };
 
-  const handleUpdateWindowMarker = (windowId: string, updates: Partial<FloorplanRoom['windows'][number]>) => {
+  const handleUpdateWindowMarker = (windowId: string, updates: Partial<FloorplanWindowMarker>) => {
     if (!selectedRoom) return;
     updateRoom(selectedRoom.id, {
       windows: selectedRoom.windows.map((window) => (window.id === windowId ? { ...window, ...updates } : window)),
@@ -1184,53 +1202,87 @@ const HomeSecurityPlanner = () => {
                       {selectedRoom.windows.length === 0 ? (
                         <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>No windows yet.</p>
                       ) : null}
-                      {selectedRoom.windows.map((window) => (
-                        <div key={window.id} style={{ display: 'grid', gap: '0.5rem' }}>
-                          <input
-                            type="text"
-                            value={window.label ?? ''}
-                            placeholder="Window label (optional)"
-                            onChange={(event) => handleUpdateWindowMarker(window.id, { label: event.target.value })}
-                          />
-                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                            <label style={{ display: 'grid', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
-                              <select
-                                value={window.wall}
-                                onChange={(event) =>
-                                  handleUpdateWindowMarker(window.id, { wall: event.target.value as FloorplanWall })
-                                }
-                              >
-                                {wallOptions.map((option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
-                            <label style={{ display: 'grid', gap: '0.35rem' }}>
-                              <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
-                              <input
-                                type="range"
-                                min={0}
-                                max={1}
-                                step={0.05}
-                                value={window.offset}
-                                onChange={(event) =>
-                                  handleUpdateWindowMarker(window.id, { offset: Number(event.target.value) })
-                                }
-                              />
-                            </label>
+                      {selectedRoom.windows.map((window) => {
+                        const windowMarker = window as FloorplanWindowMarker;
+                        return (
+                          <div key={window.id} style={{ display: 'grid', gap: '0.5rem' }}>
+                            <input
+                              type="text"
+                              value={window.label ?? ''}
+                              placeholder="Window label (optional)"
+                              onChange={(event) => handleUpdateWindowMarker(window.id, { label: event.target.value })}
+                            />
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                              <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Wall</span>
+                                <select
+                                  value={window.wall}
+                                  onChange={(event) =>
+                                    handleUpdateWindowMarker(window.id, { wall: event.target.value as FloorplanWall })
+                                  }
+                                >
+                                  {wallOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>Offset</span>
+                                <input
+                                  type="range"
+                                  min={0}
+                                  max={1}
+                                  step={0.05}
+                                  value={window.offset}
+                                  onChange={(event) =>
+                                    handleUpdateWindowMarker(window.id, { offset: Number(event.target.value) })
+                                  }
+                                />
+                              </label>
+                              <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                  Style
+                                </span>
+                                <select
+                                  value={windowMarker.windowStyle ?? 'standard'}
+                                  onChange={(event) =>
+                                    handleUpdateWindowMarker(window.id, {
+                                      windowStyle: event.target.value as WindowStylePreset,
+                                    })
+                                  }
+                                >
+                                  {windowStyleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label style={{ display: 'grid', gap: '0.35rem' }}>
+                                <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                                  Ground-level (higher risk)
+                                </span>
+                                <input
+                                  type="checkbox"
+                                  checked={Boolean(windowMarker.isGroundLevel)}
+                                  onChange={(event) =>
+                                    handleUpdateWindowMarker(window.id, { isGroundLevel: event.target.checked })
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => handleRemoveWindowMarker(window.id)}
+                            >
+                              Remove
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => handleRemoveWindowMarker(window.id)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <button type="button" className="btn btn-secondary" onClick={handleAddWindowMarker}>
                         Add window
                       </button>
