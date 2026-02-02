@@ -334,6 +334,7 @@ const HomeSecurityPlanner = () => {
   const [activeStairsDirection, setActiveStairsDirection] = useState<FloorplanStairDirection | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
   const [showFurnishings, setShowFurnishings] = useState(true);
+  const [showExteriorContext, setShowExteriorContext] = useState(true);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [exportStatus, setExportStatus] = useState<'png' | 'pdf' | null>(null);
   const plannerExportRef = useRef<HTMLDivElement | null>(null);
@@ -1431,6 +1432,7 @@ const HomeSecurityPlanner = () => {
                       onCanvasClick={handleCanvasClick}
                       coverageOverlay={coverageOverlay}
                       showFurnishings={showFurnishings}
+                      showExteriorContext={showExteriorContext}
                       height={560}
                     />
                   </div>
@@ -1456,6 +1458,17 @@ const HomeSecurityPlanner = () => {
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.6rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={showExteriorContext}
+                      onChange={(event) => setShowExteriorContext(event.target.checked)}
+                    />
+                    <span>Show exterior context</span>
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(214, 233, 248, 0.65)' }}>
+                    Adds a minimal yard, sidewalk, and driveway around the exterior wall.
+                  </span>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <input
                       type="checkbox"

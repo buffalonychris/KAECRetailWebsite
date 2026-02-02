@@ -3,16 +3,22 @@ import { isWallAnchored } from '../deviceCatalog';
 import {
   autoSnapToNearestWall,
   clampPointToRect,
+  computeExteriorContextShapes,
   computeExteriorBounds,
   computeSnappedRectFromHandleDrag,
+  CONTEXT_GAP,
+  determineFrontSideFromMainDoor,
   EXTERIOR_PADDING,
+  DRIVEWAY_THICKNESS,
   getDefaultWindowGroundLevel,
   getHallwaySurfaceStyle,
   getPlacementRotation,
   getWindowMarkerVisual,
+  SIDEWALK_THICKNESS,
   MIN_ROOM_SIZE,
   MIN_EXTERIOR_SIZE,
   RESIZE_GRID_STEP,
+  YARD_PADDING,
   updateAnchoredMarkerAfterResize,
 } from '../floorplanUtils';
 
@@ -99,6 +105,29 @@ describe('floorplan utils', () => {
   it('returns null when there are no rooms', () => {
     const bounds = computeExteriorBounds([]);
     expect(bounds).toBeNull();
+  });
+
+  it('determines the front side based on the main exterior door position', () => {
+    const rect = { x: 100, y: 80, w: 200, h: 120 };
+    expect(determineFrontSideFromMainDoor(rect, { x: 150, y: 80 })).toBe('n');
+    expect(determineFrontSideFromMainDoor(rect, { x: 150, y: 200 })).toBe('s');
+    expect(determineFrontSideFromMainDoor(rect, { x: 100, y: 140 })).toBe('w');
+    expect(determineFrontSideFromMainDoor(rect, { x: 300, y: 140 })).toBe('e');
+  });
+
+  it('creates exterior context bands outside the front edge', () => {
+    const rect = { x: 100, y: 100, w: 200, h: 120 };
+    const shapes = computeExteriorContextShapes(rect, 's');
+    expect(shapes.yardRect).toEqual({
+      x: 100 - YARD_PADDING,
+      y: 100 - YARD_PADDING,
+      w: 200 + YARD_PADDING * 2,
+      h: 120 + YARD_PADDING * 2,
+    });
+    expect(shapes.sidewalkBand.y).toBe(100 + 120 + CONTEXT_GAP);
+    expect(shapes.sidewalkBand.h).toBe(SIDEWALK_THICKNESS);
+    expect(shapes.drivewayBand.y).toBe(100 + 120 + CONTEXT_GAP);
+    expect(shapes.drivewayBand.h).toBe(DRIVEWAY_THICKNESS);
   });
 
   it('snaps resize drags to the resize grid step', () => {

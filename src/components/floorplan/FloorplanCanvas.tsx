@@ -5,8 +5,10 @@ import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../li
 import {
   autoSnapToNearestWall,
   clampPointToRect,
+  computeExteriorContextShapes,
   computeExteriorBounds,
   computeSnappedRectFromHandleDrag,
+  determineFrontSideFromMainDoor,
   findRoomAtPoint,
   getHallwaySurfaceStyle,
   getPlacementRotation,
@@ -56,6 +58,7 @@ type FloorplanCanvasProps = {
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
   coverageOverlay?: FloorplanCoverageOverlay | null;
   showFurnishings?: boolean;
+  showExteriorContext?: boolean;
   width?: number | string;
   height?: number;
 };
@@ -80,6 +83,21 @@ const getMarkerPosition = (room: FloorplanFloor['rooms'][number], wall: Floorpla
     default:
       return { x: 0, y: room.rect.h * clampedOffset };
   }
+};
+
+const MAIN_ENTRANCE_KEYWORDS = ['front', 'main', 'entry'];
+
+const getMainExteriorDoorPosition = (rooms: FloorplanFloor['rooms'][number][]) => {
+  for (const room of rooms) {
+    for (const door of room.doors) {
+      if (!door.exterior) continue;
+      const label = door.label?.toLowerCase() ?? '';
+      if (!MAIN_ENTRANCE_KEYWORDS.some((keyword) => label.includes(keyword))) continue;
+      const position = getMarkerPosition(room, door.wall, door.offset);
+      return { x: room.rect.x + position.x, y: room.rect.y + position.y };
+    }
+  }
+  return undefined;
 };
 
 const DRAG_THRESHOLD = 4;
@@ -115,11 +133,15 @@ const FloorplanCanvas = ({
   onUpdateRoomRect,
   coverageOverlay,
   showFurnishings = true,
+  showExteriorContext = true,
   width = '100%',
   height = 320,
 }: FloorplanCanvasProps) => {
   const selectedRoom = floor.rooms.find((room) => room.id === selectedRoomId);
   const exteriorBounds = computeExteriorBounds(floor.rooms);
+  const mainDoorPosition = exteriorBounds ? getMainExteriorDoorPosition(floor.rooms) : undefined;
+  const frontSide = mainDoorPosition && exteriorBounds ? determineFrontSideFromMainDoor(exteriorBounds, mainDoorPosition) : 's';
+  const exteriorContext = exteriorBounds && showExteriorContext ? computeExteriorContextShapes(exteriorBounds, frontSide) : null;
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
   const dragStateRef = useRef<{
@@ -172,6 +194,54 @@ const FloorplanCanvas = ({
               ...getHallwaySurfaceStyle(),
             }}
           />
+          {exteriorContext ? (
+            <div aria-hidden="true">
+              <div
+                style={{
+                  position: 'absolute',
+                  left: exteriorContext.yardRect.x,
+                  top: exteriorContext.yardRect.y,
+                  width: exteriorContext.yardRect.w,
+                  height: exteriorContext.yardRect.h,
+                  borderRadius: '1.5rem',
+                  background: 'rgba(34, 48, 40, 0.35)',
+                  backgroundImage:
+                    'radial-gradient(circle at 2px 2px, rgba(120, 154, 120, 0.18) 0, rgba(120, 154, 120, 0.18) 1px, transparent 1.2px)',
+                  backgroundSize: '14px 14px',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  left: exteriorContext.sidewalkBand.x,
+                  top: exteriorContext.sidewalkBand.y,
+                  width: exteriorContext.sidewalkBand.w,
+                  height: exteriorContext.sidewalkBand.h,
+                  borderRadius: '0.75rem',
+                  background: 'rgba(210, 220, 232, 0.45)',
+                  border: '1px solid rgba(210, 220, 232, 0.6)',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  left: exteriorContext.drivewayBand.x,
+                  top: exteriorContext.drivewayBand.y,
+                  width: exteriorContext.drivewayBand.w,
+                  height: exteriorContext.drivewayBand.h,
+                  borderRadius: '0.75rem',
+                  background: 'rgba(120, 130, 150, 0.4)',
+                  border: '1px solid rgba(160, 170, 190, 0.55)',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+            </div>
+          ) : null}
           {exteriorBounds ? (
             <div
               aria-hidden="true"
