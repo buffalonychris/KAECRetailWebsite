@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { DEVICE_CATALOG } from './deviceCatalog';
+import { DEVICE_CATALOG, DEVICE_ICON_TONES } from './deviceCatalog';
 import type { FloorplanFloor, FloorplanPlacement, FloorplanWall } from '../../lib/homeSecurityFunnel';
 import {
   autoSnapToNearestWall,
@@ -147,7 +147,10 @@ const FloorplanCanvas = ({
               <button
                 key={room.id}
                 type="button"
-                onClick={() => onSelectRoom(room.id)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelectRoom(room.id);
+                }}
                 onDoubleClick={() => onUpdateRoomRect?.(room.id, room.rect)}
                 style={roomStyles}
               >
@@ -155,6 +158,7 @@ const FloorplanCanvas = ({
                 {room.doors.map((door) => {
                   const position = getMarkerPosition(room, door.wall, door.offset);
                   const isHorizontal = door.wall === 'n' || door.wall === 's';
+                  const isExterior = Boolean(door.exterior);
                   return (
                     <span
                       key={door.id}
@@ -162,10 +166,13 @@ const FloorplanCanvas = ({
                         ...markerBaseStyles,
                         left: position.x,
                         top: position.y,
-                        width: isHorizontal ? 18 : 6,
-                        height: isHorizontal ? 6 : 18,
-                        background: '#6cf6ff',
-                        boxShadow: '0 0 6px rgba(108, 246, 255, 0.6)',
+                        width: isHorizontal ? (isExterior ? 24 : 18) : isExterior ? 8 : 6,
+                        height: isHorizontal ? (isExterior ? 8 : 6) : isExterior ? 24 : 18,
+                        background: isExterior ? '#f7c873' : '#6cf6ff',
+                        boxShadow: isExterior
+                          ? '0 0 8px rgba(247, 200, 115, 0.7)'
+                          : '0 0 6px rgba(108, 246, 255, 0.6)',
+                        border: isExterior ? '1px solid rgba(255, 236, 196, 0.9)' : 'none',
                       }}
                     />
                   );
@@ -193,6 +200,7 @@ const FloorplanCanvas = ({
           {placements.map((placement) => {
             const item = DEVICE_CATALOG[placement.deviceKey];
             const Icon = item.icon;
+            const tone = DEVICE_ICON_TONES[placement.deviceKey];
             const invalid = item.wallAnchored && !placement.wallSnap;
             const isSelected = placement.id === selectedPlacementId;
             const isHovered = placement.id === hoveredPlacementId;
@@ -299,7 +307,6 @@ const FloorplanCanvas = ({
                       ? '1px solid #6cf6ff'
                       : '1px solid rgba(255, 255, 255, 0.2)',
                   background: 'rgba(15, 19, 32, 0.85)',
-                  color: invalid ? 'rgba(255, 107, 107, 0.95)' : '#d8f5ff',
                   boxShadow: isSelected
                     ? '0 0 12px rgba(108, 246, 255, 0.6)'
                     : isHovered
@@ -331,7 +338,20 @@ const FloorplanCanvas = ({
                     }}
                   />
                 ) : null}
-                <Icon width={24} height={24} />
+                <span
+                  style={{
+                    display: 'grid',
+                    placeItems: 'center',
+                    width: 32,
+                    height: 32,
+                    borderRadius: '999px',
+                    background: tone.background,
+                    boxShadow: tone.glow,
+                    color: invalid ? 'rgba(255, 107, 107, 0.95)' : tone.color,
+                  }}
+                >
+                  <Icon width={20} height={20} />
+                </span>
                 <span
                   style={{
                     fontSize: '0.6rem',
@@ -340,6 +360,7 @@ const FloorplanCanvas = ({
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    color: invalid ? 'rgba(255, 107, 107, 0.95)' : '#d8f5ff',
                   }}
                 >
                   {placement.label}
