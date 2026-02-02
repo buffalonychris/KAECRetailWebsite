@@ -7,6 +7,7 @@ import { useLayoutConfig } from '../components/LayoutConfig';
 import {
   DEVICE_CATALOG,
   DEVICE_KEYS,
+  DEVICE_ICON_TONES,
   isRotatableDevice,
   isWallAnchored,
   type FloorplanDeviceType,
@@ -18,6 +19,7 @@ import {
   getWallInsetPosition,
   snapToGrid,
 } from '../components/floorplan/floorplanUtils';
+import { removePlacementById, removeRoomById } from '../components/floorplan/floorplanState';
 import { COVERAGE_STATE_COLORS, COVERAGE_TOOLTIPS } from '../lib/homeSecurityPlanner/coverageConstants';
 import { computeFloorplanCoverageOverlay } from '../lib/homeSecurityPlanner/coverageModel';
 import { buildCoverageNotes, buildDeviceSummary } from '../lib/homeSecurityPlanner/export/exportNotes';
@@ -545,8 +547,22 @@ const HomeSecurityPlanner = () => {
     setSelectedRoomId(undefined);
   };
 
+  const handleSelectRoom = (roomId: string) => {
+    setSelectedRoomId(roomId);
+    setSelectedPlacementId(null);
+  };
+
+  const handleSelectPlacement = (placementId: string) => {
+    setSelectedPlacementId(placementId);
+    setSelectedRoomId(undefined);
+  };
+
   const handleCanvasClick = (point: { x: number; y: number }) => {
-    if (!activeDeviceKey || !selectedFloor) return;
+    if (!activeDeviceKey || !selectedFloor) {
+      setSelectedRoomId(undefined);
+      setSelectedPlacementId(null);
+      return;
+    }
     const item = DEVICE_CATALOG[activeDeviceKey];
     const snappedPoint = { x: snapToGrid(point.x), y: snapToGrid(point.y) };
     const targetRoom = findRoomAtPoint(selectedFloor, snappedPoint);
@@ -564,6 +580,7 @@ const HomeSecurityPlanner = () => {
     });
     setFloorplan((prev) => ({ ...prev, placements: [...prev.placements, placement] }));
     setSelectedPlacementId(placement.id);
+    setSelectedRoomId(undefined);
   };
 
   const updatePlacement = (placementId: string, updates: Partial<FloorplanPlacement>) => {
@@ -692,22 +709,17 @@ const HomeSecurityPlanner = () => {
   };
 
   const handleDeleteRoom = (roomId: string) => {
-    setFloorplan((prev) => ({
-      ...prev,
-      floors: prev.floors.map((floor) =>
-        floor.id === selectedFloorId ? { ...floor, rooms: floor.rooms.filter((room) => room.id !== roomId) } : floor,
-      ),
-    }));
+    setFloorplan((prev) => removeRoomById(prev, selectedFloorId, roomId));
     if (selectedRoomId === roomId) {
       setSelectedRoomId(undefined);
+    }
+    if (selectedPlacement?.roomId === roomId) {
+      setSelectedPlacementId(null);
     }
   };
 
   const handleRemovePlacement = (placementId: string) => {
-    setFloorplan((prev) => ({
-      ...prev,
-      placements: prev.placements.filter((placement) => placement.id !== placementId),
-    }));
+    setFloorplan((prev) => removePlacementById(prev, placementId));
     if (selectedPlacementId === placementId) {
       setSelectedPlacementId(null);
     }
@@ -721,6 +733,24 @@ const HomeSecurityPlanner = () => {
     setSelectedPlacementId(null);
     setActiveDeviceKey(null);
   };
+
+  useEffect(() => {
+    if (!selectedPlacementId && !selectedRoomId) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable) return;
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+      event.preventDefault();
+      if (selectedPlacementId) {
+        handleRemovePlacement(selectedPlacementId);
+      } else if (selectedRoomId) {
+        handleDeleteRoom(selectedRoomId);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleDeleteRoom, handleRemovePlacement, selectedPlacementId, selectedRoomId]);
 
   const tierComparisonNote = useMemo(() => {
     if (!plan || plan.coverage.status !== 'gap') return null;
@@ -1022,13 +1052,14 @@ const HomeSecurityPlanner = () => {
                         type="text"
                         value={room.name}
                         onChange={(event) => updateRoom(room.id, { name: event.target.value })}
-                        onFocus={() => setSelectedRoomId(room.id)}
+                        onFocus={() => handleSelectRoom(room.id)}
                       />
                       <select
                         value={room.kind ?? ''}
                         onChange={(event) =>
                           updateRoom(room.id, { kind: (event.target.value || undefined) as FloorplanRoomKind })
                         }
+                        onFocus={() => handleSelectRoom(room.id)}
                       >
                         <option value="">Room kind (optional)</option>
                         {roomKindOptions.map((option) => (
@@ -1061,11 +1092,21 @@ const HomeSecurityPlanner = () => {
                   gap: '0.75rem',
                 }}
               >
-                <div>
-                  <strong>Room details</strong>
-                  <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
-                    {selectedRoom ? selectedRoom.name : 'Select a room to edit doors and windows.'}
-                  </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                  <div>
+                    <strong>Room details</strong>
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                      {selectedRoom ? selectedRoom.name : 'Select a room to edit doors and windows.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => selectedRoomId && handleDeleteRoom(selectedRoomId)}
+                    disabled={!selectedRoomId}
+                  >
+                    Delete selected
+                  </button>
                 </div>
                 {selectedRoom ? (
                   <div style={{ display: 'grid', gap: '1rem' }}>
@@ -1215,10 +1256,10 @@ const HomeSecurityPlanner = () => {
                       placements={floorPlacements}
                       selectedRoomId={selectedRoomId}
                       selectedPlacementId={selectedPlacementId}
-                      onSelectRoom={setSelectedRoomId}
-                      onSelectPlacement={setSelectedPlacementId}
+                      onSelectRoom={handleSelectRoom}
+                      onSelectPlacement={handleSelectPlacement}
                       onUpdatePlacement={updatePlacement}
-                      onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
+                      onCanvasClick={handleCanvasClick}
                       coverageOverlay={coverageOverlay}
                       height={560}
                     />
@@ -1381,6 +1422,7 @@ const HomeSecurityPlanner = () => {
                     {DEVICE_KEYS.map((deviceKey) => {
                       const item = DEVICE_CATALOG[deviceKey];
                       const Icon = item.icon;
+                      const tone = DEVICE_ICON_TONES[deviceKey];
                       const isActive = activeDeviceKey === deviceKey;
                       return (
                         <button
@@ -1400,7 +1442,20 @@ const HomeSecurityPlanner = () => {
                             textAlign: 'left',
                           }}
                         >
-                          <Icon width={20} height={20} />
+                          <span
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: '999px',
+                              display: 'grid',
+                              placeItems: 'center',
+                              background: tone.background,
+                              boxShadow: tone.glow,
+                              color: tone.color,
+                            }}
+                          >
+                            <Icon width={16} height={16} />
+                          </span>
                           <span>{item.label}</span>
                         </button>
                       );
@@ -1424,7 +1479,17 @@ const HomeSecurityPlanner = () => {
                 </div>
 
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <strong>Placement details</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                    <strong>Placement details</strong>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => selectedPlacementId && handleRemovePlacement(selectedPlacementId)}
+                      disabled={!selectedPlacementId}
+                    >
+                      Delete selected
+                    </button>
+                  </div>
                   {selectedPlacement && selectedPlacementItem ? (
                     <div style={{ display: 'grid', gap: '0.75rem' }}>
                       <div style={{ display: 'grid', gap: '0.25rem' }}>
@@ -1499,10 +1564,20 @@ const HomeSecurityPlanner = () => {
                       {floorPlacements.map((placement) => {
                         const item = DEVICE_CATALOG[placement.deviceKey];
                         const Icon = item.icon;
+                        const tone = DEVICE_ICON_TONES[placement.deviceKey];
                         const needsWall = item.wallAnchored && !placement.wallSnap;
                         return (
                           <div
                             key={placement.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleSelectPlacement(placement.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                handleSelectPlacement(placement.id);
+                              }
+                            }}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -1517,9 +1592,23 @@ const HomeSecurityPlanner = () => {
                                 placement.id === selectedPlacementId
                                   ? 'rgba(108, 246, 255, 0.12)'
                                   : 'transparent',
+                              cursor: 'pointer',
                             }}
                           >
-                            <Icon width={18} height={18} />
+                            <span
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '999px',
+                                display: 'grid',
+                                placeItems: 'center',
+                                background: tone.background,
+                                boxShadow: tone.glow,
+                                color: tone.color,
+                              }}
+                            >
+                              <Icon width={14} height={14} />
+                            </span>
                             <span style={{ flex: 1 }}>{placement.label}</span>
                             {needsWall ? (
                               <span
@@ -1537,7 +1626,10 @@ const HomeSecurityPlanner = () => {
                             <button
                               type="button"
                               className="btn btn-secondary"
-                              onClick={() => handleRemovePlacement(placement.id)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleRemovePlacement(placement.id);
+                              }}
                             >
                               Delete
                             </button>
