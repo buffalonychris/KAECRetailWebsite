@@ -1200,15 +1200,16 @@ const HomeSecurityPlanner = () => {
 
             <div
               style={{
-                display: 'grid',
-                gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                alignItems: 'start',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1.5rem',
+                alignItems: 'flex-start',
+                width: '100%',
               }}
             >
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, flex: '1 1 640px' }}>
                 {selectedFloor ? (
-                  <div ref={plannerExportRef} style={{ minWidth: 0 }}>
+                  <div ref={plannerExportRef} style={{ minWidth: 0, width: '100%' }}>
                     <FloorplanCanvas
                       floor={selectedFloor}
                       placements={floorPlacements}
@@ -1219,6 +1220,7 @@ const HomeSecurityPlanner = () => {
                       onUpdatePlacement={updatePlacement}
                       onCanvasClick={activeDeviceKey ? handleCanvasClick : undefined}
                       coverageOverlay={coverageOverlay}
+                      height={560}
                     />
                   </div>
                 ) : null}
@@ -1231,6 +1233,8 @@ const HomeSecurityPlanner = () => {
                   background: 'rgba(15, 19, 32, 0.6)',
                   display: 'grid',
                   gap: '1rem',
+                  flex: '0 1 320px',
+                  minWidth: 'min(100%, 320px)',
                 }}
                 >
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
