@@ -22,7 +22,16 @@ import {
   type FloorplanWindowMarker,
   type WindowStylePreset,
 } from '../components/floorplan/floorplanUtils';
-import { removePlacementById, removeRoomById } from '../components/floorplan/floorplanState';
+import {
+  addStairs,
+  ensureFloorplanStairs,
+  removePlacementById,
+  removeRoomById,
+  removeStairsById,
+  type FloorplanStair,
+  type FloorplanStairDirection,
+  type HomeSecurityFloorplanWithStairs,
+} from '../components/floorplan/floorplanState';
 import { COVERAGE_STATE_COLORS, COVERAGE_TOOLTIPS } from '../lib/homeSecurityPlanner/coverageConstants';
 import { computeFloorplanCoverageOverlay } from '../lib/homeSecurityPlanner/coverageModel';
 import { buildCoverageNotes, buildDeviceSummary } from '../lib/homeSecurityPlanner/export/exportNotes';
@@ -38,7 +47,6 @@ import type {
   FloorplanRoomKind,
   FloorplanWall,
   HomeSecurityFitCheckAnswers,
-  HomeSecurityFloorplan,
   PrecisionPlannerDraft,
 } from '@/lib/homeSecurityFunnel';
 import {
@@ -124,10 +132,11 @@ const createFloor = (index: number): FloorplanFloor => ({
   rooms: [],
 });
 
-const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplan => ({
+const createEmptyFloorplan = (count: 1 | 2 | 3): HomeSecurityFloorplanWithStairs => ({
   version: 'v1',
   floors: Array.from({ length: count }, (_, index) => createFloor(index)),
   placements: [],
+  stairs: [],
 });
 
 const clampRotation = (value: number) => Math.min(Math.max(value, 0), 360);
@@ -173,9 +182,9 @@ const createRoom = (name: string, index: number, rectOverride?: FloorplanRoom['r
 
 const applyTemplateToFloors = (
   template: 'apartment' | 'ranch' | '2-story',
-  floorplan: HomeSecurityFloorplan,
+  floorplan: HomeSecurityFloorplanWithStairs,
   garage: PrecisionPlannerDraft['garage'],
-): HomeSecurityFloorplan => {
+): HomeSecurityFloorplanWithStairs => {
   const nextFloors = floorplan.floors.map((floor) => ({ ...floor, rooms: [...floor.rooms] }));
   const addDefaultDoors = (rooms: FloorplanRoom[], options: { includeBackDoor?: boolean; includeGarageEntry?: boolean }) => {
     if (rooms.length === 0) return rooms;
@@ -311,14 +320,16 @@ const HomeSecurityPlanner = () => {
 
   const [draft, setDraft] = useState<PrecisionPlannerDraft>(initialDraft);
   const defaultFloorCount = (initialDraft.floors ?? 1) as 1 | 2 | 3;
-  const [floorplan, setFloorplan] = useState<HomeSecurityFloorplan>(() => {
+  const [floorplan, setFloorplan] = useState<HomeSecurityFloorplanWithStairs>(() => {
     const storedFloorplan = storedFlow.homeSecurity?.floorplan ?? createEmptyFloorplan(defaultFloorCount);
-    return migrateFloorplanPlacements(storedFloorplan);
+    return ensureFloorplanStairs(migrateFloorplanPlacements(storedFloorplan));
   });
   const [selectedFloorId, setSelectedFloorId] = useState<string>(() => floorplan.floors[0]?.id ?? 'floor-1');
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
+  const [selectedStairsId, setSelectedStairsId] = useState<string | null>(null);
   const [activeDeviceKey, setActiveDeviceKey] = useState<FloorplanDeviceType | null>(null);
+  const [activeStairsDirection, setActiveStairsDirection] = useState<FloorplanStairDirection | null>(null);
   const [showCoverage, setShowCoverage] = useState(false);
   const [showFurnishings, setShowFurnishings] = useState(true);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
@@ -338,11 +349,16 @@ const HomeSecurityPlanner = () => {
     () => floorplan.placements.filter((placement) => placement.floorId === selectedFloor?.id),
     [floorplan.placements, selectedFloor?.id],
   );
+  const floorStairs = useMemo(
+    () => floorplan.stairs.filter((stair) => stair.floorId === selectedFloor?.id),
+    [floorplan.stairs, selectedFloor?.id],
+  );
   const coverageOverlay = useMemo(() => {
     if (!showCoverage || !selectedFloor) return null;
     return computeFloorplanCoverageOverlay(selectedFloor, floorPlacements);
   }, [floorPlacements, selectedFloor, showCoverage]);
   const selectedPlacement = floorPlacements.find((placement) => placement.id === selectedPlacementId);
+  const selectedStairs = floorStairs.find((stair) => stair.id === selectedStairsId);
   const selectedPlacementItem = selectedPlacement ? DEVICE_CATALOG[selectedPlacement.deviceKey] : null;
   const selectedPlacementRoom =
     selectedPlacement && selectedFloor
@@ -507,6 +523,12 @@ const HomeSecurityPlanner = () => {
   }, [floorPlacements, selectedPlacementId]);
 
   useEffect(() => {
+    if (selectedStairsId && !floorStairs.find((stair) => stair.id === selectedStairsId)) {
+      setSelectedStairsId(null);
+    }
+  }, [floorStairs, selectedStairsId]);
+
+  useEffect(() => {
     updateRetailFlow({ homeSecurity: { floorplan } });
   }, [floorplan]);
 
@@ -557,22 +579,54 @@ const HomeSecurityPlanner = () => {
   const handleSelectFloor = (floorId: string) => {
     setSelectedFloorId(floorId);
     setSelectedRoomId(undefined);
+    setSelectedPlacementId(null);
+    setSelectedStairsId(null);
   };
 
   const handleSelectRoom = (roomId: string) => {
     setSelectedRoomId(roomId);
     setSelectedPlacementId(null);
+    setSelectedStairsId(null);
   };
 
   const handleSelectPlacement = (placementId: string) => {
     setSelectedPlacementId(placementId);
     setSelectedRoomId(undefined);
+    setSelectedStairsId(null);
+  };
+
+  const handleSelectStairs = (stairId: string) => {
+    setSelectedStairsId(stairId);
+    setSelectedPlacementId(null);
+    setSelectedRoomId(undefined);
   };
 
   const handleCanvasClick = (point: { x: number; y: number }) => {
+    if (activeStairsDirection && selectedFloor) {
+      const floorIndex = Math.max(
+        0,
+        floorplan.floors.findIndex((floor) => floor.id === selectedFloor.id),
+      );
+      const snappedPoint = { x: snapToGrid(point.x), y: snapToGrid(point.y) };
+      const updated = addStairs(floorplan, {
+        floorId: selectedFloor.id,
+        floorIndex,
+        position: snappedPoint,
+        direction: activeStairsDirection,
+      });
+      const nextStair = updated.stairs[updated.stairs.length - 1];
+      setFloorplan(updated);
+      setSelectedStairsId(nextStair?.id ?? null);
+      setSelectedPlacementId(null);
+      setSelectedRoomId(undefined);
+      setActiveStairsDirection(null);
+      return;
+    }
+
     if (!activeDeviceKey || !selectedFloor) {
       setSelectedRoomId(undefined);
       setSelectedPlacementId(null);
+      setSelectedStairsId(null);
       return;
     }
     const item = DEVICE_CATALOG[activeDeviceKey];
@@ -593,6 +647,7 @@ const HomeSecurityPlanner = () => {
     setFloorplan((prev) => ({ ...prev, placements: [...prev.placements, placement] }));
     setSelectedPlacementId(placement.id);
     setSelectedRoomId(undefined);
+    setSelectedStairsId(null);
   };
 
   const updatePlacement = (placementId: string, updates: Partial<FloorplanPlacement>) => {
@@ -744,17 +799,26 @@ const HomeSecurityPlanner = () => {
     }
   };
 
+  const handleRemoveStairs = (stairId: string) => {
+    setFloorplan((prev) => removeStairsById(prev, stairId));
+    if (selectedStairsId === stairId) {
+      setSelectedStairsId(null);
+    }
+  };
+
   const handleResetMap = () => {
     const reset = createEmptyFloorplan(wizardFloors);
     setFloorplan(reset);
     setSelectedFloorId(reset.floors[0]?.id ?? 'floor-1');
     setSelectedRoomId(undefined);
     setSelectedPlacementId(null);
+    setSelectedStairsId(null);
     setActiveDeviceKey(null);
+    setActiveStairsDirection(null);
   };
 
   useEffect(() => {
-    if (!selectedPlacementId && !selectedRoomId) return;
+    if (!selectedPlacementId && !selectedRoomId && !selectedStairsId) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Delete' && event.key !== 'Backspace') return;
       const target = event.target as HTMLElement | null;
@@ -763,13 +827,15 @@ const HomeSecurityPlanner = () => {
       event.preventDefault();
       if (selectedPlacementId) {
         handleRemovePlacement(selectedPlacementId);
+      } else if (selectedStairsId) {
+        handleRemoveStairs(selectedStairsId);
       } else if (selectedRoomId) {
         handleDeleteRoom(selectedRoomId);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleDeleteRoom, handleRemovePlacement, selectedPlacementId, selectedRoomId]);
+  }, [handleDeleteRoom, handleRemovePlacement, handleRemoveStairs, selectedPlacementId, selectedRoomId, selectedStairsId]);
 
   const tierComparisonNote = useMemo(() => {
     if (!plan || plan.coverage.status !== 'gap') return null;
@@ -1307,10 +1373,13 @@ const HomeSecurityPlanner = () => {
                     <FloorplanCanvas
                       floor={selectedFloor}
                       placements={floorPlacements}
+                      stairs={floorStairs}
                       selectedRoomId={selectedRoomId}
                       selectedPlacementId={selectedPlacementId}
+                      selectedStairsId={selectedStairsId}
                       onSelectRoom={handleSelectRoom}
                       onSelectPlacement={handleSelectPlacement}
+                      onSelectStairs={handleSelectStairs}
                       onUpdatePlacement={updatePlacement}
                       onCanvasClick={handleCanvasClick}
                       coverageOverlay={coverageOverlay}
@@ -1493,7 +1562,10 @@ const HomeSecurityPlanner = () => {
                         <button
                           key={deviceKey}
                           type="button"
-                          onClick={() => setActiveDeviceKey(deviceKey)}
+                          onClick={() => {
+                            setActiveDeviceKey(deviceKey);
+                            setActiveStairsDirection(null);
+                          }}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -1534,7 +1606,58 @@ const HomeSecurityPlanner = () => {
                       <button
                         type="button"
                         className="btn btn-link"
-                        onClick={() => setActiveDeviceKey(null)}
+                        onClick={() => {
+                          setActiveDeviceKey(null);
+                          setActiveStairsDirection(null);
+                        }}
+                        style={{ justifySelf: 'start' }}
+                      >
+                        Clear tool
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gap: '0.6rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <strong>Add stairs</strong>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {(['up', 'down'] as FloorplanStairDirection[]).map((direction) => {
+                      const isActive = activeStairsDirection === direction;
+                      return (
+                        <button
+                          key={direction}
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setActiveStairsDirection(isActive ? null : direction);
+                            setActiveDeviceKey(null);
+                          }}
+                          style={{
+                            borderColor: isActive ? 'rgba(108, 246, 255, 0.65)' : undefined,
+                            boxShadow: isActive ? '0 0 10px rgba(108, 246, 255, 0.25)' : undefined,
+                          }}
+                        >
+                          Stairs {direction}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activeStairsDirection ? (
+                    <div style={{ display: 'grid', gap: '0.25rem' }}>
+                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.85)' }}>
+                        Click the map to drop stairs {activeStairsDirection}.
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-link"
+                        onClick={() => setActiveStairsDirection(null)}
                         style={{ justifySelf: 'start' }}
                       >
                         Clear tool
@@ -1545,12 +1668,20 @@ const HomeSecurityPlanner = () => {
 
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                    <strong>Placement details</strong>
+                    <strong>Selection details</strong>
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      onClick={() => selectedPlacementId && handleRemovePlacement(selectedPlacementId)}
-                      disabled={!selectedPlacementId}
+                      onClick={() => {
+                        if (selectedPlacementId) {
+                          handleRemovePlacement(selectedPlacementId);
+                          return;
+                        }
+                        if (selectedStairsId) {
+                          handleRemoveStairs(selectedStairsId);
+                        }
+                      }}
+                      disabled={!selectedPlacementId && !selectedStairsId}
                     >
                       Delete selected
                     </button>
@@ -1615,8 +1746,20 @@ const HomeSecurityPlanner = () => {
                         </label>
                       ) : null}
                     </div>
+                  ) : selectedStairs ? (
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <div style={{ display: 'grid', gap: '0.2rem' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>Type</span>
+                        <strong>Stairs {selectedStairs.direction}</strong>
+                      </div>
+                      <span style={{ fontSize: '0.85rem', color: 'rgba(214, 233, 248, 0.75)' }}>
+                        Floor {selectedStairs.floorIndex + 1}
+                      </span>
+                    </div>
                   ) : (
-                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>Select a placement to edit it.</p>
+                    <p style={{ margin: 0, color: 'rgba(214, 233, 248, 0.75)' }}>
+                      Select a placement or stairs marker to edit it.
+                    </p>
                   )}
                 </div>
 

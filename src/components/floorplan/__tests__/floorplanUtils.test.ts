@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { isWallAnchored } from '../deviceCatalog';
-import { autoSnapToNearestWall, getDefaultWindowGroundLevel, getPlacementRotation, getWindowMarkerVisual } from '../floorplanUtils';
+import {
+  autoSnapToNearestWall,
+  getDefaultWindowGroundLevel,
+  getHallwaySurfaceStyle,
+  getPlacementRotation,
+  getWindowMarkerVisual,
+} from '../floorplanUtils';
 
 describe('floorplan utils', () => {
   it('identifies wall-anchored devices', () => {
@@ -52,5 +58,12 @@ describe('floorplan utils', () => {
     expect(groundLevel.thickness).toBeGreaterThan(standard.thickness);
     expect(groundLevel.boxShadow).not.toBe(standard.boxShadow);
     expect(glassBlock.backgroundImage).toContain('repeating-linear-gradient');
+  });
+
+  it('builds a muted hallway surface style', () => {
+    const style = getHallwaySurfaceStyle();
+    expect(style.backgroundColor).toContain('rgba');
+    expect(style.backgroundImage).toContain('radial-gradient');
+    expect(style.backgroundSize).toBe('12px 12px');
   });
 });

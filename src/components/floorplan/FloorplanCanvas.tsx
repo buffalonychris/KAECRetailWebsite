@@ -6,6 +6,7 @@ import {
   autoSnapToNearestWall,
   clampPointToRect,
   findRoomAtPoint,
+  getHallwaySurfaceStyle,
   getPlacementRotation,
   getWallInsetPosition,
   getWindowMarkerVisual,
@@ -15,6 +16,7 @@ import {
 import CoverageOverlay from './CoverageOverlay';
 import type { FloorplanCoverageOverlay } from '../../lib/homeSecurityPlanner/coverageModel';
 import FloorplanFurnishings from './FloorplanFurnishings';
+import type { FloorplanStair } from './floorplanState';
 
 const canvasStyles = {
   background: 'rgba(15, 19, 32, 0.6)',
@@ -39,10 +41,13 @@ const surfaceStyles = {
 type FloorplanCanvasProps = {
   floor: FloorplanFloor;
   placements?: FloorplanPlacement[];
+  stairs?: FloorplanStair[];
   selectedRoomId?: string;
   selectedPlacementId?: string | null;
+  selectedStairsId?: string | null;
   onSelectRoom: (id: string) => void;
   onSelectPlacement?: (id: string) => void;
+  onSelectStairs?: (id: string) => void;
   onCanvasClick?: (point: { x: number; y: number }) => void;
   onUpdatePlacement?: (placementId: string, updates: Partial<FloorplanPlacement>) => void;
   onUpdateRoomRect?: (id: string, rect: { x: number; y: number; w: number; h: number }) => void;
@@ -79,10 +84,13 @@ const DRAG_THRESHOLD = 4;
 const FloorplanCanvas = ({
   floor,
   placements = [],
+  stairs = [],
   selectedRoomId,
   selectedPlacementId,
+  selectedStairsId,
   onSelectRoom,
   onSelectPlacement,
+  onSelectStairs,
   onCanvasClick,
   onUpdatePlacement,
   onUpdateRoomRect,
@@ -126,6 +134,16 @@ const FloorplanCanvas = ({
       </div>
       <div style={{ marginTop: '0.75rem', ...viewportStyles, height, width }}>
         <div ref={viewportRef} style={surfaceStyles} onClick={handleSurfaceClick}>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '0.75rem',
+              pointerEvents: 'none',
+              ...getHallwaySurfaceStyle(),
+            }}
+          />
           {showFurnishings ? <FloorplanFurnishings floor={floor} /> : null}
           {coverageOverlay ? <CoverageOverlay floor={floor} overlay={coverageOverlay} /> : null}
           {floor.rooms.map((room) => {
@@ -236,6 +254,53 @@ const FloorplanCanvas = ({
                     </span>
                   );
                 })}
+              </button>
+            );
+          })}
+          {stairs.map((stair) => {
+            const isSelected = stair.id === selectedStairsId;
+            const isUp = stair.direction === 'up';
+            return (
+              <button
+                key={stair.id}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelectStairs?.(stair.id);
+                }}
+                title={`Stairs ${stair.direction}`}
+                style={{
+                  position: 'absolute',
+                  left: stair.position.x,
+                  top: stair.position.y,
+                  transform: 'translate(-50%, -50%)',
+                  padding: '0.35rem 0.4rem',
+                  borderRadius: '0.6rem',
+                  border: isSelected ? '1px solid rgba(108, 246, 255, 0.75)' : '1px solid rgba(255, 255, 255, 0.16)',
+                  background: 'rgba(16, 20, 32, 0.82)',
+                  color: 'rgba(214, 233, 248, 0.9)',
+                  boxShadow: isSelected ? '0 0 10px rgba(108, 246, 255, 0.4)' : 'none',
+                  display: 'grid',
+                  gap: '0.2rem',
+                  zIndex: 2,
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ display: 'grid', gap: '2px' }}>
+                  {[0, 1, 2].map((step) => (
+                    <span
+                      key={`stair-${stair.id}-${step}`}
+                      style={{
+                        width: 16 - step * 3,
+                        height: 3,
+                        borderRadius: '999px',
+                        background: 'rgba(214, 233, 248, 0.75)',
+                        justifySelf: 'start',
+                      }}
+                    />
+                  ))}
+                </span>
+                <span style={{ fontSize: '0.65rem', letterSpacing: '0.04em' }}>{isUp ? '↑' : '↓'}</span>
               </button>
             );
           })}
