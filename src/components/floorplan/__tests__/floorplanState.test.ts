@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { HomeSecurityFloorplan } from '../../../lib/homeSecurityFunnel';
-import { removePlacementById, removeRoomById } from '../floorplanState';
+import { addStairs, removePlacementById, removeRoomById, removeStairsById, type HomeSecurityFloorplanWithStairs } from '../floorplanState';
 
 const baseFloorplan: HomeSecurityFloorplan = {
   version: 'v1',
@@ -42,6 +42,11 @@ const baseFloorplan: HomeSecurityFloorplan = {
   ],
 };
 
+const baseFloorplanWithStairs: HomeSecurityFloorplanWithStairs = {
+  ...baseFloorplan,
+  stairs: [],
+};
+
 describe('floorplan state', () => {
   it('removes a placement by id', () => {
     const updated = removePlacementById(baseFloorplan, 'placement-2');
@@ -54,5 +59,29 @@ describe('floorplan state', () => {
     expect(updated.floors[0]?.rooms).toHaveLength(0);
     expect(updated.placements).toHaveLength(1);
     expect(updated.placements[0]?.id).toBe('placement-2');
+  });
+
+  it('adds stairs with the correct direction and floor index', () => {
+    const updated = addStairs(baseFloorplanWithStairs, {
+      floorId: 'floor-1',
+      floorIndex: 0,
+      position: { x: 40, y: 60 },
+      direction: 'up',
+    });
+    expect(updated.stairs).toHaveLength(1);
+    expect(updated.stairs[0]?.direction).toBe('up');
+    expect(updated.stairs[0]?.floorIndex).toBe(0);
+  });
+
+  it('removes stairs by id', () => {
+    const updated = addStairs(baseFloorplanWithStairs, {
+      id: 'stairs-1',
+      floorId: 'floor-1',
+      floorIndex: 0,
+      position: { x: 40, y: 60 },
+      direction: 'down',
+    });
+    const removed = removeStairsById(updated, 'stairs-1');
+    expect(removed.stairs).toHaveLength(0);
   });
 });

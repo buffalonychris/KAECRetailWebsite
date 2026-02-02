@@ -158,3 +158,10 @@ export const getWindowMarkerVisual = ({
     badge,
   };
 };
+
+export const getHallwaySurfaceStyle = () => ({
+  backgroundColor: 'rgba(12, 15, 26, 0.72)',
+  backgroundImage:
+    'radial-gradient(circle at 1px 1px, rgba(160, 182, 210, 0.08) 0, rgba(160, 182, 210, 0.08) 1px, transparent 1.2px)',
+  backgroundSize: '12px 12px',
+});
