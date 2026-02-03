@@ -362,6 +362,7 @@ const HomeSecurityPlanner = () => {
   const [roomWidthInput, setRoomWidthInput] = useState('');
   const [roomDepthInput, setRoomDepthInput] = useState('');
   const navigate = useNavigate();
+  const workspaceHeight = 'max(620px, calc(100vh - 320px))';
 
   const exteriorDoors = draft.exteriorDoors ?? [];
   const priorities = draft.priorities ?? [];
@@ -625,6 +626,11 @@ const HomeSecurityPlanner = () => {
       document.removeEventListener('mousedown', handlePointerDown);
     };
   }, [dockOpen]);
+
+  useEffect(() => {
+    if (!activeDeviceKey) return;
+    setDockOpen('right');
+  }, [activeDeviceKey]);
 
   useEffect(() => {
     updateRetailFlow({ homeSecurity: { floorplan } });
@@ -1239,8 +1245,21 @@ const HomeSecurityPlanner = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'stretch' }}>
-            <div ref={leftDockRef} style={{ display: 'flex', alignItems: 'stretch', gap: '0.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.75rem',
+              alignItems: 'stretch',
+              width: '100%',
+              minWidth: 0,
+              height: workspaceHeight,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              ref={leftDockRef}
+              style={{ display: 'flex', alignItems: 'stretch', gap: '0.5rem', flex: '0 0 auto', height: '100%', minHeight: 0 }}
+            >
               <div
                 style={{
                   display: 'grid',
@@ -1279,8 +1298,12 @@ const HomeSecurityPlanner = () => {
                     background: 'rgba(15, 19, 32, 0.75)',
                     display: 'grid',
                     gap: '1rem',
-                    width: 'min(100%, 320px)',
-                    minWidth: 'min(100%, 280px)',
+                    width: 320,
+                    minWidth: 280,
+                    maxWidth: 320,
+                    height: '100%',
+                    minHeight: 0,
+                    overflowY: 'auto',
                   }}
                 >
                   <div style={{ display: 'grid', gap: '0.5rem' }}>
@@ -1913,7 +1936,17 @@ const HomeSecurityPlanner = () => {
               ) : null}
             </div>
 
-            <div style={{ minWidth: 0, flex: '1 1 640px', display: 'grid', gap: '0.75rem' }}>
+            <div
+              style={{
+                minWidth: 0,
+                flex: '1 1 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                height: '100%',
+                minHeight: 0,
+              }}
+            >
               <div
                 style={{
                   display: 'flex',
@@ -1948,7 +1981,7 @@ const HomeSecurityPlanner = () => {
                   </span>
                 ) : null}
               </div>
-              <div style={{ minWidth: 0, width: '100%' }}>
+              <div style={{ minWidth: 0, width: '100%', flex: 1, minHeight: 0 }}>
                 {selectedFloor ? (
                   <div ref={plannerExportRef} style={{ minWidth: 0, width: '100%' }}>
                     <FloorplanCanvas
@@ -1977,7 +2010,15 @@ const HomeSecurityPlanner = () => {
 
             <div
               ref={rightDockRef}
-              style={{ display: 'flex', alignItems: 'stretch', gap: '0.5rem', flexDirection: 'row-reverse' }}
+              style={{
+                display: 'flex',
+                alignItems: 'stretch',
+                gap: '0.5rem',
+                flexDirection: 'row-reverse',
+                flex: '0 0 auto',
+                height: '100%',
+                minHeight: 0,
+              }}
             >
               <div
                 style={{
@@ -2017,8 +2058,12 @@ const HomeSecurityPlanner = () => {
                     background: 'rgba(15, 19, 32, 0.75)',
                     display: 'grid',
                     gap: '1rem',
-                    width: 'min(100%, 320px)',
-                    minWidth: 'min(100%, 280px)',
+                    width: 320,
+                    minWidth: 280,
+                    maxWidth: 320,
+                    height: '100%',
+                    minHeight: 0,
+                    overflowY: 'auto',
                   }}
                 >
                   <div
